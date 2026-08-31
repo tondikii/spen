@@ -16,29 +16,18 @@ Spen adalah aplikasi mobile budget planner dengan AI, semua data lokal di perang
 
 ## 2. Prinsip Desain
 
-1. **Ketenangan finansial (calm finance)**: UI harus terasa tenang, teratur, dan tidak menegangkan — pengguna datang untuk mengelola uang, bukan untuk ditekan. Hindari merah mencolok untuk hal-hal yang bukan error.
-2. **Angka adalah raja**: nominal uang adalah elemen paling penting di setiap layar. Tampilkan besar, jelas, dan konsisten. Gunakan format angka Indonesia (contoh: `Rp 2.500.000`).
-3. **Satu aksi utama per layar**: setiap layar punya satu primary action yang jelas (misal "Tambah Transaksi", "Simpan Rencana").
-4. **Konsistensi visual**: gunakan design system yang sama di semua layar (spacing, radius, tipografi, warna). Tema **light/dark** harus didukung sejak awal.
-5. **Bahasa Indonesia yang natural**: label, tombol, dan empty state dalam Bahasa Indonesia yang alami, bukan terjemahan kaku.
+Prinsip visual (calm finance, angka adalah raja, semantic colors income/expense/transfer, tema light/dark) didefinisikan dan dijaga di **`docs/design/DESIGN.md`** (brand contract) + `docs/design/design-tokens.md` (slot token tanpa nilai). File ini fokus pada produk & UX; bahasa visual merujuk ke DESIGN.md dan tidak diduplikasi di sini.
 
 ---
 
-## 3. Bahasa Visual & Komponen
+## 3. Komponen (perilaku fungsional)
 
-- **Tipografi**: gunakan font modern yang bersih dan mudah dibaca untuk angka (tabular numbers penting untuk nominal). Judul jelas, body ringan.
-- **Warna**:
-  - **Warna utama (brand)**: pilih warna yang menenangkan dan tepercaya — biru/hijau/teal adalah kandidat kuat. Hindari warna "murahan".
-  - **Semantik** (penting, konsisten):
-    - **Income → success** (hijau)
-    - **Expense → error** (merah)
-    - **Transfer → warning** (kuning/oranye)
-  - **Tema light/dark**: kedua tema harus didesain sejak awal, dengan kontras yang cukup dan tidak silau.
-- **Ikon**: setiap kategori transaksi punya ikon (misal makanan, transportasi, gaji, hiburan). Ikon harus konsisten dan mudah dikenali.
-- **Komponen utama**: kartu wallet, kartu ringkasan budget, progress bar (untuk alokasi budget & goal), pie chart, line chart, list transaksi, bottom sheet / modal untuk input, tombol **+** tengah (floating action di tab bar) untuk tambah transaksi, **kategori picker**.
-- **Kategori picker**: komponen pemilih kategori yang muncul di form create transaksi dan di layar Rencana. Perilaku:
-  - **Filter sesuai tipe**: saat membuat transaksi income → hanya kategori income; transaksi expense → hanya kategori expense; **transfer → tidak ada picker kategori** (memakai satu kategori transfer global otomatis).
-  - **Inline create/update/delete**: dari dalam picker, user bisa membuat kategori baru, mengedit, dan menghapus/arsip kategori tanpa keluar dari form. Hapus = arsip jika kategori sudah dipakai transaksi (transaksi lama tetap valid).
+Gaya visual komponen (kartu, progress bar, chart, sheet, modal, tab bar, ikon) ada di `docs/design/DESIGN.md`. Yang perlu desainer tahu soal **perilaku**:
+
+- **Kategori picker**: muncul di form create transaksi dan layar Rencana. **Filter sesuai tipe**: income → hanya kategori income; expense → hanya kategori expense; **transfer → tidak ada picker kategori** (memakai satu kategori transfer global otomatis). **Inline create/update/delete**: user bisa buat/edit/hapus kategori tanpa keluar dari form; hapus = arsip jika sudah dipakai transaksi (transaksi lama tetap valid).
+- **Tab bar**: 5 slot `Beranda | Rencana | [+] | Report | Settings`; **+** tengah = create transaksi (aksi utama, paling menonjol).
+- **Chart**: pie chart (expense per kategori), line chart (net saving per periode).
+- **Ikon kategori**: tiap kategori punya ikon (makanan, transportasi, gaji, hiburan) — konsisten dan mudah dikenali.
 
 ---
 
@@ -56,7 +45,7 @@ Spen adalah aplikasi mobile budget planner dengan AI, semua data lokal di perang
    - **Transaksi terbaru**: list pendek (misal 5, transaksi terbaru) + "Lihat Semua" → buka **view transaksi harian** (daily + stepper).
 2. **Rencana (Plan)** — budget plan bulan ini. Struktur:
    - **Header**: judul "Rencana" + label periode `[1–30 Sep ▾]` (tap → modal ubah tanggal mulai Budget period) + tombol **✨ AI Suggestion** di header (selalu kelihatan).
-   - **Hero spare budget**: angka besar + breakdown kecil (pendapatan − fixed expense − kontribusi goal).
+   - **Hero**: saldo tersedia (realita) yang dipecah menjadi **Tersedia bebas** (total saldo − saldo wallet goal) dan **Terikat goal**, plus **spare budget** (angka rencana) sebagai elemen terpisah + breakdown kecil (pendapatan − fixed expense − kontribusi goal).
    - **Section cards**: Pendapatan, Fixed Expense, Goal, Alokasi — tiap section punya header + tombol "+ Tambah".
    - **Fixed expense item**: progress + status bayar ("Lunas ✓", "x/y dibayar", "Belum dibayar") + tombol **"Bayar"** (buka sheet: pilih wallet → nominal default sisa, bisa diubah → konfirmasi → buat transaksi expense). **Fixed expense = alokasi**: progress terisi dari transaksi kategori; tidak ada transaksi otomatis.
    - **Goal item**: progress (saved/target) + kontribusi bulanan.
@@ -101,7 +90,7 @@ Spen adalah aplikasi mobile budget planner dengan AI, semua data lokal di perang
 3. **Kelola wallet**: di Beranda → tap kartu wallet → detail bottom sheet (lihat saldo, edit, arsip). "+ Tambah Wallet" → form full-screen modal. Hapus permanen hanya jika wallet kosong; jika sudah dipakai → arsip.
 4. **Lihat transaksi**: di Beranda → "Lihat Semua" → **view transaksi harian** (daily + stepper): `‹` `›` geser hari, tap label tanggal → **calendar picker** (lompat), lihat ringkasan & list transaksi hari itu. "Lihat Semua Transaksi" (di bagian bawah) → **layar riwayat** (grouped by day, infinite scroll, filter chips; ciut ke tombol "Filter" jika penuh).
 5. **Tambah fixed expense**: buka Rencana → tambah fixed expense → pilih kategori → isi nominal → simpan. (Progress terisi dari transaksi kategori; tombol "Bayar" untuk bayar langsung.)
-6. **Tambah goal**: buka Rencana → tambah goal → isi nama, target nominal, jangka waktu, jumlah sudah terkumpul → simpan. Progress goal terlihat.
+6. **Tambah goal**: buka Rencana → tambah goal → isi nama, target nominal, jangka waktu, pilih/buat wallet tabungan (wallet goal) → simpan. Menabung = transaksi transfer ke wallet goal; progress = saldo wallet goal.
 7. **AI Suggestion**: buka Rencana → tap "AI Suggestion" → (loading) → lihat saran alokasi spare budget dalam Bahasa Indonesia.
 8. **Lihat report**: buka Report → pilih periode → lihat ringkasan, pie chart, line chart → tap kategori di pie → drill-down transaksi (layar riwayat dengan filter kategori + scope periode) → tap "AI Insight" → lihat analisis.
 9. **Transfer**: tap **+** → pilih tipe transfer → pilih wallet asal & tujuan → isi nominal → simpan. Netral terhadap total kekayaan.
@@ -116,7 +105,7 @@ Spen adalah aplikasi mobile budget planner dengan AI, semua data lokal di perang
 - Fixed expense: **berperilaku seperti alokasi** — progress terisi dari transaksi kategori; **tidak ada transaksi otomatis**; pembayaran via transaksi biasa atau tombol "Bayar" di Rencana (bisa sebagian).
 - Kategori: income & expense di-seed otomatis, bisa diedit/ditambah/dihapus; transfer punya satu kategori global. Kategori yang sudah dipakai di-archive.
 - Over budget: transaksi boleh melebihi alokasi plan, progress > 100% ditandai (merah/over-budget state); saat input transaksi yang membuat over-budget, tampilkan peringatan lembut (tetap diizinkan).
-- Goal: target + jangka waktu (opsional) + sudah terkumpul → progress; saat tercapai ditandai "Tercapai" dan berhenti dihitung di spare.
+- Goal: target + jangka waktu (opsional) + wallet tabungan sendiri (wallet goal, flag tabungan) → progress = saldo wallet goal; menabung = transaksi transfer ke wallet goal (saldo asal turun, saldo goal naik); penarikan darurat diperbolehkan dengan konfirmasi. Saat saldo wallet goal ≥ target ditandai "Tercapai" dan berhenti dihitung di spare.
 - Net saving negatif = "Defisit" (merah).
 - Report: ringkasan (income/expense/net saving), pie expense per kategori (urutan terbesar, drill-down), line chart net saving per periode (default 3 bulan, pilih rentang), AI insight.
 - AI (Groq): suggestion & insight dipicu manual, satu-shot, read-only, Bahasa Indonesia; fallback deterministik saat offline.
@@ -150,3 +139,5 @@ Mohon hasilkan, minimal:
 
 - `CONTEXT.md` — glossary domain (istilah: Wallet, Budget plan, Budget period, Fixed expense, Goal, Category, Spare budget, Net saving, Transfer, dll). **Gunakan istilah ini secara konsisten.**
 - `docs/spec.md` — spec lengkap (48 user stories, implementation decisions, testing decisions).
+- `docs/design/DESIGN.md` — brand contract visual (calm finance, semantic colors, tipografi, komponen, states).
+- `docs/design/design-tokens.md` — slot token & peran (tanpa nilai); nilai dipilih design agent saat render.
