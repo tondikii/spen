@@ -4,21 +4,24 @@ Kumpulan prompt untuk AI design agents. Gunakan bersama `docs/design-brief.md`, 
 
 **Urutan yang disarankan:** Stitch (gratis, mobile-first, mockup cepat) → Open Design (HTML/CSS + design tokens, paling gampang diimplement ke RN) → Figma Make (prototype fungsional + code, tapi kredit mahal).
 
-## Cara pakai
+## Cara pakai (penting — baca dulu)
 
-- Setiap prompt di bawah bisa dipakai langsung (copy-paste) atau diedit sesuai kebutuhan.
+- **JANGAN pakai plan mode** — semua prompt di bawah sudah lengkap & detail untuk **langsung build** (direct-build), jadi nggak perlu plan dulu. Plan mode malah boros credit/limit (free tier kena batas).
+- Setiap prompt di bawah **langsung menghasilkan** semua layar + design system + state penting dalam satu shot. Ini menghemat limit.
+- **Hemat limit**: jangan regenerate dari nol; untuk perubahan kecil, refine dengan percakapan (Stitch/Open Design) atau point-and-edit/edit code (Figma Make).
 - Selalu attach `docs/design-brief.md` sebagai konteks utama (atau tempel isinya).
-- Untuk iterasi, jangan regenerate dari nol — refine dengan percakapan.
+- Kalau hasilnya kurang pas, **refine per-layar** (pakai "Prompt lanjutan" di bawah), bukan generate ulang semua.
 
 ---
 
 ## 1. Stitch (Google Labs) — stitch.withgoogle.com
 
-### Prompt utama (mulai di sini)
+### Prompt utama (mulai di sini) — langsung build semua layar
 
 ```
 Bantu aku mendesain "Spen", aplikasi mobile AI budget planner berbahasa Indonesia.
 Setel mode layout ke MOBILE. Gunakan mobile phone frame (iPhone 15/16 & Pixel).
+LANGSUNG hasilkan semua layar di bawah dalam satu shot — jangan tanya-tanya dulu, jangan pakai plan mode.
 
 KONTEKS PRODUK:
 - Multi-wallet (wallet dinamai bebas: Tunai, BCA, GoPay — tanpa tipe). Satu budget plan global per bulan; tanggal mulai periode bisa diubah langsung di layar Rencana.
@@ -108,11 +111,12 @@ Hasilkan HTML/CSS yang bisa dipreview, plus tokens.css + manifest.json.
 
 ## 3. Figma Make — figma.com/make
 
-### Prompt utama (disarankan; relevansi ditingkatkan untuk Figma Make)
+### Prompt utama (disarankan) — langsung build prototype fungsional
 
 ```
 Bantu aku mendesain "Spen", aplikasi mobile AI budget planner berbahasa Indonesia.
 Buat prototype fungsional mobile app, bukan static mockup.
+LANGSUNG hasilkan semua layar + interaktivitas di bawah dalam satu shot — jangan tanya-tanya dulu, jangan pakai plan mode (free tier, hemat credit).
 
 KONTEKS PRODUK (baca file terlampir: design-brief.md, spec.md, CONTEXT.md):
 - Multi-wallet (wallet dinamai bebas: Tunai, BCA, GoPay — tanpa tipe). Satu budget plan global per bulan; tanggal mulai periode bisa diubah langsung di layar Rencana.
@@ -161,7 +165,6 @@ INTERAKTIVITAS (penting untuk prototype fungsional):
 
 STATE PENTING: empty state (belum ada transaksi), loading (AI), over-budget (>100%), defisit (net saving negatif, merah), goal tercapai, error.
 Gunakan istilah domain: Wallet, Budget plan, Fixed expense, Goal, Spare budget, Net saving.
-Gunakan plan mode dulu untuk hemat credit (lebih murah daripada rework).
 ```
 
 ### Prompt alternatif (lebih ringkas, hemat credit — kalau sudah puas dengan Stitch)
@@ -169,9 +172,9 @@ Gunakan plan mode dulu untuk hemat credit (lebih murah daripada rework).
 ```
 Baca file terlampir: design-brief.md, spec.md, CONTEXT.md.
 Buat prototype fungsional mobile app "Spen" — AI budget planner Bahasa Indonesia.
-Semua layar dari brief bagian 4, tema light + dark, semantic color (income=success,
-expense=error, transfer=warning), angka besar format Rp 2.500.000.
-Gunakan plan mode dulu (hemat credit). Hasilkan: layout + theme + interaktivitas
+LANGSUNG build semua layar dari brief bagian 4 dalam satu shot (tanpa plan mode, hemat credit).
+Tema light + dark, semantic color (income=success, expense=error, transfer=warning),
+angka besar format Rp 2.500.000. Hasilkan: layout + theme + interaktivitas
 (full-screen modal create transaksi, tab bar 5 slot dengan **+** tengah, view transaksi
 harian daily + stepper + calendar picker, drill-down pie chart).
 ```
@@ -188,7 +191,7 @@ Perbaiki [LAYAR/STATE] di prototype:
 
 ### Catatan khusus Figma Make
 
-- **Plan mode dulu** untuk build kompleks (lebih mahal di awal, tapi lebih murah daripada rework).
+- **JANGAN pakai plan mode** — free tier kena limit; semua prompt sudah direct-build, langsung hasilkan dalam satu shot.
 - **Gunakan model yang tepat**: Auto (default), Claude Opus (fidelity/ketepatan), Gemini Flash (cepat/murah untuk tweak kecil).
 - **Hemat credit**: prefer point-and-edit / edit code langsung untuk perubahan kecil; scope context (frame vs screenshot); jangan biarkan chat history menggelembung (start fresh/duplicate file kalau perlu).
 - **Attach `guidelines.md`** di code editor untuk standing instructions (design system + istilah domain).
