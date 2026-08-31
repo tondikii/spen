@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(gh:*)",
+      "Shell(where gh 2>&1; echo \"exit=$?\")",
+      "Shell(winget:*)",
+      "powershell"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}
