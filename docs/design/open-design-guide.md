@@ -111,6 +111,8 @@ Gunakan design system Spen: baca docs/design/DESIGN.md + docs/design/design-toke
 (slot token tanpa nilai — isi nilainya sendiri, konsisten).
 Buat prototype mobile (template mobile-app, archetype [A-F]) untuk layar: [NAMA].
 Baca seed assets/template.html + references/layouts.md; jangan tulis ulang frame-nya.
+Juga baca untuk akurasi domain & konten: CONTEXT.md (glossary), docs/spec.md (user stories
+& keputusan), docs/design-brief.md (produk & UX). Gunakan istilah & perilaku fitur yang benar dari sana.
 
 KONTEKS PRODUK:
 - [fitur & data yang tampil di layar ini, pakai istilah domain: Wallet, Budget plan,
@@ -140,6 +142,8 @@ Gunakan design system Spen: baca docs/design/DESIGN.md + docs/design/design-toke
 (slot token tanpa nilai — isi nilainya sendiri, konsisten).
 Buat prototype mobile (template mobile-app, archetype F — Focus/hero, adaptasi) untuk layar: Beranda.
 Baca seed assets/template.html + references/layouts.md; jangan tulis ulang frame-nya.
+Juga baca untuk akurasi domain & konten: CONTEXT.md (glossary), docs/spec.md (user stories
+& keputusan), docs/design-brief.md (produk & UX). Gunakan istilah & perilaku fitur yang benar dari sana.
 
 KONTEKS PRODUK:
 - Aplikasi budget planner Bahasa Indonesia. Multi-wallet (Tunai, BCA, GoPay), satu Budget plan global per periode.
