@@ -4,7 +4,16 @@ import { Fonts, type ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type ThemedTextProps = TextProps & {
-  type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code';
+  type?:
+    | 'default'
+    | 'title'
+    | 'small'
+    | 'smallBold'
+    | 'subtitle'
+    | 'sectionHeading'
+    | 'link'
+    | 'linkPrimary'
+    | 'code';
   themeColor?: ThemeColor;
 };
 
@@ -20,6 +29,7 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
         type === 'small' && styles.small,
         type === 'smallBold' && styles.smallBold,
         type === 'subtitle' && styles.subtitle,
+        type === 'sectionHeading' && styles.sectionHeading,
         type === 'link' && styles.link,
         type === 'linkPrimary' && { color: theme.pine },
         type === 'code' && styles.code,
@@ -57,6 +67,12 @@ const styles = StyleSheet.create({
     fontSize: 26,
     lineHeight: 31,
     letterSpacing: -1.04,
+  },
+  sectionHeading: {
+    fontFamily: Fonts.serifSemiBold,
+    fontSize: 18,
+    lineHeight: 22,
+    letterSpacing: -0.72,
   },
   link: {
     fontFamily: Fonts.sansMedium,

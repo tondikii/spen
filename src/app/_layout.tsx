@@ -29,7 +29,7 @@ function AppNavigation() {
   );
 }
 
-export default function TabLayout() {
+export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     DMMono_400Regular,
     DMMono_500Medium,
