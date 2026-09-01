@@ -168,7 +168,7 @@ function WalletForm(props: WalletFormProps) {
   );
 }
 
-export default function HomeScreen({ onTransactionPress }: { onTransactionPress?: (transaction: Transaction) => void } = {}) {
+export default function HomeScreen({ onTransactionPress, onDailyPress }: { onTransactionPress?: (transaction: Transaction) => void; onDailyPress?: () => void } = {}) {
   const [wallets, setWallets] = useState<Wallet[]>(getHomeWallets);
   const [formWallet, setFormWallet] = useState<Wallet | 'new' | null>(null);
   const recentTransactions = getHomeRecentTransactions();
@@ -193,7 +193,7 @@ export default function HomeScreen({ onTransactionPress }: { onTransactionPress?
           <WalletCards wallets={wallets} onSelect={(wallet) => setFormWallet(wallet)} onAdd={() => setFormWallet('new')} />
           <PlanSnapshot onPress={() => undefined} />
           <View style={styles.recent}>
-            <View style={styles.sectionTitle}><ThemedText type="sectionHeading">Terbaru</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Lihat Semua Transaksi" onPress={() => Alert.alert('Transaksi', 'View transaksi harian akan tersedia di layar Riwayat.')}><ThemedText type="smallBold" themeColor="pine">Lihat Semua</ThemedText></Pressable></View>
+            <View style={styles.sectionTitle}><ThemedText type="sectionHeading">Terbaru</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Lihat Semua Transaksi" onPress={onDailyPress ?? (() => Alert.alert('Transaksi', 'View transaksi harian akan tersedia di layar Riwayat.'))}><ThemedText type="smallBold" themeColor="pine">Lihat Semua</ThemedText></Pressable></View>
             {recentTransactions.map((transaction) => <RecentTransaction key={transaction.id} transaction={transaction} onPress={onTransactionPress ? () => onTransactionPress(transaction) : undefined} />)}
           </View>
         </ScrollView>
