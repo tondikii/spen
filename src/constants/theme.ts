@@ -163,8 +163,8 @@ export const Layout = {
   walletGap: 10,
   walletWidth: 119,
   walletHeight: 107,
-  walletAddWidth: 90,
-  walletAddHeight: 125,
+  walletAddWidth: 119,
+  walletAddHeight: 107,
 } as const;
 
 export const Shadows = {
