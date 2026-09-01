@@ -31,6 +31,10 @@ export function renameMockWallet(wallets: Wallet[], walletId: string, name: stri
   return wallets.map((wallet) => wallet.id === walletId ? { ...wallet, name } : wallet);
 }
 
+export function updateMockWallet(wallets: Wallet[], walletId: string, name: string, balance: number) {
+  return wallets.map((wallet) => wallet.id === walletId ? { ...wallet, name, balance } : wallet);
+}
+
 export function archiveMockWallet(wallets: Wallet[], walletId: string) {
   return wallets.filter((wallet) => wallet.id !== walletId);
 }

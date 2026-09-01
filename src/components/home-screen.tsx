@@ -16,7 +16,7 @@ import { BottomTabInset, Fonts, Layout, MaxContentWidth, Radius, Shadows, Spacin
 import type { Transaction, Wallet, WalletTint } from '@/types/domain';
 import { formatMoney } from '@/lib/money';
 import { useTheme } from '@/hooks/use-theme';
-import { addMockWallet, archiveMockWallet, getHomeRecentTransactions, getHomeSnapshot, getHomeWallets, getTransactionPresentation, getWalletTotal, renameMockWallet } from '@/services/home-service';
+import { addMockWallet, archiveMockWallet, getHomeRecentTransactions, getHomeSnapshot, getHomeWallets, getTransactionPresentation, getWalletTotal, updateMockWallet } from '@/services/home-service';
 
 const tintSequence: WalletTint[] = ['pine', 'coral', 'gold', 'goal'];
 
@@ -140,30 +140,28 @@ function RecentTransaction({ transaction }: { transaction: Transaction }) {
 
 type WalletFormProps =
   | { mode: 'create'; onClose: () => void; onSave: (name: string, balance: number) => void }
-  | { mode: 'edit'; wallet: Wallet; onClose: () => void; onSave: (name: string) => void; onArchive: () => void };
+  | { mode: 'edit'; wallet: Wallet; onClose: () => void; onSave: (name: string, balance: number) => void; onArchive: () => void };
 
 function WalletForm(props: WalletFormProps) {
   const theme = useTheme();
   const wallet = props.mode === 'edit' ? props.wallet : undefined;
   const [name, setName] = useState(wallet?.name ?? '');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(wallet ? String(wallet.balance) : '');
   return (
     <Modal animationType="slide" visible onRequestClose={props.onClose}>
       <ThemedView style={styles.formPage}>
         <View style={[styles.formHeader, { borderBottomColor: theme.line }]}>
           <Pressable accessibilityRole="button" accessibilityLabel="Tutup form Wallet" onPress={props.onClose} style={styles.headerButton}><ThemedText type="subtitle" themeColor="pine">×</ThemedText></Pressable>
           <ThemedText type="sectionHeading">{props.mode === 'edit' ? 'Edit Wallet' : 'Wallet baru'}</ThemedText>
-          <Pressable accessibilityRole="button" accessibilityLabel="Simpan Wallet" onPress={() => props.mode === 'edit' ? props.onSave(name.trim() || 'Wallet baru') : props.onSave(name.trim() || 'Wallet baru', Number(amount) || 0)} style={styles.headerButton}><ThemedText type="smallBold" themeColor="pine">Simpan</ThemedText></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Simpan Wallet" onPress={() => props.onSave(name.trim() || 'Wallet baru', Number(amount) || 0)} style={styles.headerButton}><ThemedText type="smallBold" themeColor="pine">Simpan</ThemedText></Pressable>
         </View>
         <View style={styles.formContent}>
           <ThemedText type="small" themeColor="muted" style={styles.formNote}>Wallet adalah tempat uangmu disimpan.</ThemedText>
           <ThemedText type="code" themeColor="muted" style={styles.formLabel}>NAMA WALLET</ThemedText>
           <TextInput accessibilityLabel="Nama Wallet" placeholder="Mis. Jago, Tunai, GoPay" placeholderTextColor={theme.muted} value={name} onChangeText={setName} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} />
-          {props.mode === 'create' && <>
-            <ThemedText type="code" themeColor="muted" style={styles.formLabel}>SALDO AWAL</ThemedText>
-            <TextInput accessibilityLabel="Saldo awal" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={amount} onChangeText={setAmount} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} />
-          </>}
-          {props.mode === 'edit' && <Pressable accessibilityRole="button" accessibilityLabel="Arsipkan Wallet" onPress={props.onArchive} style={[styles.archiveButton, { borderColor: theme.expense }]}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan Wallet</ThemedText><ThemedText type="small" themeColor="muted">Transaksi tetap tersimpan</ThemedText></Pressable>}
+          <ThemedText type="code" themeColor="muted" style={styles.formLabel}>{props.mode === 'edit' ? 'SALDO SAAT INI' : 'SALDO AWAL'}</ThemedText>
+            <TextInput accessibilityLabel={props.mode === 'edit' ? 'Saldo Wallet' : 'Saldo awal'} keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={amount} onChangeText={setAmount} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} />
+          {props.mode === 'edit' && <Pressable accessibilityRole="button" accessibilityLabel="Arsipkan Wallet" onPress={props.onArchive} style={styles.archiveAction}><ThemedText style={[styles.archiveIcon, { backgroundColor: theme.dangerBackground, color: theme.expense }]}>□</ThemedText><View style={styles.archiveCopy}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan Wallet</ThemedText><ThemedText type="small" themeColor="muted">Transaksi tetap tersimpan</ThemedText></View><ThemedText type="subtitle" themeColor="muted">›</ThemedText></Pressable>}
         </View>
       </ThemedView>
     </Modal>
@@ -176,9 +174,9 @@ export default function HomeScreen() {
   const recentTransactions = useMemo(getHomeRecentTransactions, []);
   const total = getWalletTotal(wallets);
 
-  const saveWallet = (name: string, balance?: number) => {
+  const saveWallet = (name: string, balance: number) => {
     if (formWallet && formWallet !== 'new') {
-      setWallets((current) => renameMockWallet(current, formWallet.id, name));
+      setWallets((current) => updateMockWallet(current, formWallet.id, name, balance));
     } else {
       const tint = tintSequence[wallets.length % tintSequence.length];
       setWallets((current) => addMockWallet(current, name, balance ?? 0, tint));
@@ -249,7 +247,9 @@ const styles = StyleSheet.create({
   headerButton: { alignItems: 'center', height: 44, justifyContent: 'center', minWidth: 56 },
   formContent: { gap: Spacing.two, paddingHorizontal: 21, paddingVertical: 24 },
   formNote: { fontSize: 12, lineHeight: 18, marginBottom: Spacing.five },
-  archiveButton: { borderRadius: Radius.small, borderWidth: 1, gap: 3, marginTop: Spacing.five, padding: 13 },
+  archiveAction: { alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 12, marginTop: Spacing.five, paddingHorizontal: 3, paddingTop: Spacing.four },
+  archiveIcon: { alignItems: 'center', borderRadius: Radius.small, fontFamily: Fonts.mono, fontSize: 18, height: 35, justifyContent: 'center', paddingTop: 4, textAlign: 'center', width: 35 },
+  archiveCopy: { flex: 1 },
   formLabel: { ...Typography.eyebrow, marginTop: Spacing.two },
   input: { borderBottomWidth: 1, fontFamily: Fonts.sans, fontSize: 16, minHeight: 52, paddingHorizontal: 0 },
   transactionName: { fontSize: 12, lineHeight: 16 },

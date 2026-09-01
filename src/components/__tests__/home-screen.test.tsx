@@ -20,7 +20,7 @@ describe('HomeScreen', () => {
 
     await waitFor(() => expect(getByText('Edit Wallet')).toBeTruthy());
     expect(getByLabelText('Nama Wallet').props.value).toBe('Tunai');
-    expect(() => getByLabelText('Saldo awal')).toThrow();
+    expect(getByLabelText('Saldo Wallet').props.value).toBe('350000');
     expect(getByText('Arsipkan Wallet')).toBeTruthy();
   });
 
@@ -37,19 +37,20 @@ describe('HomeScreen', () => {
     expect(getByText('Rp 500.000')).toBeTruthy();
   });
 
-  it('membuka form Wallet yang sama dalam edit state tanpa mengedit saldo', async () => {
+  it('mengedit nama dan saldo Wallet melalui form yang sama', async () => {
     const { getByLabelText, getByText } = await render(<HomeScreen />);
 
     await fireEvent.press(getByLabelText('Buka Wallet Tunai'));
     await waitFor(() => expect(getByText('Edit Wallet')).toBeTruthy());
 
     expect(getByLabelText('Nama Wallet').props.value).toBe('Tunai');
-    expect(() => getByLabelText('Saldo awal')).toThrow();
+    expect(getByLabelText('Saldo Wallet').props.value).toBe('350000');
     await fireEvent.changeText(getByLabelText('Nama Wallet'), 'Tunai Baru');
+    await fireEvent.changeText(getByLabelText('Saldo Wallet'), '400000');
     await fireEvent.press(getByLabelText('Simpan Wallet'));
 
     await waitFor(() => expect(getByText('Tunai Baru')).toBeTruthy());
-    expect(getByText('Rp 350.000')).toBeTruthy();
+    expect(getByText('Rp 400.000')).toBeTruthy();
   });
 
   it('mengarsipkan Wallet dari detail dan menghapusnya dari daftar aktif', async () => {
