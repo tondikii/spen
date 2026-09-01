@@ -129,7 +129,7 @@ function RecentTransaction({ transaction }: { transaction: Transaction }) {
   const iconBackground = transaction.type === 'income' ? theme.incomeBackground : transaction.type === 'expense' ? theme.expenseBackground : theme.transferBackground;
   const sign = transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '−' : '↔';
   return (
-    <View style={styles.transactionRow}>
+    <View style={[styles.transactionRow, { borderBottomColor: theme.line }]}>
       <ThemedView style={[styles.categoryIcon, { backgroundColor: iconBackground }]}>
         <ThemedText themeColor={typeColor}>{presentation.categoryIcon}</ThemedText>
       </ThemedView>
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   miniStatValue: { fontFamily: Fonts.mono, fontSize: 10 },
   miniStat: { fontSize: 10, lineHeight: 14 },
   recent: { paddingBottom: Spacing.two },
-  transactionRow: { alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 11, paddingHorizontal: 1, paddingVertical: 12 },
+  transactionRow: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', gap: 11, paddingHorizontal: 1, paddingVertical: 12 },
   categoryIcon: { alignItems: 'center', borderRadius: 12, height: 35, justifyContent: 'center', width: 35 },
   transactionDescription: { flex: 1, minWidth: 0 },
   transactionAmount: { alignItems: 'flex-end' },
