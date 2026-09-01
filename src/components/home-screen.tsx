@@ -27,6 +27,13 @@ const tintColors: Record<WalletTint, keyof ReturnType<typeof useTheme>> = {
 
 const tintSequence: WalletTint[] = ['pine', 'coral', 'gold', 'goal'];
 
+function walletGlyph(wallet: Wallet) {
+  if (wallet.tint === 'coral') return 'T';
+  if (wallet.tint === 'pine') return 'B';
+  if (wallet.tint === 'gold') return 'G';
+  return 'D';
+}
+
 function HomeHeader() {
   return (
     <View style={styles.header}>
@@ -68,13 +75,14 @@ function WalletCards({ wallets, onSelect, onAdd }: { wallets: Wallet[]; onSelect
             accessibilityRole="button"
             accessibilityLabel={`Buka Wallet ${wallet.name}`}
             onPress={() => onSelect(wallet)}
-            style={({ pressed }) => [styles.walletCard, { backgroundColor: theme.card, borderColor: theme[tintColors[wallet.tint]] }, pressed && styles.pressed]}>
+            style={({ pressed }) => [styles.walletCard, { backgroundColor: theme.card, borderColor: theme.line }, pressed && styles.pressed]}>
+            <ThemedText style={[styles.walletGlyph, { backgroundColor: theme.mint, color: theme.pine }]}>{walletGlyph(wallet)}</ThemedText>
             <ThemedText style={styles.walletName}>{wallet.name}</ThemedText>
             <ThemedText themeColor="muted" style={styles.walletBalance}>{formatMoney(wallet.balance)}</ThemedText>
           </Pressable>
         ))}
-        <Pressable accessibilityRole="button" accessibilityLabel="Tambah Wallet" onPress={onAdd} style={[styles.walletAdd, { borderColor: theme.walletAddBorder }]}>
-          <ThemedText type="subtitle" themeColor="pine" style={styles.walletAddIcon}>＋</ThemedText>
+        <Pressable accessibilityRole="button" accessibilityLabel="Tambah Wallet" onPress={onAdd} style={[styles.walletAdd, { borderColor: theme.line }]}>
+          <ThemedText type="subtitle" themeColor="pine" style={[styles.walletAddIcon, { backgroundColor: theme.mint }]}>＋</ThemedText>
           <ThemedText type="small" themeColor="muted" style={styles.walletAddLabel}>Tambah Wallet</ThemedText>
         </Pressable>
       </ScrollView>
@@ -251,17 +259,18 @@ const styles = StyleSheet.create({
   balanceCard: { borderRadius: Radius.hero, marginBottom: Layout.sectionGap, padding: 21, ...Shadows.hero },
   heroLabel: { fontFamily: Fonts.sans, fontSize: 12, lineHeight: 18 },
   heroAmount: { ...Typography.moneyHero, marginVertical: Spacing.three },
-  balanceFooter: { borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', justifyContent: 'space-between', paddingTop: Spacing.two },
+  balanceFooter: { borderTopWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingTop: Spacing.two },
   period: { fontFamily: Fonts.monoMedium, fontSize: 11 },
   sectionTitle: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   walletSection: {},
   walletRow: { gap: Layout.walletGap, paddingTop: 2, paddingBottom: 18 },
-  walletCard: { borderRadius: 18, borderWidth: 1, height: Layout.walletHeight, justifyContent: 'space-between', paddingHorizontal: 13, paddingVertical: 12, width: Layout.walletWidth },
-  walletName: { fontFamily: Fonts.sansSemiBold, fontSize: 11, lineHeight: 14, letterSpacing: 0.11 },
-  walletBalance: { fontFamily: Fonts.mono, fontSize: 11, lineHeight: 14, letterSpacing: -0.66 },
-  walletAdd: { alignItems: 'center', borderRadius: 18, borderStyle: 'dashed', borderWidth: 1, height: Layout.walletAddHeight, justifyContent: 'center', width: Layout.walletAddWidth },
-  walletAddIcon: { fontSize: 25, lineHeight: 27 },
-  walletAddLabel: { fontSize: 10, lineHeight: 13, marginTop: 7 },
+  walletCard: { borderRadius: 18, borderWidth: 1, height: Layout.walletHeight, justifyContent: 'space-between', padding: 12, width: Layout.walletWidth, ...Shadows.card },
+  walletGlyph: { borderRadius: 10, fontFamily: Fonts.serif, fontSize: 15, height: 28, lineHeight: 28, textAlign: 'center', width: 28 },
+  walletName: { fontFamily: Fonts.sansBold, fontSize: 11, lineHeight: 14 },
+  walletBalance: { fontFamily: Fonts.mono, fontSize: 10.5, lineHeight: 14, letterSpacing: -0.63 },
+  walletAdd: { alignItems: 'flex-start', borderRadius: 18, borderStyle: 'dashed', borderWidth: 1, height: Layout.walletHeight, justifyContent: 'space-between', padding: 12, width: Layout.walletWidth },
+  walletAddIcon: { borderRadius: 10, fontSize: 21, height: 28, lineHeight: 28, textAlign: 'center', width: 28 },
+  walletAddLabel: { fontSize: 10, fontWeight: '700', lineHeight: 12 },
   quietAction: { fontSize: 12, lineHeight: 15 },
   pressed: { opacity: 0.7 },
   planSnapshot: { borderRadius: 21, borderWidth: 1, marginBottom: Layout.sectionGap, padding: 17 },
@@ -275,7 +284,7 @@ const styles = StyleSheet.create({
   miniStatValue: { fontFamily: Fonts.mono, fontSize: 10 },
   miniStat: { fontSize: 10, lineHeight: 14 },
   recent: { paddingBottom: Spacing.two },
-  transactionRow: { alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 11, paddingHorizontal: 1, paddingVertical: 12 },
+  transactionRow: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', gap: 11, paddingHorizontal: 1, paddingVertical: 12 },
   categoryIcon: { alignItems: 'center', borderRadius: 12, height: 35, justifyContent: 'center', width: 35 },
   transactionDescription: { flex: 1, minWidth: 0 },
   transactionAmount: { alignItems: 'flex-end' },
@@ -294,7 +303,7 @@ const styles = StyleSheet.create({
   actionTitle: { fontSize: 12, lineHeight: 16 },
   actionDetail: { fontSize: 10, lineHeight: 14 },
   formPage: { flex: 1 },
-  formHeader: { alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', height: 65, justifyContent: 'space-between', paddingHorizontal: 20 },
+  formHeader: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', height: 65, justifyContent: 'space-between', paddingHorizontal: 20 },
   headerButton: { alignItems: 'center', height: 44, justifyContent: 'center', minWidth: 56 },
   formContent: { gap: Spacing.two, paddingHorizontal: 21, paddingVertical: 24 },
   formNote: { fontSize: 12, lineHeight: 18, marginBottom: Spacing.five },

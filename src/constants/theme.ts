@@ -7,7 +7,7 @@ export const Colors = {
     textSecondary: '#7B8882',
     pine: '#235B50',
     pine2: '#17483F',
-    mint: '#DCE5EC',
+    mint: '#DCECE5',
     paper: '#F6F5F0',
     card: '#FFFEFA',
     ink: '#213431',
