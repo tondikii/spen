@@ -1,5 +1,3 @@
-import { ScreenSkeleton } from '@/components/screen-skeleton';
+import SettingsScreen from '@/components/settings-screen';
 
-export default function SettingsScreen() {
-  return <ScreenSkeleton eyebrow="PENGATURAN" title="Settings" />;
-}
+export default SettingsScreen;
