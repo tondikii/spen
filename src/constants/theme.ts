@@ -27,6 +27,11 @@ export const Colors = {
     walletCoral: '#EFC5BB',
     walletGold: '#E9D49A',
     walletGoal: '#C9B8DE',
+    incomeBackground: '#DDF0E7',
+    expenseBackground: '#F9E4E0',
+    transferBackground: '#F6EDCF',
+    walletAddBorder: '#AABBB3',
+    dangerBackground: '#F9E4E0',
   },
   dark: {
     background: '#12231F',
@@ -56,6 +61,11 @@ export const Colors = {
     walletCoral: '#85564E',
     walletGold: '#876D36',
     walletGoal: '#75638A',
+    incomeBackground: '#20453B',
+    expenseBackground: '#5E302D',
+    transferBackground: '#574722',
+    walletAddBorder: '#648278',
+    dangerBackground: '#5E302D',
   },
 } as const;
 
@@ -145,6 +155,16 @@ export const Motion = {
   walletDuration: 180,
   toggleDuration: 200,
   aiPulseDuration: 1000,
+} as const;
+
+export const Layout = {
+  pagePadding: 21,
+  sectionGap: 27,
+  walletGap: 10,
+  walletWidth: 119,
+  walletHeight: 107,
+  walletAddWidth: 90,
+  walletAddHeight: 125,
 } as const;
 
 export const Shadows = {

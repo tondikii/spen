@@ -36,4 +36,29 @@ describe('HomeScreen', () => {
     await waitFor(() => expect(getByText('Jago')).toBeTruthy());
     expect(getByText('Rp 500.000')).toBeTruthy();
   });
+
+  it('membuka form Wallet yang sama dalam edit state tanpa mengedit saldo', async () => {
+    const { getByLabelText, getByText } = await render(<HomeScreen />);
+
+    await fireEvent.press(getByLabelText('Buka Wallet Tunai'));
+    await fireEvent.press(getByLabelText('Edit Wallet'));
+    await waitFor(() => expect(getByText('Edit Wallet')).toBeTruthy());
+
+    expect(getByLabelText('Nama Wallet').props.value).toBe('Tunai');
+    expect(() => getByLabelText('Saldo awal')).toThrow();
+    await fireEvent.changeText(getByLabelText('Nama Wallet'), 'Tunai Baru');
+    await fireEvent.press(getByLabelText('Simpan Wallet'));
+
+    await waitFor(() => expect(getByText('Tunai Baru')).toBeTruthy());
+    expect(getByText('Rp 350.000')).toBeTruthy();
+  });
+
+  it('mengarsipkan Wallet dari detail dan menghapusnya dari daftar aktif', async () => {
+    const { getByLabelText, queryByText } = await render(<HomeScreen />);
+
+    await fireEvent.press(getByLabelText('Buka Wallet Tunai'));
+    await fireEvent.press(getByLabelText('Arsipkan Wallet'));
+
+    await waitFor(() => expect(queryByText('Buka Wallet Tunai')).toBeNull());
+  });
 });
