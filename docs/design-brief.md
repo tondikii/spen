@@ -16,7 +16,7 @@ Spen adalah aplikasi mobile budget planner dengan AI, semua data lokal di perang
 
 ## 2. Prinsip Desain
 
-Prinsip visual (calm finance, angka adalah raja, semantic colors income/expense/transfer, tema light/dark) didefinisikan dan dijaga di **`docs/design/DESIGN.md`** (brand contract) + `docs/design/design-tokens.md` (slot token tanpa nilai). File ini fokus pada produk & UX; bahasa visual merujuk ke DESIGN.md dan tidak diduplikasi di sini.
+Prinsip visual (calm finance, angka adalah raja, semantic colors income/expense/transfer, tema light/dark) didefinisikan dan dijaga di **`docs/design/DESIGN.md`** (brand contract) + `docs/design/design-tokens.md`. File ini fokus pada produk & UX; bahasa visual merujuk ke DESIGN.md dan tidak diduplikasi di sini.
 
 ---
 
@@ -140,4 +140,4 @@ Mohon hasilkan, minimal:
 - `CONTEXT.md` — glossary domain (istilah: Wallet, Budget plan, Budget period, Fixed expense, Goal, Category, Spare budget, Net saving, Transfer, dll). **Gunakan istilah ini secara konsisten.**
 - `docs/spec.md` — spec lengkap (48 user stories, implementation decisions, testing decisions).
 - `docs/design/DESIGN.md` — brand contract visual (calm finance, semantic colors, tipografi, komponen, states).
-- `docs/design/design-tokens.md` — slot token & peran (tanpa nilai); nilai dipilih design agent saat render.
+- `docs/design/design-tokens.md` — slot token & peran.
