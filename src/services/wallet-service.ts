@@ -1,0 +1,148 @@
+import type { SQLiteDatabase } from 'expo-sqlite';
+
+import type { Wallet, WalletTint } from '@/types/domain';
+
+type WalletRow = {
+  id: number;
+  name: string;
+  initial_balance: number;
+  is_savings: number;
+  archived: number;
+  balance: number;
+};
+
+const TINTS: WalletTint[] = ['coral', 'pine', 'gold', 'goal'];
+
+function databaseId(walletId: string | number) {
+  const value = typeof walletId === 'number' ? walletId : Number(walletId.replace(/^wallet-/, ''));
+  if (!Number.isInteger(value) || value < 1) throw new Error(`Wallet id tidak valid: ${walletId}`);
+  return value;
+}
+
+function toWallet(row: WalletRow): Wallet {
+  return {
+    id: `wallet-${row.id}`,
+    name: row.name,
+    initialBalance: row.initial_balance,
+    balance: row.balance,
+    isSavings: Boolean(row.is_savings),
+    archived: Boolean(row.archived),
+    tint: TINTS[(row.id - 1) % TINTS.length],
+  };
+}
+
+const walletBalanceSql = `
+  SELECT
+    w.id,
+    w.name,
+    w.initial_balance,
+    w.is_savings,
+    w.archived,
+    w.initial_balance + COALESCE(SUM(CASE
+      WHEN t.type = 'income' AND t.wallet_id = w.id THEN t.amount
+      WHEN t.type = 'expense' AND t.wallet_id = w.id THEN -t.amount
+      WHEN t.type = 'adjustment' AND t.wallet_id = w.id THEN t.amount
+      WHEN t.type = 'transfer' AND t.wallet_id = w.id THEN -t.amount
+      WHEN t.type = 'transfer' AND t.to_wallet_id = w.id THEN t.amount
+      ELSE 0
+    END), 0) AS balance
+  FROM wallets w
+  LEFT JOIN transactions t ON t.wallet_id = w.id OR t.to_wallet_id = w.id
+`;
+
+async function withExclusiveWrite<T>(database: SQLiteDatabase, action: (connection: SQLiteDatabase) => Promise<T>) {
+  const connection = database as SQLiteDatabase & {
+    withExclusiveTransactionAsync?: (task: (transaction: SQLiteDatabase) => Promise<void>) => Promise<void>;
+  };
+  let result: T;
+  if (connection.withExclusiveTransactionAsync) {
+    await connection.withExclusiveTransactionAsync(async (transaction) => {
+      result = await action(transaction);
+    });
+  } else {
+    result = await action(database);
+  }
+  return result!;
+}
+
+export async function getWallets(database: SQLiteDatabase, includeArchived = false): Promise<Wallet[]> {
+  const rows = await database.getAllAsync<WalletRow>(
+    `${walletBalanceSql} ${includeArchived ? '' : 'WHERE w.archived = 0'} GROUP BY w.id ORDER BY w.id;`,
+  );
+  return rows.map(toWallet);
+}
+
+export async function getWallet(database: SQLiteDatabase, walletId: string | number): Promise<Wallet | null> {
+  const id = databaseId(walletId);
+  const row = await database.getFirstAsync<WalletRow>(
+    `${walletBalanceSql} WHERE w.id = ? GROUP BY w.id LIMIT 1;`,
+    id,
+  );
+  return row ? toWallet(row) : null;
+}
+
+export async function createWallet(database: SQLiteDatabase, name: string, initialBalance: number): Promise<Wallet> {
+  const cleanName = name.trim();
+  if (!cleanName) throw new Error('Nama Wallet wajib diisi');
+  if (!Number.isSafeInteger(initialBalance)) throw new Error('Saldo awal harus berupa angka bulat');
+
+  const result = await withExclusiveWrite(database, async (connection) => connection.runAsync(
+    `INSERT INTO wallets (name, initial_balance, is_savings, archived) VALUES (?, ?, 0, 0);`,
+    cleanName,
+    initialBalance,
+  ));
+  const wallet = await getWallet(database, result.lastInsertRowId);
+  if (!wallet) throw new Error('Wallet gagal dibuat');
+  return wallet;
+}
+
+export async function updateWallet(
+  database: SQLiteDatabase,
+  walletId: string | number,
+  name: string,
+  targetBalance?: number,
+): Promise<Wallet> {
+  const id = databaseId(walletId);
+  const cleanName = name.trim();
+  if (!cleanName) throw new Error('Nama Wallet wajib diisi');
+
+  await withExclusiveWrite(database, async (connection) => {
+    const current = await getWallet(connection, id);
+    if (!current) throw new Error('Wallet tidak ditemukan');
+    await connection.runAsync('UPDATE wallets SET name = ? WHERE id = ?;', cleanName, id);
+
+    if (targetBalance !== undefined) {
+      if (!Number.isSafeInteger(targetBalance)) throw new Error('Saldo Wallet harus berupa angka bulat');
+      const delta = targetBalance - current.balance;
+      if (delta !== 0) {
+        const category = await connection.getFirstAsync<{ id: number }>(
+          `SELECT id FROM categories WHERE is_adjustment = 1 LIMIT 1;`,
+        );
+        if (!category) throw new Error('Kategori Penyesuaian Saldo belum tersedia');
+        const now = new Date();
+        await connection.runAsync(
+          `INSERT INTO transactions (type, wallet_id, category_id, amount, date, time, note)
+           VALUES ('adjustment', ?, ?, ?, ?, ?, ?);`,
+          id,
+          category.id,
+          delta,
+          now.toISOString().slice(0, 10),
+          now.toTimeString().slice(0, 5),
+          'Koreksi saldo Wallet',
+        );
+      }
+    }
+  });
+
+  const wallet = await getWallet(database, id);
+  if (!wallet) throw new Error('Wallet tidak ditemukan setelah diperbarui');
+  return wallet;
+}
+
+export async function archiveWallet(database: SQLiteDatabase, walletId: string | number): Promise<void> {
+  await withExclusiveWrite(database, async (connection) => {
+    const id = databaseId(walletId);
+    const result = await connection.runAsync('UPDATE wallets SET archived = 1 WHERE id = ?;', id);
+    if (result.changes === 0) throw new Error('Wallet tidak ditemukan');
+  });
+}

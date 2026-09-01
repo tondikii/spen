@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Modal,
@@ -168,13 +168,30 @@ function WalletForm(props: WalletFormProps) {
   );
 }
 
-export default function HomeScreen({ onTransactionPress, onDailyPress }: { onTransactionPress?: (transaction: Transaction) => void; onDailyPress?: () => void } = {}) {
-  const [wallets, setWallets] = useState<Wallet[]>(getHomeWallets);
+type HomeScreenProps = {
+  onTransactionPress?: (transaction: Transaction) => void;
+  onDailyPress?: () => void;
+  wallets?: Wallet[];
+  onWalletSave?: (wallet: Wallet | null, name: string, balance: number) => void | Promise<void>;
+  onWalletArchive?: (wallet: Wallet) => void | Promise<void>;
+};
+
+export default function HomeScreen({ onTransactionPress, onDailyPress, wallets: walletsProp, onWalletSave, onWalletArchive }: HomeScreenProps = {}) {
+  const [wallets, setWallets] = useState<Wallet[]>(walletsProp ?? getHomeWallets);
   const [formWallet, setFormWallet] = useState<Wallet | 'new' | null>(null);
   const recentTransactions = getHomeRecentTransactions();
   const total = getWalletTotal(wallets);
 
-  const saveWallet = (name: string, balance: number) => {
+  useEffect(() => {
+    if (walletsProp) setWallets(walletsProp);
+  }, [walletsProp]);
+
+  const saveWallet = async (name: string, balance: number) => {
+    if (onWalletSave) {
+      await onWalletSave(formWallet && formWallet !== 'new' ? formWallet : null, name, balance);
+      setFormWallet(null);
+      return;
+    }
     if (formWallet && formWallet !== 'new') {
       setWallets((current) => updateMockWallet(current, formWallet.id, name, balance));
     } else {
@@ -199,7 +216,11 @@ export default function HomeScreen({ onTransactionPress, onDailyPress }: { onTra
         </ScrollView>
       </SafeAreaView>
       {formWallet === 'new' && <WalletForm mode="create" onClose={() => setFormWallet(null)} onSave={saveWallet} />}
-      {formWallet && formWallet !== 'new' && <WalletForm mode="edit" wallet={formWallet} onClose={() => setFormWallet(null)} onSave={saveWallet} onArchive={() => { setWallets((current) => archiveMockWallet(current, formWallet.id)); setFormWallet(null); }} />}
+      {formWallet && formWallet !== 'new' && <WalletForm mode="edit" wallet={formWallet} onClose={() => setFormWallet(null)} onSave={saveWallet} onArchive={async () => {
+        if (onWalletArchive) await onWalletArchive(formWallet);
+        else setWallets((current) => archiveMockWallet(current, formWallet.id));
+        setFormWallet(null);
+      }} />}
     </ThemedView>
   );
 }
