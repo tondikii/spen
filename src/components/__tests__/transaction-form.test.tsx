@@ -46,6 +46,17 @@ describe('TransactionForm', () => {
     await waitFor(() => expect(getByText(/melebihi alokasi/)).toBeTruthy());
   });
 
+  it('menampilkan peringatan saat income mirip sudah tercatat di hari yang sama', async () => {
+    const existing = { ...mockData.transactions[0], date: '2026-09-02' };
+    const { getByLabelText, getByText } = await render(<TransactionForm mode="create" wallets={mockData.wallets} existingTransactions={[existing]} onClose={jest.fn()} onSave={jest.fn()} />);
+
+    await fireEvent.press(getByLabelText('Pilih Wallet BCA'));
+    await fireEvent.press(getByLabelText('Kategori Gaji'));
+    await fireEvent.changeText(getByLabelText('Nominal transaksi'), '6500000');
+
+    await waitFor(() => expect(getByText(/mungkin dobel/)).toBeTruthy());
+  });
+
   it('memungkinkan CRUD kategori inline tanpa menghapus data saat archive', async () => {
     const { getByLabelText, queryByLabelText } = await render(<TransactionForm mode="create" onClose={jest.fn()} onSave={jest.fn()} />);
 

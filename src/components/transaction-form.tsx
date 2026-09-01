@@ -8,7 +8,7 @@ import type { Category, Transaction, TransactionType, Wallet } from '@/types/dom
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
-import { TRANSACTION_ICON_CHOICES, archiveMockCategory, getActiveTransactionCategories, getActiveTransactionWallets, getAllocationLimit, getTransactionCategories, saveMockCategory } from '@/services/transaction-service';
+import { TRANSACTION_ICON_CHOICES, archiveMockCategory, getActiveTransactionCategories, getActiveTransactionWallets, getAllocationLimit, getTransactionCategories, hasSimilarIncome, saveMockCategory } from '@/services/transaction-service';
 
 import type { TransactionDraft } from '@/types/domain';
 
@@ -16,9 +16,13 @@ type TransactionFormProps = {
   mode: 'create' | 'edit';
   transaction?: Transaction;
   wallets?: Wallet[];
+  categories?: Category[];
+  existingTransactions?: Transaction[];
   onClose: () => void;
   onSave: (draft: TransactionDraft) => void;
   onDelete?: () => void;
+  onCategorySave?: (category: Category) => Category | Promise<Category>;
+  onCategoryArchive?: (category: Category) => void | Promise<void>;
 };
 
 const tabs: Array<{ type: TransactionType; label: string }> = [
@@ -27,7 +31,7 @@ const tabs: Array<{ type: TransactionType; label: string }> = [
   { type: 'transfer', label: 'Transfer' },
 ];
 
-export function TransactionForm({ mode, transaction, wallets = getActiveTransactionWallets(), onClose, onSave, onDelete }: TransactionFormProps) {
+export function TransactionForm({ mode, transaction, wallets = getActiveTransactionWallets(), categories: categoriesProp, existingTransactions = [], onClose, onSave, onDelete, onCategorySave, onCategoryArchive }: TransactionFormProps) {
   const theme = useTheme();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0, left: 0, right: 0 };
   const initialType: TransactionType = transaction?.type === 'adjustment' ? 'expense' : transaction?.type ?? 'income';
@@ -37,7 +41,7 @@ export function TransactionForm({ mode, transaction, wallets = getActiveTransact
   const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? null);
   const [amount, setAmount] = useState(transaction ? String(transaction.amount) : '');
   const [note, setNote] = useState(transaction?.note ?? '');
-  const [categories, setCategories] = useState<Category[]>(getActiveTransactionCategories());
+  const [categories, setCategories] = useState<Category[]>(categoriesProp ?? getActiveTransactionCategories());
   const [categoryEditorOpen, setCategoryEditorOpen] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState('');
@@ -66,15 +70,22 @@ export function TransactionForm({ mode, transaction, wallets = getActiveTransact
     if (!trimmedName) return;
     const categoryType = type === 'income' ? 'income' : 'expense';
     const category: Category = {
-      id: editingCategoryId ?? `category-${Date.now()}`,
+      id: editingCategoryId ?? `category-draft-${Date.now()}`,
       name: trimmedName,
       type: categoryType,
       icon: categoryIcon,
       archived: false,
       isAdjustment: false,
     };
-    setCategories((current) => saveMockCategory(current, category));
-    setCategoryId(category.id);
+    if (onCategorySave) {
+      void Promise.resolve(onCategorySave(category)).then((saved) => {
+        setCategories((current) => [...current.filter((item) => item.id !== saved.id), saved]);
+        setCategoryId(saved.id);
+      });
+    } else {
+      setCategories((current) => saveMockCategory(current, category));
+      setCategoryId(category.id);
+    }
     setCategoryName('');
     setEditingCategoryId(null);
     setCategoryEditorOpen(false);
@@ -99,6 +110,17 @@ export function TransactionForm({ mode, transaction, wallets = getActiveTransact
       note: note.trim(),
     });
   };
+
+  const possibleDuplicate = hasSimilarIncome(existingTransactions, {
+    type,
+    walletId,
+    toWalletId: type === 'transfer' ? toWalletId : null,
+    categoryId: type === 'transfer' ? null : categoryId,
+    amount: numericAmount,
+    date: transaction?.date ?? '2026-09-02',
+    time: transaction?.time ?? '12:00',
+    note: note.trim(),
+  }, transaction?.id);
 
   return (
     <ThemedView style={styles.page}>
@@ -132,7 +154,7 @@ export function TransactionForm({ mode, transaction, wallets = getActiveTransact
           </View>
           {categoryEditorOpen && <View style={[styles.categoryEditor, { borderColor: theme.line, backgroundColor: theme.card }]}>
             <ThemedText type="smallBold">{editingCategoryId ? 'Edit kategori' : 'Kelola kategori'}</ThemedText>
-            <View style={styles.categoryManageList}>{visibleCategories.map((category) => <View key={category.id} style={styles.categoryManageRow}><ThemedText type="small" style={styles.categoryManageName}>{category.name}</ThemedText><Pressable accessibilityRole="button" accessibilityLabel={`Edit kategori ${category.name}`} onPress={() => editCategory(category)}><ThemedText type="smallBold" themeColor="pine">Edit</ThemedText></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`Arsipkan kategori ${category.name}`} onPress={() => { setCategories((current) => archiveMockCategory(current, category.id)); if (categoryId === category.id) setCategoryId(null); }}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan</ThemedText></Pressable></View>)}</View>
+            <View style={styles.categoryManageList}>{visibleCategories.map((category) => <View key={category.id} style={styles.categoryManageRow}><ThemedText type="small" style={styles.categoryManageName}>{category.name}</ThemedText><Pressable accessibilityRole="button" accessibilityLabel={`Edit kategori ${category.name}`} onPress={() => editCategory(category)}><ThemedText type="smallBold" themeColor="pine">Edit</ThemedText></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`Arsipkan kategori ${category.name}`} onPress={async () => { if (onCategoryArchive) await onCategoryArchive(category); setCategories((current) => archiveMockCategory(current, category.id)); if (categoryId === category.id) setCategoryId(null); }}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan</ThemedText></Pressable></View>)}</View>
             <TextInput accessibilityLabel="Nama kategori baru" placeholder="Nama kategori" placeholderTextColor={theme.muted} value={categoryName} onChangeText={setCategoryName} style={[styles.editorInput, { borderBottomColor: theme.line, color: theme.ink }]} />
           <View style={styles.iconLibrary}>{Array.from({ length: Math.ceil(TRANSACTION_ICON_CHOICES.length / 5) }, (_, rowIndex) => <View key={`icon-row-${rowIndex}`} style={styles.iconRow}>{TRANSACTION_ICON_CHOICES.slice(rowIndex * 5, rowIndex * 5 + 5).map((icon) => <Pressable key={icon} accessibilityRole="button" accessibilityLabel={`Pilih ikon ${icon}`} onPress={() => setCategoryIcon(icon)} style={[styles.iconChoice, { borderColor: icon === categoryIcon ? theme.pine : theme.line, backgroundColor: icon === categoryIcon ? theme.mint : theme.background }]}><ThemedText>{icon}</ThemedText></Pressable>)}</View>)}</View>
             <Pressable accessibilityRole="button" accessibilityLabel="Simpan kategori" onPress={saveCategory}><ThemedText type="smallBold" themeColor="pine">{editingCategoryId ? 'Simpan perubahan' : 'Simpan kategori'}</ThemedText></Pressable>
@@ -142,6 +164,7 @@ export function TransactionForm({ mode, transaction, wallets = getActiveTransact
         <FieldLabel>NOMINAL</FieldLabel>
         <TextInput accessibilityLabel="Nominal transaksi" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={amount} onChangeText={setAmount} style={[styles.amountInput, { borderBottomColor: theme.line, color: theme.ink }]} />
         {overBudget && <View style={[styles.warning, { backgroundColor: theme.dangerBackground }]}><ThemedText type="small" style={{ color: theme.expense }}>Perlahan ya — ini akan melebihi alokasi, tetapi tetap bisa dicatat.</ThemedText></View>}
+        {possibleDuplicate && <View style={[styles.warning, { backgroundColor: theme.transferBackground }]}><ThemedText type="small" style={{ color: theme.gold }}>Transaksi ini mungkin dobel dengan catatan income hari ini.</ThemedText></View>}
         <FieldLabel>CATATAN <ThemedText type="small" themeColor="muted">(opsional)</ThemedText></FieldLabel>
         <TextInput accessibilityLabel="Catatan transaksi" placeholder="Mis. makan siang" placeholderTextColor={theme.muted} value={note} onChangeText={setNote} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink }]} />
         {mode === 'edit' && <Pressable accessibilityRole="button" accessibilityLabel="Hapus Transaksi" onPress={() => Alert.alert('Hapus transaksi?', 'Transaksi ini akan dihapus dari catatan.', [{ text: 'Batal', style: 'cancel' }, { text: 'Hapus', style: 'destructive', onPress: onDelete }])} style={styles.deleteAction}><ThemedText type="smallBold" style={{ color: theme.expense }}>Hapus Transaksi</ThemedText></Pressable>}

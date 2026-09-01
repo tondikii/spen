@@ -1,14 +1,14 @@
 import mockData from '@/data/mock-data';
-import type { Transaction, Wallet } from '@/types/domain';
+import type { Category, Transaction, Wallet } from '@/types/domain';
 import { getMockTransactions } from '@/services/transaction-service';
 
 export function getHomeSnapshot() {
   return mockData.budgetSnapshot;
 }
 
-export function getTransactionPresentation(transaction: Transaction) {
-  const category = mockData.categories.find((item) => item.id === transaction.categoryId);
-  const wallet = mockData.wallets.find((item) => item.id === transaction.walletId);
+export function getTransactionPresentation(transaction: Transaction, categories: Category[] = mockData.categories, wallets: Wallet[] = mockData.wallets) {
+  const category = categories.find((item) => item.id === transaction.categoryId);
+  const wallet = wallets.find((item) => item.id === transaction.walletId);
   return { categoryName: category?.name ?? 'Transaksi', categoryIcon: category?.icon ?? '◇', walletName: wallet?.name ?? 'Wallet' };
 }
 

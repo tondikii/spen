@@ -1,40 +1,46 @@
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import HomeScreen from '@/components/home-screen';
-import type { Wallet } from '@/types/domain';
+import type { Category, Transaction, Wallet } from '@/types/domain';
 import { archiveWallet, createWallet, getWallets, updateWallet } from '@/services/wallet-service';
+import { getDatabaseTransactionCategories, getDatabaseTransactions } from '@/services/transaction-service';
 
 export default function HomeRoute() {
   const router = useRouter();
   const database = useSQLiteContext();
-  const [wallets, setWallets] = useState<Wallet[] | null>(null);
+  const [data, setData] = useState<{ wallets: Wallet[]; categories: Category[]; transactions: Transaction[] } | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    void getWallets(database).then((items) => {
-      if (!cancelled) setWallets(items);
-    });
-    return () => {
-      cancelled = true;
-    };
+  const loadData = useCallback(async () => {
+    const [wallets, categories, transactions] = await Promise.all([
+      getWallets(database),
+      getDatabaseTransactionCategories(database),
+      getDatabaseTransactions(database),
+    ]);
+    setData({ wallets, categories, transactions });
   }, [database]);
 
-  const refreshWallets = async () => setWallets(await getWallets(database));
+  useFocusEffect(useCallback(() => {
+    void loadData();
+  }, [loadData]));
 
-  if (!wallets) return null;
+  const refreshData = async () => loadData();
+
+  if (!data) return null;
 
   return <HomeScreen
-    wallets={wallets}
+    wallets={data.wallets}
+    transactions={data.transactions}
+    categories={data.categories}
     onWalletSave={async (wallet, name, balance) => {
       if (wallet) await updateWallet(database, wallet.id, name, balance);
       else await createWallet(database, name, balance);
-      await refreshWallets();
+      await refreshData();
     }}
     onWalletArchive={async (wallet) => {
       await archiveWallet(database, wallet.id);
-      await refreshWallets();
+      await refreshData();
     }}
     onTransactionPress={(transaction) => router.push({ pathname: '/create', params: { transactionId: transaction.id } })}
     onDailyPress={() => router.push('/daily' as never)}

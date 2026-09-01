@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Fonts, Layout, MaxContentWidth, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import type { Transaction, Wallet, WalletTint } from '@/types/domain';
+import type { Category, Transaction, Wallet, WalletTint } from '@/types/domain';
 import { formatMoney } from '@/lib/money';
 import { useTheme } from '@/hooks/use-theme';
 import { addMockWallet, archiveMockWallet, getHomeRecentTransactions, getHomeSnapshot, getHomeWallets, getTransactionPresentation, getWalletTotal, updateMockWallet } from '@/services/home-service';
@@ -115,9 +115,9 @@ function PlanSnapshot({ onPress }: { onPress: () => void }) {
   );
 }
 
-function RecentTransaction({ transaction, onPress }: { transaction: Transaction; onPress?: () => void }) {
+function RecentTransaction({ transaction, wallets, categories, onPress }: { transaction: Transaction; wallets: Wallet[]; categories?: Category[]; onPress?: () => void }) {
   const theme = useTheme();
-  const presentation = getTransactionPresentation(transaction);
+  const presentation = getTransactionPresentation(transaction, categories, wallets);
   const typeColor = transaction.type === 'income' ? 'income' : transaction.type === 'expense' ? 'expense' : 'gold';
   const iconBackground = transaction.type === 'income' ? theme.incomeBackground : transaction.type === 'expense' ? theme.expenseBackground : theme.transferBackground;
   const sign = transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '−' : '↔';
@@ -172,14 +172,16 @@ type HomeScreenProps = {
   onTransactionPress?: (transaction: Transaction) => void;
   onDailyPress?: () => void;
   wallets?: Wallet[];
+  transactions?: Transaction[];
+  categories?: Category[];
   onWalletSave?: (wallet: Wallet | null, name: string, balance: number) => void | Promise<void>;
   onWalletArchive?: (wallet: Wallet) => void | Promise<void>;
 };
 
-export default function HomeScreen({ onTransactionPress, onDailyPress, wallets: walletsProp, onWalletSave, onWalletArchive }: HomeScreenProps = {}) {
+export default function HomeScreen({ onTransactionPress, onDailyPress, wallets: walletsProp, transactions: transactionsProp, categories: categoriesProp, onWalletSave, onWalletArchive }: HomeScreenProps = {}) {
   const [wallets, setWallets] = useState<Wallet[]>(walletsProp ?? getHomeWallets);
   const [formWallet, setFormWallet] = useState<Wallet | 'new' | null>(null);
-  const recentTransactions = getHomeRecentTransactions();
+  const recentTransactions = transactionsProp ?? getHomeRecentTransactions();
   const total = getWalletTotal(wallets);
 
   useEffect(() => {
@@ -211,7 +213,7 @@ export default function HomeScreen({ onTransactionPress, onDailyPress, wallets: 
           <PlanSnapshot onPress={() => undefined} />
           <View style={styles.recent}>
             <View style={styles.sectionTitle}><ThemedText type="sectionHeading">Terbaru</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Lihat Semua Transaksi" onPress={onDailyPress ?? (() => Alert.alert('Transaksi', 'View transaksi harian akan tersedia di layar Riwayat.'))}><ThemedText type="smallBold" themeColor="pine">Lihat Semua</ThemedText></Pressable></View>
-            {recentTransactions.map((transaction) => <RecentTransaction key={transaction.id} transaction={transaction} onPress={onTransactionPress ? () => onTransactionPress(transaction) : undefined} />)}
+            {recentTransactions.map((transaction) => <RecentTransaction key={transaction.id} transaction={transaction} wallets={wallets} categories={categoriesProp} onPress={onTransactionPress ? () => onTransactionPress(transaction) : undefined} />)}
           </View>
         </ScrollView>
       </SafeAreaView>
