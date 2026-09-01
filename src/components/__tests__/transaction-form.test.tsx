@@ -40,8 +40,22 @@ describe('TransactionForm', () => {
     const { getByLabelText, getByText } = await render(<TransactionForm mode="create" onClose={jest.fn()} onSave={jest.fn()} />);
 
     await fireEvent.press(getByLabelText('Tipe Keluar'));
+    await fireEvent.press(getByLabelText('Kategori Makan'));
     await fireEvent.changeText(getByLabelText('Nominal transaksi'), '1300000');
 
     await waitFor(() => expect(getByText(/melebihi alokasi/)).toBeTruthy());
+  });
+
+  it('memungkinkan CRUD kategori inline tanpa menghapus data saat archive', async () => {
+    const { getByLabelText, queryByLabelText } = await render(<TransactionForm mode="create" onClose={jest.fn()} onSave={jest.fn()} />);
+
+    await fireEvent.press(getByLabelText('Tipe Keluar'));
+    await fireEvent.press(getByLabelText('Kelola kategori'));
+    await fireEvent.changeText(getByLabelText('Nama kategori baru'), 'Kesehatan');
+    await fireEvent.press(getByLabelText('Simpan kategori'));
+    await fireEvent.press(getByLabelText('Kelola kategori'));
+    await fireEvent.press(getByLabelText('Arsipkan kategori Kesehatan'));
+
+    expect(queryByLabelText('Kategori Kesehatan')).toBeNull();
   });
 });

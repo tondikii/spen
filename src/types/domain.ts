@@ -40,6 +40,8 @@ export type Transaction = {
   note: string;
 };
 
+export type TransactionDraft = Omit<Transaction, 'id'>;
+
 export type BudgetPeriod = {
   id: string;
   startDate: string;

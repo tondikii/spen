@@ -1,15 +1,16 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useContext, useMemo, useState, type ReactNode } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 import { Fonts, Radius, Spacing, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
-import mockData from '@/data/mock-data';
 import type { Category, Transaction, TransactionType, Wallet } from '@/types/domain';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
+import { TRANSACTION_ICON_CHOICES, archiveMockCategory, getActiveTransactionCategories, getActiveTransactionWallets, getAllocationLimit, getTransactionCategories, saveMockCategory } from '@/services/transaction-service';
 
-export type TransactionDraft = Omit<Transaction, 'id'>;
+import type { TransactionDraft } from '@/types/domain';
 
 type TransactionFormProps = {
   mode: 'create' | 'edit';
@@ -26,10 +27,9 @@ const tabs: Array<{ type: TransactionType; label: string }> = [
   { type: 'transfer', label: 'Transfer' },
 ];
 
-const iconChoices = ['◒', '◉', '▧', '⌂', '◈', '♫', '✦', '☕', '♧', '◌'];
-
-export function TransactionForm({ mode, transaction, wallets = mockData.wallets.filter((wallet) => !wallet.archived), onClose, onSave, onDelete }: TransactionFormProps) {
+export function TransactionForm({ mode, transaction, wallets = getActiveTransactionWallets(), onClose, onSave, onDelete }: TransactionFormProps) {
   const theme = useTheme();
+  const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0, left: 0, right: 0 };
   const initialType: TransactionType = transaction?.type === 'adjustment' ? 'expense' : transaction?.type ?? 'income';
   const [type, setType] = useState<TransactionType>(initialType);
   const [walletId, setWalletId] = useState(transaction?.walletId ?? wallets[0]?.id ?? null);
@@ -37,19 +37,20 @@ export function TransactionForm({ mode, transaction, wallets = mockData.wallets.
   const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? null);
   const [amount, setAmount] = useState(transaction ? String(transaction.amount) : '');
   const [note, setNote] = useState(transaction?.note ?? '');
-  const [categories, setCategories] = useState<Category[]>(mockData.categories.filter((category) => !category.archived));
+  const [categories, setCategories] = useState<Category[]>(getActiveTransactionCategories());
   const [categoryEditorOpen, setCategoryEditorOpen] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState('');
-  const [categoryIcon, setCategoryIcon] = useState(iconChoices[0]);
+  const [categoryIcon, setCategoryIcon] = useState(TRANSACTION_ICON_CHOICES[0]);
 
   const selectedCategoryType = type === 'transfer' ? 'transfer' : type;
   const visibleCategories = useMemo(
-    () => categories.filter((category) => category.type === selectedCategoryType && !category.isAdjustment),
+    () => getTransactionCategories(categories, selectedCategoryType),
     [categories, selectedCategoryType],
   );
   const numericAmount = Number(amount.replace(/[^0-9]/g, '')) || 0;
-  const overBudget = type === 'expense' && numericAmount > 1_200_000;
+  const allocationLimit = getAllocationLimit(categoryId);
+  const overBudget = type === 'expense' && allocationLimit > 0 && numericAmount > allocationLimit;
 
   const changeType = (nextType: TransactionType) => {
     setType(nextType);
@@ -72,9 +73,7 @@ export function TransactionForm({ mode, transaction, wallets = mockData.wallets.
       archived: false,
       isAdjustment: false,
     };
-    setCategories((current) => editingCategoryId
-      ? current.map((item) => item.id === editingCategoryId ? category : item)
-      : [...current, category]);
+    setCategories((current) => saveMockCategory(current, category));
     setCategoryId(category.id);
     setCategoryName('');
     setEditingCategoryId(null);
@@ -103,12 +102,12 @@ export function TransactionForm({ mode, transaction, wallets = mockData.wallets.
 
   return (
     <ThemedView style={styles.page}>
-      <View style={[styles.header, { borderBottomColor: theme.line }]}>
+      <View style={[styles.header, { borderBottomColor: theme.line, paddingTop: Math.max(insets.top, Spacing.two) }]}>
         <Pressable accessibilityRole="button" accessibilityLabel="Tutup form transaksi" onPress={onClose} style={styles.headerButton}><ThemedText style={styles.close}>×</ThemedText></Pressable>
         <ThemedText type="sectionHeading">{mode === 'edit' ? 'Edit Transaksi' : 'Tambah Transaksi'}</ThemedText>
         <Pressable accessibilityRole="button" accessibilityLabel={mode === 'edit' ? 'Simpan Perubahan' : 'Simpan Transaksi'} onPress={submit} style={styles.headerButton}><ThemedText type="smallBold" themeColor="pine">{mode === 'edit' ? 'Simpan Perubahan' : 'Simpan'}</ThemedText></Pressable>
       </View>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 40 + insets.bottom }]} keyboardShouldPersistTaps="handled">
         <ThemedText type="small" themeColor="muted" style={styles.note}>Catat setiap gerak uangmu dengan tenang.</ThemedText>
         <View style={[styles.typeTabs, { borderBottomColor: theme.line }]}>
           {tabs.map((tab) => (
@@ -133,9 +132,9 @@ export function TransactionForm({ mode, transaction, wallets = mockData.wallets.
           </View>
           {categoryEditorOpen && <View style={[styles.categoryEditor, { borderColor: theme.line, backgroundColor: theme.card }]}>
             <ThemedText type="smallBold">{editingCategoryId ? 'Edit kategori' : 'Kelola kategori'}</ThemedText>
-            <View style={styles.categoryManageList}>{visibleCategories.map((category) => <View key={category.id} style={styles.categoryManageRow}><ThemedText type="small" style={styles.categoryManageName}>{category.name}</ThemedText><Pressable accessibilityRole="button" accessibilityLabel={`Edit kategori ${category.name}`} onPress={() => editCategory(category)}><ThemedText type="smallBold" themeColor="pine">Edit</ThemedText></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`Arsipkan kategori ${category.name}`} onPress={() => { setCategories((current) => current.filter((item) => item.id !== category.id)); if (categoryId === category.id) setCategoryId(null); }}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan</ThemedText></Pressable></View>)}</View>
+            <View style={styles.categoryManageList}>{visibleCategories.map((category) => <View key={category.id} style={styles.categoryManageRow}><ThemedText type="small" style={styles.categoryManageName}>{category.name}</ThemedText><Pressable accessibilityRole="button" accessibilityLabel={`Edit kategori ${category.name}`} onPress={() => editCategory(category)}><ThemedText type="smallBold" themeColor="pine">Edit</ThemedText></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`Arsipkan kategori ${category.name}`} onPress={() => { setCategories((current) => archiveMockCategory(current, category.id)); if (categoryId === category.id) setCategoryId(null); }}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan</ThemedText></Pressable></View>)}</View>
             <TextInput accessibilityLabel="Nama kategori baru" placeholder="Nama kategori" placeholderTextColor={theme.muted} value={categoryName} onChangeText={setCategoryName} style={[styles.editorInput, { borderBottomColor: theme.line, color: theme.ink }]} />
-            <View style={styles.iconLibrary}>{iconChoices.map((icon) => <Pressable key={icon} accessibilityRole="button" accessibilityLabel={`Pilih ikon ${icon}`} onPress={() => setCategoryIcon(icon)} style={[styles.iconChoice, { borderColor: icon === categoryIcon ? theme.pine : theme.line, backgroundColor: icon === categoryIcon ? theme.mint : theme.background }]}><ThemedText>{icon}</ThemedText></Pressable>)}</View>
+            <View style={styles.iconLibrary}>{TRANSACTION_ICON_CHOICES.map((icon, index) => <Pressable key={`${icon}-${index}`} accessibilityRole="button" accessibilityLabel={`Pilih ikon ${icon}`} onPress={() => setCategoryIcon(icon)} style={[styles.iconChoice, { borderColor: icon === categoryIcon ? theme.pine : theme.line, backgroundColor: icon === categoryIcon ? theme.mint : theme.background }]}><ThemedText>{icon}</ThemedText></Pressable>)}</View>
             <Pressable accessibilityRole="button" accessibilityLabel="Simpan kategori" onPress={saveCategory}><ThemedText type="smallBold" themeColor="pine">{editingCategoryId ? 'Simpan perubahan' : 'Simpan kategori'}</ThemedText></Pressable>
           </View>}
         </>}

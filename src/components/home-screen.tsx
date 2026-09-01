@@ -115,14 +115,14 @@ function PlanSnapshot({ onPress }: { onPress: () => void }) {
   );
 }
 
-function RecentTransaction({ transaction }: { transaction: Transaction }) {
+function RecentTransaction({ transaction, onPress }: { transaction: Transaction; onPress?: () => void }) {
   const theme = useTheme();
   const presentation = getTransactionPresentation(transaction);
   const typeColor = transaction.type === 'income' ? 'income' : transaction.type === 'expense' ? 'expense' : 'gold';
   const iconBackground = transaction.type === 'income' ? theme.incomeBackground : transaction.type === 'expense' ? theme.expenseBackground : theme.transferBackground;
   const sign = transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '−' : '↔';
   return (
-    <View style={[styles.transactionRow, { borderBottomColor: theme.line }]}>
+    <Pressable accessibilityRole={onPress ? 'button' : undefined} accessibilityLabel={onPress ? `Edit transaksi ${presentation.categoryName}` : undefined} onPress={onPress} style={[styles.transactionRow, { borderBottomColor: theme.line }]}>
       <ThemedView style={[styles.categoryIcon, { backgroundColor: iconBackground }]}>
         <ThemedText themeColor={typeColor}>{presentation.categoryIcon}</ThemedText>
       </ThemedView>
@@ -134,7 +134,7 @@ function RecentTransaction({ transaction }: { transaction: Transaction }) {
         <ThemedText type="smallBold" themeColor={typeColor} style={styles.transactionAmountText}>{sign} {formatMoney(transaction.amount)}</ThemedText>
         <ThemedText type="small" themeColor="muted" style={styles.transactionTime}>{transaction.time}</ThemedText>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -168,7 +168,7 @@ function WalletForm(props: WalletFormProps) {
   );
 }
 
-export default function HomeScreen() {
+export default function HomeScreen({ onTransactionPress }: { onTransactionPress?: (transaction: Transaction) => void } = {}) {
   const [wallets, setWallets] = useState<Wallet[]>(getHomeWallets);
   const [formWallet, setFormWallet] = useState<Wallet | 'new' | null>(null);
   const recentTransactions = useMemo(getHomeRecentTransactions, []);
@@ -194,7 +194,7 @@ export default function HomeScreen() {
           <PlanSnapshot onPress={() => undefined} />
           <View style={styles.recent}>
             <View style={styles.sectionTitle}><ThemedText type="sectionHeading">Terbaru</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Lihat Semua Transaksi" onPress={() => Alert.alert('Transaksi', 'View transaksi harian akan tersedia di layar Riwayat.')}><ThemedText type="smallBold" themeColor="pine">Lihat Semua</ThemedText></Pressable></View>
-            {recentTransactions.map((transaction) => <RecentTransaction key={transaction.id} transaction={transaction} />)}
+            {recentTransactions.map((transaction) => <RecentTransaction key={transaction.id} transaction={transaction} onPress={onTransactionPress ? () => onTransactionPress(transaction) : undefined} />)}
           </View>
         </ScrollView>
       </SafeAreaView>
