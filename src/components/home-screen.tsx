@@ -161,7 +161,7 @@ function WalletForm(props: WalletFormProps) {
           <TextInput accessibilityLabel="Nama Wallet" placeholder="Mis. Jago, Tunai, GoPay" placeholderTextColor={theme.muted} value={name} onChangeText={setName} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} />
           <ThemedText type="code" themeColor="muted" style={styles.formLabel}>{props.mode === 'edit' ? 'SALDO SAAT INI' : 'SALDO AWAL'}</ThemedText>
             <TextInput accessibilityLabel={props.mode === 'edit' ? 'Saldo Wallet' : 'Saldo awal'} keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={amount} onChangeText={setAmount} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} />
-          {props.mode === 'edit' && <Pressable accessibilityRole="button" accessibilityLabel="Arsipkan Wallet" onPress={props.onArchive} style={styles.archiveAction}><ThemedText style={[styles.archiveIcon, { backgroundColor: theme.dangerBackground, color: theme.expense }]}>□</ThemedText><View style={styles.archiveCopy}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan Wallet</ThemedText><ThemedText type="small" themeColor="muted">Transaksi tetap tersimpan</ThemedText></View><ThemedText type="subtitle" themeColor="muted">›</ThemedText></Pressable>}
+          {props.mode === 'edit' && <Pressable accessibilityRole="button" accessibilityLabel="Arsipkan Wallet" onPress={props.onArchive} style={[styles.archiveAction, { borderTopColor: theme.line }]}><ThemedText style={[styles.archiveIcon, { backgroundColor: theme.dangerBackground, color: theme.expense }]}>□</ThemedText><View style={styles.archiveCopy}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan Wallet</ThemedText><ThemedText type="small" themeColor="muted">Transaksi tetap tersimpan</ThemedText></View><ThemedText type="subtitle" themeColor="muted">›</ThemedText></Pressable>}
         </View>
       </ThemedView>
     </Modal>
@@ -243,15 +243,15 @@ const styles = StyleSheet.create({
   transactionDescription: { flex: 1, minWidth: 0 },
   transactionAmount: { alignItems: 'flex-end' },
   formPage: { flex: 1 },
-  formHeader: { alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', height: 65, justifyContent: 'space-between', paddingHorizontal: 20 },
+  formHeader: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', height: 65, justifyContent: 'space-between', paddingHorizontal: 20 },
   headerButton: { alignItems: 'center', height: 44, justifyContent: 'center', minWidth: 56 },
   formContent: { gap: Spacing.two, paddingHorizontal: 21, paddingVertical: 24 },
   formNote: { fontSize: 12, lineHeight: 18, marginBottom: Spacing.five },
-  archiveAction: { alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 12, marginTop: Spacing.five, paddingHorizontal: 3, paddingTop: Spacing.four },
+  archiveAction: { alignItems: 'center', borderTopWidth: 1, flexDirection: 'row', gap: 12, marginTop: Spacing.five, paddingHorizontal: 3, paddingTop: Spacing.four },
   archiveIcon: { alignItems: 'center', borderRadius: Radius.small, fontFamily: Fonts.mono, fontSize: 18, height: 35, justifyContent: 'center', paddingTop: 4, textAlign: 'center', width: 35 },
   archiveCopy: { flex: 1 },
   formLabel: { ...Typography.eyebrow, marginTop: Spacing.two },
-  input: { borderBottomWidth: 1, fontFamily: Fonts.sans, fontSize: 16, minHeight: 52, paddingHorizontal: 0 },
+  input: { borderBottomWidth: 1, fontFamily: Fonts.sans, fontSize: 16, minHeight: 52, paddingHorizontal: Spacing.two },
   transactionName: { fontSize: 12, lineHeight: 16 },
   transactionDetail: { fontSize: 10, lineHeight: 14, marginTop: Spacing.half },
   transactionAmountText: { fontSize: 12, lineHeight: 16 },
