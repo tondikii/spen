@@ -1,5 +1,3 @@
-import { ScreenSkeleton } from '@/components/screen-skeleton';
+import ReportScreen from '@/components/report-screen';
 
-export default function ReportScreen() {
-  return <ScreenSkeleton eyebrow="BUDGET PERIOD" title="Report" />;
-}
+export default ReportScreen;

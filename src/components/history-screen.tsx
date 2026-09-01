@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Modal, Pressable, SectionList, StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import { Fonts, Radius, Spacing, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
@@ -19,8 +19,9 @@ const filterOptions: Array<{ key: HistoryChip; label: string }> = [
 
 export default function HistoryScreen() {
   const theme = useTheme();
-  const [filter, setFilter] = useState<HistoryFilter>('all');
-  const [categoryId, setCategoryId] = useState<string | undefined>();
+  const { categoryId: categoryParam } = useLocalSearchParams<{ categoryId?: string }>();
+  const [filter, setFilter] = useState<HistoryFilter>(categoryParam ? 'expense' : 'all');
+  const [categoryId, setCategoryId] = useState<string | undefined>(categoryParam);
   const [page, setPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
   const transactions = useMemo(() => getHistoryPage(page), [page]);
