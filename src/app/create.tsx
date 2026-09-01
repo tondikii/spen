@@ -3,13 +3,12 @@ import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
 import { TransactionForm } from '@/components/transaction-form';
-import mockData from '@/data/mock-data';
-import { deleteMockTransaction, saveMockTransaction } from '@/services/transaction-service';
+import { deleteMockTransaction, getMockTransactions, saveMockTransaction } from '@/services/transaction-service';
 import type { Transaction } from '@/types/domain';
 
 export default function CreateTransactionScreen() {
   const { transactionId } = useLocalSearchParams<{ transactionId?: string }>();
-  const [transactions, setTransactions] = useState<Transaction[]>(mockData.transactions);
+  const [transactions, setTransactions] = useState<Transaction[]>(getMockTransactions);
   const transaction = transactions.find((item) => item.id === transactionId);
 
   return <TransactionForm

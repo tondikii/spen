@@ -126,7 +126,7 @@ export function TransactionForm({ mode, transaction, wallets = getActiveTransact
         </> : <>
           <FieldLabel>WALLET</FieldLabel>
           <WalletPicker wallets={wallets} selected={walletId} onSelect={setWalletId} />
-          <View style={styles.labelLine}><FieldLabel>{type === 'income' ? 'KATEGORI PEMASUKAN' : 'KATEGORI PENGELUARAN'}</FieldLabel><Pressable accessibilityRole="button" accessibilityLabel="Kelola kategori" onPress={() => setCategoryEditorOpen((open) => !open)}><ThemedText type="smallBold" themeColor="pine">Kelola</ThemedText></Pressable></View>
+          <View style={styles.labelLine}><FieldLabel>{type === 'income' ? 'KATEGORI PENDAPATAN' : 'KATEGORI PENGELUARAN'}</FieldLabel><Pressable accessibilityRole="button" accessibilityLabel="Kelola kategori" onPress={() => setCategoryEditorOpen((open) => !open)}><ThemedText type="smallBold" themeColor="pine">Kelola</ThemedText></Pressable></View>
           <View style={styles.categoryGrid}>
             {visibleCategories.map((category) => <Pressable key={category.id} accessibilityRole="button" accessibilityLabel={`Kategori ${category.name}`} onPress={() => setCategoryId(category.id)} style={[styles.category, { borderColor: category.id === categoryId ? theme.pine : theme.line, backgroundColor: category.id === categoryId ? theme.mint : theme.card }]}><ThemedText style={{ color: type === 'income' ? theme.income : theme.expense }}>{category.icon}</ThemedText><ThemedText type="small" style={styles.categoryName}>{category.name}</ThemedText></Pressable>)}
           </View>
@@ -134,7 +134,7 @@ export function TransactionForm({ mode, transaction, wallets = getActiveTransact
             <ThemedText type="smallBold">{editingCategoryId ? 'Edit kategori' : 'Kelola kategori'}</ThemedText>
             <View style={styles.categoryManageList}>{visibleCategories.map((category) => <View key={category.id} style={styles.categoryManageRow}><ThemedText type="small" style={styles.categoryManageName}>{category.name}</ThemedText><Pressable accessibilityRole="button" accessibilityLabel={`Edit kategori ${category.name}`} onPress={() => editCategory(category)}><ThemedText type="smallBold" themeColor="pine">Edit</ThemedText></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`Arsipkan kategori ${category.name}`} onPress={() => { setCategories((current) => archiveMockCategory(current, category.id)); if (categoryId === category.id) setCategoryId(null); }}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan</ThemedText></Pressable></View>)}</View>
             <TextInput accessibilityLabel="Nama kategori baru" placeholder="Nama kategori" placeholderTextColor={theme.muted} value={categoryName} onChangeText={setCategoryName} style={[styles.editorInput, { borderBottomColor: theme.line, color: theme.ink }]} />
-            <View style={styles.iconLibrary}>{TRANSACTION_ICON_CHOICES.map((icon, index) => <Pressable key={`${icon}-${index}`} accessibilityRole="button" accessibilityLabel={`Pilih ikon ${icon}`} onPress={() => setCategoryIcon(icon)} style={[styles.iconChoice, { borderColor: icon === categoryIcon ? theme.pine : theme.line, backgroundColor: icon === categoryIcon ? theme.mint : theme.background }]}><ThemedText>{icon}</ThemedText></Pressable>)}</View>
+          <View style={styles.iconLibrary}>{Array.from({ length: Math.ceil(TRANSACTION_ICON_CHOICES.length / 5) }, (_, rowIndex) => <View key={`icon-row-${rowIndex}`} style={styles.iconRow}>{TRANSACTION_ICON_CHOICES.slice(rowIndex * 5, rowIndex * 5 + 5).map((icon) => <Pressable key={icon} accessibilityRole="button" accessibilityLabel={`Pilih ikon ${icon}`} onPress={() => setCategoryIcon(icon)} style={[styles.iconChoice, { borderColor: icon === categoryIcon ? theme.pine : theme.line, backgroundColor: icon === categoryIcon ? theme.mint : theme.background }]}><ThemedText>{icon}</ThemedText></Pressable>)}</View>)}</View>
             <Pressable accessibilityRole="button" accessibilityLabel="Simpan kategori" onPress={saveCategory}><ThemedText type="smallBold" themeColor="pine">{editingCategoryId ? 'Simpan perubahan' : 'Simpan kategori'}</ThemedText></Pressable>
           </View>}
         </>}
@@ -181,8 +181,9 @@ const styles = StyleSheet.create({
   categoryManageRow: { alignItems: 'center', flexDirection: 'row', gap: Spacing.two, minHeight: 28 },
   categoryManageName: { flex: 1, fontSize: 11 },
   editorInput: { borderBottomWidth: 1, fontFamily: Fonts.sans, fontSize: 15, minHeight: 42, paddingHorizontal: 0 },
-  iconLibrary: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
-  iconChoice: { alignItems: 'center', borderRadius: Radius.small, borderWidth: 1, height: 35, justifyContent: 'center', width: 35 },
+  iconLibrary: { gap: 7 },
+  iconRow: { flexDirection: 'row', gap: 7 },
+  iconChoice: { alignItems: 'center', borderRadius: Radius.small, borderWidth: 1, flex: 1, height: 35, justifyContent: 'center' },
   amountInput: { borderBottomWidth: 1, fontFamily: Fonts.serif, fontSize: 29, lineHeight: 34, minHeight: 57, paddingHorizontal: 0 },
   warning: { borderRadius: 12, padding: 10 },
   input: { borderBottomWidth: 1, fontFamily: Fonts.sans, fontSize: 16, minHeight: 52, paddingHorizontal: 0 },
