@@ -1,6 +1,6 @@
 # Design Tokens Spen — slot & peran (nilai diserahkan ke design agent)
 
-File ini **mendefinisikan nama slot token + perannya** untuk design system Spen. Nilai konkret (warna, font, ukuran) **TIDAK diisi di sini** — itu keputusan visual design agent saat rendering, dan hasilnya direkam balik (misal sebagai token CSS di DESIGn.md atau file terpisah) setelah disetujui.
+File ini **mendefinisikan nama slot token + perannya** untuk design system Spen. Nilai konkret (warna, font, ukuran) **TIDAK diisi di sini** — itu keputusan visual design agent saat rendering, dan hasilnya direkam balik (misal sebagai token CSS di DESIGN.md atau file terpisah) setelah disetujui.
 
 > **Prinsip**: arahkan nuansa & peran, serahkan keputusan visual spesifik ke design agent.
 
