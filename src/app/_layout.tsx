@@ -19,7 +19,14 @@ import {
 import AppTabs from '@/components/app-tabs';
 import { SetupWizard } from '@/components/setup-wizard';
 import { AppThemeProvider, useAppTheme } from '@/components/theme-provider';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
+import { drizzle } from 'drizzle-orm/expo-sqlite';
+import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
+
+import migrations from '../../drizzle/migrations';
+import { configureDatabase } from '../../db/database';
+import { seedDefaultCategories } from '../../db/seed';
 
 function AppNavigation() {
   const { colorScheme } = useAppTheme();
@@ -30,6 +37,29 @@ function AppNavigation() {
       {setupComplete ? <AppTabs /> : <SetupWizard onComplete={() => setSetupComplete(true)} />}
     </ThemeProvider>
   );
+}
+
+function DatabaseGate() {
+  const sqlite = useSQLiteContext();
+  const database = useMemo(() => drizzle(sqlite), [sqlite]);
+  const { success, error } = useMigrations(database, migrations);
+  const [seeded, setSeeded] = useState(false);
+
+  useEffect(() => {
+    if (!success) return;
+
+    let cancelled = false;
+    void seedDefaultCategories(sqlite).then(() => {
+      if (!cancelled) setSeeded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [sqlite, success]);
+
+  if (error) throw error;
+  if (!success || !seeded) return null;
+  return <AppThemeProvider><AppNavigation /></AppThemeProvider>;
 }
 
 export default function RootLayout() {
@@ -49,9 +79,5 @@ export default function RootLayout() {
     return null;
   }
 
-  return (
-    <AppThemeProvider>
-      <AppNavigation />
-    </AppThemeProvider>
-  );
+  return <SQLiteProvider databaseName="spen.db" onInit={configureDatabase}><DatabaseGate /></SQLiteProvider>;
 }
