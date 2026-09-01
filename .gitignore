@@ -38,6 +38,9 @@ yarn-error.*
 
 example
 
+# local ticket scratch
+.scratch/
+
 # generated native folders
 /ios
 /android
