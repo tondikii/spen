@@ -1,5 +1,3 @@
-import { ScreenSkeleton } from '@/components/screen-skeleton';
+import PlanScreen from '@/components/plan-screen';
 
-export default function PlanScreen() {
-  return <ScreenSkeleton eyebrow="BUDGET PLAN" title="Rencana" />;
-}
+export default PlanScreen;
