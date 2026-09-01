@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   Modal,
@@ -171,7 +171,7 @@ function WalletForm(props: WalletFormProps) {
 export default function HomeScreen({ onTransactionPress }: { onTransactionPress?: (transaction: Transaction) => void } = {}) {
   const [wallets, setWallets] = useState<Wallet[]>(getHomeWallets);
   const [formWallet, setFormWallet] = useState<Wallet | 'new' | null>(null);
-  const recentTransactions = useMemo(getHomeRecentTransactions, []);
+  const recentTransactions = getHomeRecentTransactions();
   const total = getWalletTotal(wallets);
 
   const saveWallet = (name: string, balance: number) => {

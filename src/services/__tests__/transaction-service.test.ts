@@ -1,5 +1,5 @@
 import mockData from '@/data/mock-data';
-import { archiveMockCategory, getAllocationLimit, saveMockTransaction } from '@/services/transaction-service';
+import { archiveMockCategory, getAllocationLimit, getMockTransactions, saveMockTransaction } from '@/services/transaction-service';
 
 describe('transaction service', () => {
   it('mengambil limit alokasi dari kategori yang dipilih', () => {
@@ -30,5 +30,6 @@ describe('transaction service', () => {
     expect(saved).toHaveLength(1);
     expect(saved[0]).toEqual(expect.objectContaining(draft));
     expect(saved[0].id).toMatch(/^transaction-/);
+    expect(getMockTransactions()).toEqual(expect.arrayContaining([expect.objectContaining(draft)]));
   });
 });

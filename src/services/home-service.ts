@@ -1,5 +1,6 @@
 import mockData from '@/data/mock-data';
 import type { Transaction, Wallet } from '@/types/domain';
+import { getMockTransactions } from '@/services/transaction-service';
 
 export function getHomeSnapshot() {
   return mockData.budgetSnapshot;
@@ -16,7 +17,7 @@ export function getHomeWallets() {
 }
 
 export function getHomeRecentTransactions() {
-  return mockData.transactions.slice(0, 3);
+  return getMockTransactions().slice(0, 3);
 }
 
 export function getWalletTotal(wallets: Wallet[]) {
