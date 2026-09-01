@@ -33,7 +33,6 @@ function HomeHeader() {
       <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
         SELASA, 1 SEPTEMBER
       </ThemedText>
-      <ThemedText type="small" themeColor="muted" style={styles.headerPeriod}>1 — 30 Sep  ◫</ThemedText>
     </View>
   );
 }
@@ -59,7 +58,7 @@ function WalletCards({ wallets, onSelect, onAdd }: { wallets: Wallet[]; onSelect
       <View style={styles.sectionTitle}>
         <ThemedText type="sectionHeading">Wallet</ThemedText>
         <Pressable accessibilityRole="button" accessibilityLabel="Tambah Wallet" onPress={onAdd}>
-          <ThemedText type="smallBold" themeColor="pine">Tambah</ThemedText>
+          <ThemedText type="smallBold" themeColor="pine" style={styles.quietAction}>Tambah</ThemedText>
         </Pressable>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.walletRow}>
@@ -75,7 +74,7 @@ function WalletCards({ wallets, onSelect, onAdd }: { wallets: Wallet[]; onSelect
           </Pressable>
         ))}
         <Pressable accessibilityRole="button" accessibilityLabel="Tambah Wallet" onPress={onAdd} style={[styles.walletAdd, { borderColor: theme.walletAddBorder }]}>
-          <ThemedText type="subtitle" themeColor="pine">＋</ThemedText>
+          <ThemedText type="subtitle" themeColor="pine" style={styles.walletAddIcon}>＋</ThemedText>
           <ThemedText type="small" themeColor="muted" style={styles.walletAddLabel}>Tambah Wallet</ThemedText>
         </Pressable>
       </ScrollView>
@@ -100,16 +99,16 @@ function PlanSnapshot({ onPress }: { onPress: () => void }) {
     <ThemedView type="card" style={[styles.planSnapshot, { borderColor: theme.line }]}>
       <View>
         <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>SPARE BUDGET</ThemedText>
-        <ThemedText type="subtitle">{formatMoney(snapshot.spareBudget)}</ThemedText>
-        <ThemedText type="small" themeColor="muted">masih bisa dialokasikan</ThemedText>
+        <ThemedText type="subtitle" style={styles.planAmount}>{formatMoney(snapshot.spareBudget)}</ThemedText>
+        <ThemedText type="small" themeColor="muted" style={styles.planCaption}>masih bisa dialokasikan</ThemedText>
       </View>
       <Pressable accessibilityRole="button" accessibilityLabel="Lihat Rencana" onPress={onPress} style={styles.planLink}>
-        <ThemedText type="smallBold" themeColor="pine">Lihat Rencana  →</ThemedText>
+        <ThemedText type="smallBold" themeColor="pine" style={styles.planLinkText}>Lihat Rencana  →</ThemedText>
       </Pressable>
       <ProgressBar progress={progress} />
       <View style={styles.miniStats}>
-        <ThemedText type="small" themeColor="muted">Pendapatan <ThemedText style={styles.miniStatValue}>{formatMoney(snapshot.totalIncome)}</ThemedText></ThemedText>
-        <ThemedText type="small" themeColor="muted">Terpakai <ThemedText style={styles.miniStatValue}>{formatMoney(snapshot.totalExpense)}</ThemedText></ThemedText>
+        <ThemedText type="small" themeColor="muted" style={styles.miniStat}>Pendapatan <ThemedText style={styles.miniStatValue}>{formatMoney(snapshot.totalIncome)}</ThemedText></ThemedText>
+        <ThemedText type="small" themeColor="muted" style={styles.miniStat}>Terpakai <ThemedText style={styles.miniStatValue}>{formatMoney(snapshot.totalExpense)}</ThemedText></ThemedText>
       </View>
     </ThemedView>
   );
@@ -146,14 +145,14 @@ function WalletSheet({ wallet, onClose, onCorrection, onEdit, onArchive }: { wal
         <Pressable onPress={(event) => event.stopPropagation()} style={[styles.sheet, { backgroundColor: theme.card }]}>
           <View style={[styles.grabber, { backgroundColor: theme.line }]} />
           <View style={styles.walletSummary}>
-            <View style={[styles.walletAvatar, { backgroundColor: theme[tintColors[wallet.tint]] }]}><ThemedText type="subtitle">{wallet.name[0]}</ThemedText></View>
-            <ThemedText type="small" themeColor="muted">{wallet.name}</ThemedText>
+            <View style={[styles.walletAvatar, { backgroundColor: theme[tintColors[wallet.tint]] }]}><ThemedText type="subtitle" style={styles.walletAvatarText}>{wallet.name[0]}</ThemedText></View>
+            <ThemedText type="small" themeColor="muted" style={styles.walletSummaryName}>{wallet.name}</ThemedText>
             <ThemedText type="title" style={styles.sheetAmount}>{formatMoney(wallet.balance)}</ThemedText>
           </View>
           <View style={styles.sheetActions}>
-          <SheetAction icon="±" title="Koreksi saldo" detail="Buat transaksi penyesuaian" onPress={onCorrection} />
-          <SheetAction icon="⌕" title="Edit Wallet" detail="Ubah nama Wallet" onPress={onEdit} />
-          <SheetAction icon="□" title="Arsipkan Wallet" detail="Transaksi tetap tersimpan" danger onPress={onArchive} />
+            <SheetAction icon="±" title="Koreksi saldo" detail="Buat transaksi penyesuaian" onPress={onCorrection} />
+            <SheetAction icon="⌕" title="Edit Wallet" detail="Ubah nama Wallet" onPress={onEdit} />
+            <SheetAction icon="□" title="Arsipkan Wallet" detail="Transaksi tetap tersimpan" danger onPress={onArchive} />
           </View>
         </Pressable>
       </Pressable>
@@ -248,7 +247,6 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, alignSelf: 'center', width: '100%', maxWidth: MaxContentWidth },
   content: { paddingHorizontal: Layout.pagePadding, paddingTop: 28, paddingBottom: BottomTabInset + Spacing.four, gap: 0 },
   header: { alignItems: 'flex-start', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  headerPeriod: { fontFamily: Fonts.monoMedium, fontSize: 11 },
   eyebrow: { ...Typography.eyebrow },
   balanceCard: { borderRadius: Radius.hero, marginBottom: Layout.sectionGap, padding: 21, ...Shadows.hero },
   heroLabel: { fontFamily: Fonts.sans, fontSize: 12, lineHeight: 18 },
@@ -262,14 +260,20 @@ const styles = StyleSheet.create({
   walletName: { fontFamily: Fonts.sansSemiBold, fontSize: 11, lineHeight: 14, letterSpacing: 0.11 },
   walletBalance: { fontFamily: Fonts.mono, fontSize: 11, lineHeight: 14, letterSpacing: -0.66 },
   walletAdd: { alignItems: 'center', borderRadius: 18, borderStyle: 'dashed', borderWidth: 1, height: Layout.walletAddHeight, justifyContent: 'center', width: Layout.walletAddWidth },
-  walletAddLabel: { fontSize: 10, marginTop: Spacing.one },
+  walletAddIcon: { fontSize: 25, lineHeight: 27 },
+  walletAddLabel: { fontSize: 10, lineHeight: 13, marginTop: 7 },
+  quietAction: { fontSize: 12, lineHeight: 15 },
   pressed: { opacity: 0.7 },
   planSnapshot: { borderRadius: 21, borderWidth: 1, marginBottom: Layout.sectionGap, padding: 17 },
   planLink: { position: 'absolute', right: Spacing.three, top: Spacing.three },
+  planAmount: { fontSize: 25, lineHeight: 28 },
+  planCaption: { fontSize: 11, lineHeight: 14 },
+  planLinkText: { fontSize: 11, lineHeight: 14 },
   progressTrack: { borderRadius: Radius.pill, height: 5, marginVertical: Spacing.three, overflow: 'hidden' },
   progressFill: { borderRadius: Radius.pill, height: '100%' },
   miniStats: { flexDirection: 'row', justifyContent: 'space-between' },
   miniStatValue: { fontFamily: Fonts.mono, fontSize: 10 },
+  miniStat: { fontSize: 10, lineHeight: 14 },
   recent: { paddingBottom: Spacing.two },
   transactionRow: { alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 11, paddingHorizontal: 1, paddingVertical: 12 },
   categoryIcon: { alignItems: 'center', borderRadius: 12, height: 35, justifyContent: 'center', width: 35 },
@@ -278,22 +282,24 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: 27, borderTopRightRadius: 27, paddingHorizontal: 21, paddingTop: 12, paddingBottom: 24 },
   grabber: { alignSelf: 'center', borderRadius: 9, height: 4, marginBottom: 16, width: 35 },
-  walletSummary: { alignItems: 'center', gap: Spacing.two, paddingBottom: Spacing.four },
+  walletSummary: { alignItems: 'center', paddingBottom: 22 },
   walletAvatar: { alignItems: 'center', borderRadius: Radius.medium, height: 48, justifyContent: 'center', width: 48 },
-  sheetAmount: { fontFamily: Fonts.serif, fontSize: 28, lineHeight: 31, letterSpacing: -1.12, marginTop: Spacing.one },
-  sheetActions: { gap: Spacing.one },
+  walletAvatarText: { fontSize: 25, lineHeight: 29 },
+  walletSummaryName: { fontSize: 12, lineHeight: 16, marginBottom: 3, marginTop: 10 },
+  sheetAmount: { fontFamily: Fonts.serif, fontSize: 28, lineHeight: 31, letterSpacing: -1.12 },
+  sheetActions: {},
   sheetAction: { alignItems: 'center', borderTopWidth: 1, flexDirection: 'row', gap: 12, paddingHorizontal: 3, paddingVertical: 15 },
   actionIcon: { alignItems: 'center', borderRadius: Radius.small, fontFamily: Fonts.mono, fontSize: 18, height: 35, justifyContent: 'center', paddingTop: 4, textAlign: 'center', width: 35 },
   actionCopy: { flex: 1 },
   actionTitle: { fontSize: 12, lineHeight: 16 },
   actionDetail: { fontSize: 10, lineHeight: 14 },
   formPage: { flex: 1 },
-  formHeader: { alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', justifyContent: 'space-between', padding: Spacing.two },
+  formHeader: { alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', height: 65, justifyContent: 'space-between', paddingHorizontal: 20 },
   headerButton: { alignItems: 'center', height: 44, justifyContent: 'center', minWidth: 56 },
-  formContent: { gap: Spacing.two, padding: Spacing.four },
+  formContent: { gap: Spacing.two, paddingHorizontal: 21, paddingVertical: 24 },
   formNote: { fontSize: 12, lineHeight: 18, marginBottom: Spacing.five },
   formLabel: { ...Typography.eyebrow, marginTop: Spacing.two },
-  input: { borderBottomWidth: 1, fontFamily: Fonts.sans, fontSize: 16, minHeight: 52, paddingHorizontal: Spacing.two },
+  input: { borderBottomWidth: 1, fontFamily: Fonts.sans, fontSize: 16, minHeight: 52, paddingHorizontal: 0 },
   transactionName: { fontSize: 12, lineHeight: 16 },
   transactionDetail: { fontSize: 10, lineHeight: 14, marginTop: Spacing.half },
   transactionAmountText: { fontSize: 12, lineHeight: 16 },
