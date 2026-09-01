@@ -73,5 +73,25 @@ Menonaktifkan entitas (kategori, wallet, goal) yang sudah dipakai dari pilihan a
 _Avoid_: delete, hapus permanen
 
 **Over budget**:
-Status item Budget plan saat pengeluaran melebihi alokasinya; progress > 100% dan ditandai.
+Status item Budget plan saat pengeluaran melebihi alokasinya; progress > 100% dan ditandai (merah, label "Melebihi Budget").
 _Avoid_: overspend
+
+**Defisit**:
+Nama untuk Net saving negatif dalam satu Budget period; ditampilkan merah di report dan ringkasan. Bukan error — status informatif.
+_Avoid_: minus, rugi
+
+**Status bayar (Fixed expense)**:
+Status pembayaran item Fixed expense dalam periode aktif, diturunkan dari transaksi expense kategori tersebut: "Lunas ✓" (realisasi ≥ nominal), "x/y dibayar" (belum lunas), "Belum dibayar" (belum ada transaksi). Dasar tombol "Bayar".
+_Avoid_: paid/unpaid, status transaksi
+
+**Realisasi (item plan)**:
+Nilai turunan transaksi pada item Budget plan (pendapatan: total transaksi income kategori; fixed expense/alokasi: total transaksi expense kategori) dalam periode aktif. Kebalikan dari target (angka manual); tidak pernah disimpan sebagai angka ketiga (lihat ADR-0004).
+_Avoid_: actual, realisasi manual
+
+**Kategori transfer (global)**:
+Satu kategori tunggal bertipe transfer yang dipakai semua transaksi Transfer; tidak dapat dipilih user, otomatis. Berwarna warning.
+_Avoid_: kategori per transfer, kategori bebas
+
+**Koreksi saldo**:
+Aksi pengguna di detail wallet untuk menyamakan saldo catatan dengan saldo riil; selalu menghasilkan transaksi penyesuaian (kategori "Penyesuaian Saldo"). Lihat **Transaksi penyesuaian**.
+_Avoid_: edit saldo, set saldo manual
