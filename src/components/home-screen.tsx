@@ -18,13 +18,6 @@ import { formatMoney } from '@/lib/money';
 import { useTheme } from '@/hooks/use-theme';
 import { addMockWallet, archiveMockWallet, getHomeRecentTransactions, getHomeSnapshot, getHomeWallets, getTransactionPresentation, getWalletTotal, renameMockWallet } from '@/services/home-service';
 
-const tintColors: Record<WalletTint, keyof ReturnType<typeof useTheme>> = {
-  pine: 'walletPine',
-  coral: 'walletCoral',
-  gold: 'walletGold',
-  goal: 'walletGoal',
-};
-
 const tintSequence: WalletTint[] = ['pine', 'coral', 'gold', 'goal'];
 
 function walletGlyph(wallet: Wallet) {
@@ -145,43 +138,9 @@ function RecentTransaction({ transaction }: { transaction: Transaction }) {
   );
 }
 
-function WalletSheet({ wallet, onClose, onCorrection, onEdit, onArchive }: { wallet: Wallet; onClose: () => void; onCorrection: () => void; onEdit: () => void; onArchive: () => void }) {
-  const theme = useTheme();
-  return (
-    <Modal transparent animationType="slide" visible onRequestClose={onClose}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Tutup detail Wallet" onPress={onClose} style={[styles.overlay, { backgroundColor: theme.overlay }]}>
-        <Pressable onPress={(event) => event.stopPropagation()} style={[styles.sheet, { backgroundColor: theme.card }]}>
-          <View style={[styles.grabber, { backgroundColor: theme.line }]} />
-          <View style={styles.walletSummary}>
-            <View style={[styles.walletAvatar, { backgroundColor: theme[tintColors[wallet.tint]] }]}><ThemedText type="subtitle" style={styles.walletAvatarText}>{wallet.name[0]}</ThemedText></View>
-            <ThemedText type="small" themeColor="muted" style={styles.walletSummaryName}>{wallet.name}</ThemedText>
-            <ThemedText type="title" style={styles.sheetAmount}>{formatMoney(wallet.balance)}</ThemedText>
-          </View>
-          <View style={styles.sheetActions}>
-            <SheetAction icon="±" title="Koreksi saldo" detail="Buat transaksi penyesuaian" onPress={onCorrection} />
-            <SheetAction icon="⌕" title="Edit Wallet" detail="Ubah nama Wallet" onPress={onEdit} />
-            <SheetAction icon="□" title="Arsipkan Wallet" detail="Transaksi tetap tersimpan" danger onPress={onArchive} />
-          </View>
-        </Pressable>
-      </Pressable>
-    </Modal>
-  );
-}
-
-function SheetAction({ icon, title, detail, onPress, danger = false }: { icon: string; title: string; detail: string; onPress: () => void; danger?: boolean }) {
-  const theme = useTheme();
-  return (
-    <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={onPress} style={[styles.sheetAction, { borderTopColor: theme.line }]}>
-      <ThemedText style={[styles.actionIcon, { backgroundColor: danger ? theme.dangerBackground : theme.mint, color: danger ? theme.expense : theme.pine }]}>{icon}</ThemedText>
-      <View style={styles.actionCopy}><ThemedText type="smallBold" style={[styles.actionTitle, danger && { color: theme.expense }]}>{title}</ThemedText><ThemedText type="small" themeColor="muted" style={styles.actionDetail}>{detail}</ThemedText></View>
-      <ThemedText type="subtitle" themeColor="muted">›</ThemedText>
-    </Pressable>
-  );
-}
-
 type WalletFormProps =
   | { mode: 'create'; onClose: () => void; onSave: (name: string, balance: number) => void }
-  | { mode: 'edit'; wallet: Wallet; onClose: () => void; onSave: (name: string) => void };
+  | { mode: 'edit'; wallet: Wallet; onClose: () => void; onSave: (name: string) => void; onArchive: () => void };
 
 function WalletForm(props: WalletFormProps) {
   const theme = useTheme();
@@ -204,6 +163,7 @@ function WalletForm(props: WalletFormProps) {
             <ThemedText type="code" themeColor="muted" style={styles.formLabel}>SALDO AWAL</ThemedText>
             <TextInput accessibilityLabel="Saldo awal" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={amount} onChangeText={setAmount} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} />
           </>}
+          {props.mode === 'edit' && <Pressable accessibilityRole="button" accessibilityLabel="Arsipkan Wallet" onPress={props.onArchive} style={[styles.archiveButton, { borderColor: theme.expense }]}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan Wallet</ThemedText><ThemedText type="small" themeColor="muted">Transaksi tetap tersimpan</ThemedText></Pressable>}
         </View>
       </ThemedView>
     </Modal>
@@ -212,9 +172,7 @@ function WalletForm(props: WalletFormProps) {
 
 export default function HomeScreen() {
   const [wallets, setWallets] = useState<Wallet[]>(getHomeWallets);
-  const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
   const [formWallet, setFormWallet] = useState<Wallet | 'new' | null>(null);
-  const [archivedWallets, setArchivedWallets] = useState<Wallet[]>([]);
   const recentTransactions = useMemo(getHomeRecentTransactions, []);
   const total = getWalletTotal(wallets);
 
@@ -226,7 +184,6 @@ export default function HomeScreen() {
       setWallets((current) => addMockWallet(current, name, balance ?? 0, tint));
     }
     setFormWallet(null);
-    setSelectedWallet(null);
   };
 
   return (
@@ -235,7 +192,7 @@ export default function HomeScreen() {
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <HomeHeader />
           <BalanceCard total={total} />
-          <WalletCards wallets={wallets} onSelect={setSelectedWallet} onAdd={() => setFormWallet('new')} />
+          <WalletCards wallets={wallets} onSelect={(wallet) => setFormWallet(wallet)} onAdd={() => setFormWallet('new')} />
           <PlanSnapshot onPress={() => undefined} />
           <View style={styles.recent}>
             <View style={styles.sectionTitle}><ThemedText type="sectionHeading">Terbaru</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Lihat Semua Transaksi" onPress={() => Alert.alert('Transaksi', 'View transaksi harian akan tersedia di layar Riwayat.')}><ThemedText type="smallBold" themeColor="pine">Lihat Semua</ThemedText></Pressable></View>
@@ -243,9 +200,8 @@ export default function HomeScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
-      {selectedWallet && <WalletSheet wallet={selectedWallet} onClose={() => setSelectedWallet(null)} onCorrection={() => Alert.alert('Koreksi saldo', 'Aksi ini akan membuat transaksi penyesuaian.')} onEdit={() => { setFormWallet(selectedWallet); setSelectedWallet(null); }} onArchive={() => { setArchivedWallets((current) => [...current, { ...selectedWallet, archived: true }]); setWallets((current) => archiveMockWallet(current, selectedWallet.id)); setSelectedWallet(null); }} />}
       {formWallet === 'new' && <WalletForm mode="create" onClose={() => setFormWallet(null)} onSave={saveWallet} />}
-      {formWallet && formWallet !== 'new' && <WalletForm mode="edit" wallet={formWallet} onClose={() => setFormWallet(null)} onSave={saveWallet} />}
+      {formWallet && formWallet !== 'new' && <WalletForm mode="edit" wallet={formWallet} onClose={() => setFormWallet(null)} onSave={saveWallet} onArchive={() => { setWallets((current) => archiveMockWallet(current, formWallet.id)); setFormWallet(null); }} />}
     </ThemedView>
   );
 }
@@ -288,25 +244,12 @@ const styles = StyleSheet.create({
   categoryIcon: { alignItems: 'center', borderRadius: 12, height: 35, justifyContent: 'center', width: 35 },
   transactionDescription: { flex: 1, minWidth: 0 },
   transactionAmount: { alignItems: 'flex-end' },
-  overlay: { flex: 1, justifyContent: 'flex-end' },
-  sheet: { borderTopLeftRadius: 27, borderTopRightRadius: 27, paddingHorizontal: 21, paddingTop: 12, paddingBottom: 24 },
-  grabber: { alignSelf: 'center', borderRadius: 9, height: 4, marginBottom: 16, width: 35 },
-  walletSummary: { alignItems: 'center', paddingBottom: 22 },
-  walletAvatar: { alignItems: 'center', borderRadius: Radius.medium, height: 48, justifyContent: 'center', width: 48 },
-  walletAvatarText: { fontSize: 25, lineHeight: 29 },
-  walletSummaryName: { fontSize: 12, lineHeight: 16, marginBottom: 3, marginTop: 10 },
-  sheetAmount: { fontFamily: Fonts.serif, fontSize: 28, lineHeight: 31, letterSpacing: -1.12 },
-  sheetActions: {},
-  sheetAction: { alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 12, paddingHorizontal: 3, paddingVertical: 15 },
-  actionIcon: { alignItems: 'center', borderRadius: Radius.small, fontFamily: Fonts.mono, fontSize: 18, height: 35, justifyContent: 'center', paddingTop: 4, textAlign: 'center', width: 35 },
-  actionCopy: { flex: 1 },
-  actionTitle: { fontSize: 12, lineHeight: 16 },
-  actionDetail: { fontSize: 10, lineHeight: 14 },
   formPage: { flex: 1 },
   formHeader: { alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', height: 65, justifyContent: 'space-between', paddingHorizontal: 20 },
   headerButton: { alignItems: 'center', height: 44, justifyContent: 'center', minWidth: 56 },
   formContent: { gap: Spacing.two, paddingHorizontal: 21, paddingVertical: 24 },
   formNote: { fontSize: 12, lineHeight: 18, marginBottom: Spacing.five },
+  archiveButton: { borderRadius: Radius.small, borderWidth: 1, gap: 3, marginTop: Spacing.five, padding: 13 },
   formLabel: { ...Typography.eyebrow, marginTop: Spacing.two },
   input: { borderBottomWidth: 1, fontFamily: Fonts.sans, fontSize: 16, minHeight: 52, paddingHorizontal: 0 },
   transactionName: { fontSize: 12, lineHeight: 16 },

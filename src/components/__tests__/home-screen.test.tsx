@@ -13,14 +13,14 @@ describe('HomeScreen', () => {
     expect(getByText(/Kopi dan sarapan/)).toBeTruthy();
   });
 
-  it('membuka detail Wallet dan menjelaskan transaksi penyesuaian', async () => {
+  it('membuka form edit langsung saat Wallet ditekan dan menyediakan archive', async () => {
     const { getByLabelText, getByText } = await render(<HomeScreen />);
 
     await fireEvent.press(getByLabelText('Buka Wallet Tunai'));
 
-    await waitFor(() => expect(getByText('Koreksi saldo')).toBeTruthy());
-    expect(getByText('Buat transaksi penyesuaian')).toBeTruthy();
-    expect(getByText('Edit Wallet')).toBeTruthy();
+    await waitFor(() => expect(getByText('Edit Wallet')).toBeTruthy());
+    expect(getByLabelText('Nama Wallet').props.value).toBe('Tunai');
+    expect(() => getByLabelText('Saldo awal')).toThrow();
     expect(getByText('Arsipkan Wallet')).toBeTruthy();
   });
 
@@ -41,7 +41,6 @@ describe('HomeScreen', () => {
     const { getByLabelText, getByText } = await render(<HomeScreen />);
 
     await fireEvent.press(getByLabelText('Buka Wallet Tunai'));
-    await fireEvent.press(getByLabelText('Edit Wallet'));
     await waitFor(() => expect(getByText('Edit Wallet')).toBeTruthy());
 
     expect(getByLabelText('Nama Wallet').props.value).toBe('Tunai');
