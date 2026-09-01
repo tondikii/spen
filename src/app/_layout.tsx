@@ -17,14 +17,17 @@ import {
 } from '@expo-google-fonts/nunito-sans';
 
 import AppTabs from '@/components/app-tabs';
+import { SetupWizard } from '@/components/setup-wizard';
 import { AppThemeProvider, useAppTheme } from '@/components/theme-provider';
+import { useState } from 'react';
 
 function AppNavigation() {
   const { colorScheme } = useAppTheme();
+  const [setupComplete, setSetupComplete] = useState(false);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AppTabs />
+      {setupComplete ? <AppTabs /> : <SetupWizard onComplete={() => setSetupComplete(true)} />}
     </ThemeProvider>
   );
 }
