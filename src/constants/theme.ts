@@ -1,5 +1,10 @@
 export const Colors = {
   light: {
+    background: '#F6F5F0',
+    backgroundElement: '#FFFEFA',
+    backgroundSelected: '#DCE5EC',
+    text: '#213431',
+    textSecondary: '#7B8882',
     pine: '#235B50',
     pine2: '#17483F',
     mint: '#DCE5EC',
@@ -24,6 +29,11 @@ export const Colors = {
     walletGoal: '#C9B8DE',
   },
   dark: {
+    background: '#12231F',
+    backgroundElement: '#19312C',
+    backgroundSelected: '#20453B',
+    text: '#EEF5EE',
+    textSecondary: '#A6B5AE',
     pine: '#83B5A5',
     pine2: '#20453B',
     mint: '#20453B',
