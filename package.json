@@ -3,6 +3,9 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@expo-google-fonts/dm-mono": "^0.4.2",
+    "@expo-google-fonts/fraunces": "^0.4.1",
+    "@expo-google-fonts/nunito-sans": "^0.4.2",
     "@expo/ui": "~57.0.14",
     "drizzle-orm": "1.0.0-rc.4",
     "expo": "~57.0.18",

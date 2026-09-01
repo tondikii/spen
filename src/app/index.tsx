@@ -12,7 +12,7 @@ export default function HomeScreen() {
         <ThemedText type="title" style={styles.title}>
           Spen
         </ThemedText>
-        <ThemedText type="default" themeColor="textSecondary">
+        <ThemedText type="default" themeColor="muted">
           Aplikasi budget planner kamu.
         </ThemedText>
       </SafeAreaView>

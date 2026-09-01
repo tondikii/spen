@@ -1,53 +1,69 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-import { Platform } from 'react-native';
-
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    pine: '#235B50',
+    pine2: '#17483F',
+    mint: '#DCE5EC',
+    paper: '#F6F5F0',
+    card: '#FFFEFA',
+    ink: '#213431',
+    muted: '#7B8882',
+    line: '#E3E4DD',
+    income: '#238B65',
+    expense: '#C85C55',
+    gold: '#BD8A30',
+    coral: '#DC8C7C',
+    heroText: '#F6FAF4',
+    heroMuted: '#D4E4DD',
+    heroDivider: '#FFFFFF22',
+    overlay: '#10251D66',
+    spareBackground: '#DEEEE7',
+    spareText: '#1E4B42',
+    walletPine: '#B6D7CC',
+    walletCoral: '#EFC5BB',
+    walletGold: '#E9D49A',
+    walletGoal: '#C9B8DE',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    pine: '#83B5A5',
+    pine2: '#20453B',
+    mint: '#20453B',
+    paper: '#12231F',
+    card: '#19312C',
+    ink: '#EEF5EE',
+    muted: '#A6B5AE',
+    line: '#29443D',
+    income: '#83B5A5',
+    expense: '#E58A82',
+    gold: '#D8AD58',
+    coral: '#E3A096',
+    heroText: '#E7F3ED',
+    heroMuted: '#A6C5B9',
+    heroDivider: '#FFFFFF1F',
+    overlay: '#061610B3',
+    spareBackground: '#20453B',
+    spareText: '#E7F3ED',
+    walletPine: '#4D776B',
+    walletCoral: '#85564E',
+    walletGold: '#876D36',
+    walletGoal: '#75638A',
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export type Theme = (typeof Colors)[keyof typeof Colors];
+export type ThemeColor = keyof Theme;
+export type ColorScheme = keyof typeof Colors;
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'system-ui, sans-serif',
-    serif: 'Georgia, serif',
-    rounded: 'system-ui, sans-serif',
-    mono: 'ui-monospace, monospace',
-  },
-});
+export const Fonts = {
+  sans: 'NunitoSans_400Regular',
+  sansMedium: 'NunitoSans_500Medium',
+  sansSemiBold: 'NunitoSans_600SemiBold',
+  sansBold: 'NunitoSans_700Bold',
+  serif: 'Fraunces_500Medium',
+  serifSemiBold: 'Fraunces_600SemiBold',
+  serifBold: 'Fraunces_700Bold',
+  mono: 'DMMono_400Regular',
+  monoMedium: 'DMMono_500Medium',
+} as const;
 
 export const Spacing = {
   half: 2,
@@ -56,8 +72,115 @@ export const Spacing = {
   three: 16,
   four: 24,
   five: 32,
-  six: 64,
+  six: 36,
+  seven: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export const Radius = {
+  small: 10,
+  medium: 16,
+  large: 22,
+  hero: 26,
+  sheet: 27,
+  pill: 99,
+} as const;
+
+export const Typography = {
+  eyebrow: {
+    fontFamily: Fonts.monoMedium,
+    fontSize: 10,
+    letterSpacing: 0.9,
+    lineHeight: 13,
+    textTransform: 'uppercase',
+  },
+  body: {
+    fontFamily: Fonts.sans,
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  bodySmall: {
+    fontFamily: Fonts.sans,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  heading: {
+    fontFamily: Fonts.serifSemiBold,
+    fontSize: 29,
+    lineHeight: 31,
+    letterSpacing: -1.16,
+  },
+  sectionHeading: {
+    fontFamily: Fonts.serifSemiBold,
+    fontSize: 18,
+    lineHeight: 22,
+    letterSpacing: -0.72,
+  },
+  moneyHero: {
+    fontFamily: Fonts.serifBold,
+    fontSize: 32,
+    lineHeight: 36,
+    letterSpacing: -1.28,
+  },
+  money: {
+    fontFamily: Fonts.monoMedium,
+    fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: -0.72,
+  },
+} as const;
+
+export const Motion = {
+  sheetDuration: 250,
+  themeDuration: 300,
+  walletDuration: 180,
+  toggleDuration: 200,
+  aiPulseDuration: 1000,
+} as const;
+
+export const Shadows = {
+  hero: {
+    shadowColor: '#1E4A42',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.13,
+    shadowRadius: 28,
+    elevation: 8,
+  },
+  card: {
+    shadowColor: '#213431',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.07,
+    shadowRadius: 18,
+    elevation: 3,
+  },
+  fab: {
+    shadowColor: '#235B50',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.4,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+} as const;
+
+export const BottomTabInset = 80;
+export const MaxContentWidth = 430;
+
+const CurrencySymbols: Record<string, string> = {
+  IDR: 'Rp',
+  USD: 'US$',
+  SGD: 'S$',
+  MYR: 'RM',
+  EUR: '€',
+  GBP: '£',
+  JPY: '¥',
+  AUD: 'A$',
+  SAR: '﷼',
+  AED: 'د.إ',
+};
+
+export function formatMoney(amount: number, currency = 'IDR') {
+  const symbol = CurrencySymbols[currency] ?? currency;
+  const formattedAmount = new Intl.NumberFormat('id-ID', {
+    maximumFractionDigits: 0,
+  }).format(amount);
+  return `${symbol} ${formattedAmount}`;
+}
