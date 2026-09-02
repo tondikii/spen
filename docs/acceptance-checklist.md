@@ -5,26 +5,57 @@ Checklist ini memetakan 48 user story pada `docs/spec.md` ke implementasi yang a
 | US | Status | Implementasi / bukti |
 | --- | --- | --- |
 | 1 | ✅ | `setup-service`, `setup-wizard`, dan test setup end-to-end. |
-| 2–3 | ✅ | `wallet-service`, Home wallet sheet, create/edit/archive wallet, dan test database. |
-| 4–6 | ✅ | Transfer memakai kategori global; saldo dan warna semantic diuji di transaction/goal service. |
-| 7–8 | ✅ | `plan-service` membuat satu plan per Budget period dan mendukung tanggal mulai custom. |
-| 9–9b | ✅ | Item Pendapatan, realisasi dari ledger, aksi Catat, dan peringatan income yang mungkin dobel. |
-| 10–13 | ✅ | Fixed expense/alokasi, progress dari transaksi, Bayar sebagian, dan tidak ada recurring transaction. |
-| 14–16 | ✅ | Goal dengan target, tanggal opsional, Wallet Goal, edit/archive, dan status progress. |
-| 17 | ✅ | Spare budget dihitung dari target Pendapatan − fixed expense − kontribusi Goal aktif. |
-| 18–21 | ✅ | AI dipicu manual, fallback lokal, structured suggestions, tombol Terapkan; `add_goal` kini membawa target/wallet dan dapat membuat Wallet Goal. |
-| 22–25 | ✅ | Form transaksi income/expense/transfer, edit state, hapus dengan konfirmasi, dan wallet eksplisit. |
-| 26–26a | ✅ | Saldo diturunkan dari ledger; koreksi saldo menghasilkan transaksi adjustment; hero Rencana memakai komponen finance hero bersama. |
-| 27 | ✅ | Wallet bertransaksi hanya dapat di-archive. |
-| 28, 35 | ✅ | Warning over-budget tetap mengizinkan simpan dan progress menampilkan status merah. |
-| 29–30 | ✅ | Goal tercapai berhenti dihitung; net saving negatif berlabel Defisit dan berwarna expense. |
-| 31–34 | ✅ | Seed kategori, CRUD/arsip kategori, filter picker berdasarkan tipe, dan semantic colors. |
-| 36–40 | ✅ | Report summary, pie expense terurut, drill-down, line chart rentang, dan Budget period custom. |
-| 41–42 | ✅ | AI insight on-demand, Bahasa Indonesia, fallback deterministik. |
-| 43 | ✅ | Theme light/dark tersimpan melalui settings dan token tema dipakai lintas layar. |
-| 44–45 | ✅ | Backup JSON berversi via share sheet dan restore replace dengan konfirmasi/validasi. |
-| 46–47 | ✅ | Currency default IDR, pilihan currency curated, tersimpan global tanpa konversi. |
-| 48 | ✅ | UI copy dan prompt/output AI ditetapkan Bahasa Indonesia. |
+| 2 | ✅ | Create multiple Wallet dengan nama bebas di Home dan `wallet-service`. |
+| 3 | ✅ | Edit/archive Wallet melalui Home wallet sheet dan service database. |
+| 4 | ✅ | Transfer antar-Wallet melalui form transaksi. |
+| 5 | ✅ | Transfer netral terhadap total kekayaan; tercakup test database. |
+| 6 | ✅ | Kategori Transfer global otomatis dan warna warning. |
+| 7 | ✅ | Satu Budget plan global per Budget period di `plan-service`. |
+| 8 | ✅ | Default tanggal 1 dan perubahan tanggal mulai dari Rencana. |
+| 9 | ✅ | Item Pendapatan dan realisasi otomatis dari ledger. |
+| 9a | ✅ | Tombol Catat membuka form income dengan preset item. |
+| 9b | ✅ | Peringatan income yang mungkin dobel; koreksi transaksi tersedia dari form edit/hapus. |
+| 10 | ✅ | Fixed expense terikat kategori expense tanpa transaksi otomatis. |
+| 11 | ✅ | Progress Fixed expense diturunkan dari transaksi kategori. |
+| 12 | ✅ | Tombol Bayar membuka transaksi dengan nominal sisa, termasuk pembayaran sebagian. |
+| 13 | ✅ | Tidak ada recurring/auto-payment; semua transaksi dibuat manual atau lewat shortcut yang dikonfirmasi user. |
+| 14 | ✅ | Goal dengan target dan tanggal target opsional. |
+| 15 | ✅ | Goal memakai Wallet Goal; Nabung adalah transfer ke Wallet tersebut. |
+| 15a | ✅ | Penarikan darurat dari Goal memakai konfirmasi dan transaksi. |
+| 16 | ✅ | Goal dapat diedit dan diarsipkan. |
+| 17 | ✅ | Spare budget = target Pendapatan − fixed expense − kontribusi Goal aktif. |
+| 18 | ✅ | AI suggestion dipicu manual dan menerima konteks plan/wallet/goal. |
+| 19 | ✅ | Daftar suggestion terstruktur dengan tombol Terapkan. |
+| 20 | ✅ | Fallback deterministik lokal saat AI tidak tersedia. |
+| 21 | ✅ | AI read-only sampai user menekan Terapkan. |
+| 22 | ✅ | Pencatatan transaksi Income harian. |
+| 23 | ✅ | Pencatatan transaksi Expense berkategori. |
+| 24 | ✅ | Wallet dipilih eksplisit di form transaksi. |
+| 25 | ✅ | Tap transaksi membuka form edit yang sama; hapus memakai konfirmasi. |
+| 26 | ✅ | Saldo berasal dari saldo awal + ledger; koreksi menghasilkan transaksi adjustment. |
+| 26a | ✅ | Hero Rencana memakai SALDO TERSEDIA bersama dengan Home/Report dan memecah bebas/terikat Goal. |
+| 27 | ✅ | Wallet bertransaksi di-archive, bukan dihapus. |
+| 28 | ✅ | Warning over-budget tetap mengizinkan penyimpanan. |
+| 29 | ✅ | Goal tercapai berlabel Tercapai dan tidak dihitung dalam spare budget. |
+| 30 | ✅ | Net saving negatif berlabel Defisit dan memakai warna expense. |
+| 31 | ✅ | Kategori income/expense di-seed otomatis. |
+| 32 | ✅ | Kategori dapat dibuat, diedit, dan diarsipkan melalui form transaksi. |
+| 33 | ✅ | Kategori income/expense memakai warna semantic. |
+| 34 | ✅ | Kategori terpakai diarsipkan sehingga histori tetap valid. |
+| 35 | ✅ | Expense di atas alokasi tetap tercatat dan ditandai over-budget. |
+| 36 | ✅ | Report menampilkan income, expense, dan net saving. |
+| 37 | ✅ | Pie expense per kategori diurutkan terbesar. |
+| 38 | ✅ | Tap kategori pie melakukan drill-down ke Riwayat berfilter. |
+| 39 | ✅ | Line chart net saving default 3 periode dan pilihan rentang. |
+| 40 | ✅ | Agregasi Report mengikuti Budget period custom. |
+| 41 | ✅ | AI insight on-demand, satu-shot, dan Bahasa Indonesia. |
+| 42 | ✅ | AI insight memiliki fallback deterministik lokal. |
+| 43 | ✅ | Theme light/dark tersimpan melalui Settings. |
+| 44 | ✅ | Backup seluruh data menjadi JSON berversi via share sheet. |
+| 45 | ✅ | Restore mengganti data dengan konfirmasi dan validasi version. |
+| 46 | ✅ | Currency default IDR dan tanpa konversi. |
+| 47 | ✅ | Pilihan currency lain tersedia dan tersimpan global. |
+| 48 | ✅ | UI, prompt, fallback, dan output AI menggunakan Bahasa Indonesia. |
 
 ## Automated acceptance
 

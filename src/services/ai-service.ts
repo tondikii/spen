@@ -6,9 +6,9 @@ export type BudgetAIInput = {
   fixedExpense: number;
   goalContributions: number;
   netSaving: number;
-  topExpenses?: Array<{ name: string; amount: number }>;
-  goals?: Array<{ name: string; targetAmount: number; savedAmount: number }>;
-  wallets?: Array<{ name: string; balance: number }>;
+  topExpenses?: { name: string; amount: number }[];
+  goals?: { name: string; targetAmount: number; savedAmount: number }[];
+  wallets?: { name: string; balance: number }[];
   currency?: CurrencyCode;
 };
 
@@ -27,7 +27,7 @@ export type SuggestionResult = { source: 'ai' | 'fallback'; suggestions: BudgetS
 export type InsightResult = { source: 'ai' | 'fallback'; text: string };
 
 type AIServiceOptions = { apiKey?: string; baseUrl?: string; fetchImpl?: typeof fetch };
-type ChatResponse = { choices?: Array<{ message?: { content?: string | Array<{ type?: string; text?: string }> } }> };
+type ChatResponse = { choices?: { message?: { content?: string | { type?: string; text?: string }[] } }[] };
 
 const suggestionSchema = {
   type: 'object',
