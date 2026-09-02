@@ -1,4 +1,4 @@
-CREATE TABLE `categories` (
+CREATE TABLE IF NOT EXISTS `categories` (
 	`id` integer PRIMARY KEY AUTOINCREMENT,
 	`name` text NOT NULL,
 	`type` text NOT NULL,
@@ -6,7 +6,7 @@ CREATE TABLE `categories` (
 	`archived` integer DEFAULT false NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `transactions` (
+CREATE TABLE IF NOT EXISTS `transactions` (
 	`id` integer PRIMARY KEY AUTOINCREMENT,
 	`type` text NOT NULL,
 	`wallet_id` integer,
@@ -20,7 +20,7 @@ CREATE TABLE `transactions` (
 	CONSTRAINT `fk_transactions_category_id_categories_id_fk` FOREIGN KEY (`category_id`) REFERENCES `categories`(`id`)
 );
 --> statement-breakpoint
-CREATE TABLE `wallets` (
+CREATE TABLE IF NOT EXISTS `wallets` (
 	`id` integer PRIMARY KEY AUTOINCREMENT,
 	`name` text NOT NULL,
 	`initial_balance` integer DEFAULT 0 NOT NULL,
