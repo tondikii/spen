@@ -1,12 +1,10 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { setSelectedCurrency } from '@/services/settings-service';
+import { currencyOptions, setSelectedCurrency } from '@/services/settings-service';
 import type { CurrencyCode } from '@/types/domain';
 
-const currencies: CurrencyCode[] = ['IDR', 'USD', 'SGD', 'MYR', 'EUR', 'GBP', 'JPY', 'AUD', 'SAR', 'AED'];
-
 function isCurrency(value: string): value is CurrencyCode {
-  return currencies.includes(value as CurrencyCode);
+  return currencyOptions.includes(value as CurrencyCode);
 }
 
 export async function getSetupState(database: SQLiteDatabase) {
