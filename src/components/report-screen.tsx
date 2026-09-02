@@ -102,39 +102,44 @@ export default function ReportScreen({
               BUDGET PERIOD
             </ThemedText>
             <ThemedText type="title">Report</ThemedText>
+            <Pressable accessibilityRole="button" accessibilityLabel="Ubah Budget period"><ThemedText type="small" themeColor="muted">{formatPeriodAccurate(period)}⌄</ThemedText></Pressable>
           </View>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Pilih Budget period"
-            onPress={() => undefined}
-            style={styles.periodButton}
+            accessibilityLabel="AI Insight"
+            onPress={() => { setLoading(true); setInsightOpen(true); }}
+            style={[styles.aiButton, { borderColor: theme.line, backgroundColor: theme.mint }]}
           >
             <ThemedText type="smallBold" themeColor="pine" style={{ display: "none" }}>
               âœ¦ Tanya insight
             </ThemedText>
-            <ThemedText type="code" themeColor="muted">{formatPeriodAccurate(period)}⌄</ThemedText>
+            <ThemedText type="code" themeColor="muted" style={{ display: "none" }}>{formatPeriodAccurate(period)}⌄</ThemedText>
+            <ThemedText type="smallBold" themeColor="pine">AI Insight</ThemedText>
           </Pressable>
         </View>
         <View
           style={[
             styles.summary,
-            { borderColor: theme.line, borderTopColor: theme.line, borderBottomColor: theme.line, backgroundColor: theme.card },
+            { backgroundColor: theme.background },
           ]}
         >
           <Metric
             label="Pendapatan"
             value={snapshot.totalIncome}
             color={theme.income}
+            theme={theme}
           />
           <Metric
             label="Pengeluaran"
             value={snapshot.totalExpense}
             color={theme.expense}
+            theme={theme}
           />
           <Metric
             label={getReportNetSavingLabel(snapshot.netSaving)}
             value={snapshot.netSaving}
             color={snapshot.netSaving < 0 ? theme.expense : theme.pine}
+            theme={theme}
           />
         </View>
         <ChartCard title="Pengeluaran" trailing={formatMonth(period.endDate)} theme={theme}>
@@ -238,20 +243,22 @@ function Metric({
   label,
   value,
   color,
+  theme,
 }: {
   label: string;
   value: number;
   color: string;
+  theme: ReturnType<typeof useTheme>;
 }) {
   return (
-    <View style={styles.metric}>
+    <ThemedView style={[styles.metric, { backgroundColor: theme.card, borderColor: theme.line }]}>
       <ThemedText type="small" themeColor="muted">
         {label}
       </ThemedText>
       <ThemedText type="smallBold" style={{ color, fontFamily: Fonts.mono }}>
         {formatMoney(value)}
       </ThemedText>
-    </View>
+    </ThemedView>
   );
 }
 function ChartCard({
@@ -288,9 +295,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   eyebrow: { ...Typography.eyebrow },
-  periodButton: { marginTop: 14, paddingVertical: 10 },
-  summary: { borderBottomColor: "#E3E4DD", borderBottomWidth: 1, borderTopColor: "#E3E4DD", borderTopWidth: 1, flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginBottom: 24, paddingVertical: 14 },
-  metric: { gap: 5, width: "48%" },
+  aiButton: { borderRadius: Radius.pill, borderWidth: 1, marginTop: 14, paddingHorizontal: 12, paddingVertical: 10 },
+  summary: { flexDirection: "row", gap: 8, marginBottom: 24 },
+  metric: { borderRadius: 19, borderWidth: 1, flex: 1, gap: 5, minHeight: 82, padding: 13 },
   card: { borderRadius: 22, borderWidth: 1, marginBottom: 14, padding: 17 },
   cardHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
   pieArea: { alignItems: "center", height: 183, justifyContent: "center", marginTop: 8 },
@@ -320,7 +327,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     paddingTop: 7,
   },
-  insightCta: { alignItems: "center", borderRadius: 19, flexDirection: "row", gap: 10, marginHorizontal: 21, marginBottom: 14, padding: 16 },
+  insightCta: { alignItems: "center", borderRadius: 19, display: "none", flexDirection: "row", gap: 10, marginHorizontal: 21, marginBottom: 14, padding: 16 },
   insightGlyph: { color: "#D5EADE", fontSize: 21 },
   insightCopy: { flex: 1 },
   overlay: { flex: 1, justifyContent: "flex-end" },

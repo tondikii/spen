@@ -17,7 +17,7 @@ describe('ReportScreen', () => {
   it('menampilkan loading lalu insight Bahasa Indonesia', async () => {
     const { getByLabelText, getByText } = await render(<ReportScreen />);
 
-    await fireEvent.press(getByLabelText('Tanya insight'));
+    await fireEvent.press(getByLabelText('AI Insight'));
     await waitFor(() => expect(getByText('Menghubungkan titik-titik…')).toBeTruthy());
     await waitFor(() => expect(getByText('Insight bulan ini')).toBeTruthy());
     expect(getByText('Mengerti')).toBeTruthy();
