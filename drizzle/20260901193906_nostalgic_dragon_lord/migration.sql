@@ -3,4 +3,5 @@ UPDATE fixed_expense_items SET budget_plan_id = (SELECT MIN(keeper.id) FROM budg
 UPDATE allocation_items SET budget_plan_id = (SELECT MIN(keeper.id) FROM budget_plans keeper WHERE keeper.budget_period_id = (SELECT duplicate.budget_period_id FROM budget_plans duplicate WHERE duplicate.id = allocation_items.budget_plan_id)) WHERE budget_plan_id IN (SELECT id FROM budget_plans WHERE id NOT IN (SELECT MIN(id) FROM budget_plans GROUP BY budget_period_id));--> statement-breakpoint
 DELETE FROM budget_plans WHERE id NOT IN (SELECT MIN(id) FROM budget_plans GROUP BY budget_period_id);--> statement-breakpoint
 DROP INDEX IF EXISTS `budget_plans_period_idx`;--> statement-breakpoint
-CREATE UNIQUE INDEX IF NOT EXISTS `budget_plans_period_unique` ON `budget_plans` (`budget_period_id`);
+DROP INDEX IF EXISTS `budget_plans_period_unique`;--> statement-breakpoint
+CREATE UNIQUE INDEX `budget_plans_period_unique` ON `budget_plans` (`budget_period_id`);

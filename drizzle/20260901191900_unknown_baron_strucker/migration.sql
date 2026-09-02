@@ -60,12 +60,21 @@ CREATE TABLE `settings` (
 --> statement-breakpoint
 ALTER TABLE `categories` ADD `is_adjustment` integer DEFAULT false NOT NULL;--> statement-breakpoint
 ALTER TABLE `transactions` ADD `time` text DEFAULT '' NOT NULL;--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS `allocation_items_plan_idx` ON `allocation_items` (`budget_plan_id`);--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS `budget_periods_start_date_idx` ON `budget_periods` (`start_date`);--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS `budget_plans_period_idx` ON `budget_plans` (`budget_period_id`);--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS `fixed_expense_items_plan_idx` ON `fixed_expense_items` (`budget_plan_id`);--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS `goals_wallet_idx` ON `goals` (`wallet_id`);--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS `income_items_plan_idx` ON `income_items` (`budget_plan_id`);--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS `transactions_date_idx` ON `transactions` (`date`);--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS `transactions_wallet_idx` ON `transactions` (`wallet_id`);--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS `transactions_category_idx` ON `transactions` (`category_id`);
+DROP INDEX IF EXISTS `allocation_items_plan_idx`;--> statement-breakpoint
+CREATE INDEX `allocation_items_plan_idx` ON `allocation_items` (`budget_plan_id`);--> statement-breakpoint
+DROP INDEX IF EXISTS `budget_periods_start_date_idx`;--> statement-breakpoint
+CREATE INDEX `budget_periods_start_date_idx` ON `budget_periods` (`start_date`);--> statement-breakpoint
+DROP INDEX IF EXISTS `budget_plans_period_idx`;--> statement-breakpoint
+CREATE INDEX `budget_plans_period_idx` ON `budget_plans` (`budget_period_id`);--> statement-breakpoint
+DROP INDEX IF EXISTS `fixed_expense_items_plan_idx`;--> statement-breakpoint
+CREATE INDEX `fixed_expense_items_plan_idx` ON `fixed_expense_items` (`budget_plan_id`);--> statement-breakpoint
+DROP INDEX IF EXISTS `goals_wallet_idx`;--> statement-breakpoint
+CREATE INDEX `goals_wallet_idx` ON `goals` (`wallet_id`);--> statement-breakpoint
+DROP INDEX IF EXISTS `income_items_plan_idx`;--> statement-breakpoint
+CREATE INDEX `income_items_plan_idx` ON `income_items` (`budget_plan_id`);--> statement-breakpoint
+DROP INDEX IF EXISTS `transactions_date_idx`;--> statement-breakpoint
+CREATE INDEX `transactions_date_idx` ON `transactions` (`date`);--> statement-breakpoint
+DROP INDEX IF EXISTS `transactions_wallet_idx`;--> statement-breakpoint
+CREATE INDEX `transactions_wallet_idx` ON `transactions` (`wallet_id`);--> statement-breakpoint
+DROP INDEX IF EXISTS `transactions_category_idx`;--> statement-breakpoint
+CREATE INDEX `transactions_category_idx` ON `transactions` (`category_id`);
