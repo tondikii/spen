@@ -1,3 +1,6 @@
 import SettingsScreen from '@/components/settings-screen';
+import { useSQLiteContext } from 'expo-sqlite';
 
-export default SettingsScreen;
+export default function SettingsRoute() {
+  return <SettingsScreen database={useSQLiteContext()} />;
+}

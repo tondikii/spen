@@ -3,7 +3,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import migrations from '../../../drizzle/migrations';
 import { configureDatabase } from '../../../db/database';
 import { seedDefaultCategories } from '../../../db/seed';
-import { getSelectedCurrency } from '@/services/settings-service';
+import { getDatabaseSettings, getSelectedCurrency, setDatabaseCurrency } from '@/services/settings-service';
 import { getSetupState, completeSetup } from '@/services/setup-service';
 import { getWallets } from '@/services/wallet-service';
 
@@ -53,5 +53,12 @@ describe('setup service', () => {
     await completeSetup(database, 'Tunai', 100, 'IDR');
     await expect(completeSetup(database, 'BCA', 200, 'USD')).rejects.toThrow('Setup sudah selesai');
     expect((await getWallets(database)).map((wallet) => wallet.name)).toEqual(['Tunai']);
+  });
+
+  it('persists a later currency selection without changing any amount', async () => {
+    await completeSetup(database, 'Tunai', 500, 'IDR');
+    await setDatabaseCurrency(database, 'SGD');
+    await expect(getDatabaseSettings(database)).resolves.toMatchObject({ currency: 'SGD' });
+    expect(await database.getFirstAsync<{ initial_balance: number }>('SELECT initial_balance FROM wallets WHERE id = 1;')).toEqual({ initial_balance: 500 });
   });
 });
