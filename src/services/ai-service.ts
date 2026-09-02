@@ -8,6 +8,7 @@ export type BudgetAIInput = {
   netSaving: number;
   topExpenses?: Array<{ name: string; amount: number }>;
   goals?: Array<{ name: string; targetAmount: number; savedAmount: number }>;
+  wallets?: Array<{ name: string; balance: number }>;
   currency?: CurrencyCode;
 };
 
@@ -15,8 +16,11 @@ export type BudgetSuggestion = {
   action: 'allocate_spare' | 'increase_allocation' | 'add_goal' | 'review_expense';
   title: string;
   description: string;
-  amount?: number;
-  categoryName?: string;
+  amount?: number | null;
+  categoryName?: string | null;
+  targetAmount?: number | null;
+  walletName?: string | null;
+  monthlyContribution?: number | null;
 };
 
 export type SuggestionResult = { source: 'ai' | 'fallback'; suggestions: BudgetSuggestion[] };
@@ -40,8 +44,11 @@ const suggestionSchema = {
           description: { type: 'string' },
           amount: { type: ['number', 'null'] },
           categoryName: { type: ['string', 'null'] },
+          targetAmount: { type: ['number', 'null'] },
+          walletName: { type: ['string', 'null'] },
+          monthlyContribution: { type: ['number', 'null'] },
         },
-        required: ['action', 'title', 'description', 'amount', 'categoryName'],
+        required: ['action', 'title', 'description', 'amount', 'categoryName', 'targetAmount', 'walletName', 'monthlyContribution'],
       },
     },
   },
@@ -59,8 +66,11 @@ function isSuggestion(value: unknown): value is BudgetSuggestion {
   const item = value as Partial<BudgetSuggestion>;
   return ['allocate_spare', 'increase_allocation', 'add_goal', 'review_expense'].includes(item.action ?? '')
     && typeof item.title === 'string' && typeof item.description === 'string'
-    && (item.amount === undefined || typeof item.amount === 'number')
-    && (item.categoryName === undefined || typeof item.categoryName === 'string');
+    && (item.amount === undefined || item.amount === null || typeof item.amount === 'number')
+    && (item.categoryName === undefined || item.categoryName === null || typeof item.categoryName === 'string')
+    && (item.targetAmount === undefined || item.targetAmount === null || typeof item.targetAmount === 'number')
+    && (item.walletName === undefined || item.walletName === null || typeof item.walletName === 'string')
+    && (item.monthlyContribution === undefined || item.monthlyContribution === null || typeof item.monthlyContribution === 'number');
 }
 
 function fallbackSuggestions(input: BudgetAIInput): BudgetSuggestion[] {

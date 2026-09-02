@@ -5,7 +5,7 @@ import { configureDatabase } from '../../../db/database';
 import { seedDefaultCategories } from '../../../db/seed';
 import { createWallet } from '@/services/wallet-service';
 import { getDatabaseTransactionCategories, saveDatabaseTransaction } from '@/services/transaction-service';
-import { createDatabasePlanItem, ensureActiveBudgetPlan, getDatabasePlanView, setBudgetPeriodStartDay, updateDatabasePlanItem } from '@/services/plan-service';
+import { createDatabasePlanItem, deleteDatabasePlanItem, ensureActiveBudgetPlan, getDatabasePlanView, setBudgetPeriodStartDay, updateDatabasePlanItem } from '@/services/plan-service';
 
 type TempSQLite = {
   exec(source: string): void;
@@ -136,5 +136,16 @@ describe('database plan service', () => {
     view = await getDatabasePlanView(database, '2026-09-10');
     expect(view.plan.allocationItems[0]).toMatchObject({ name: 'Makan harian', targetAmount: 500 });
     expect(active.planId).toBe(Number(view.plan.id.replace('plan-', '')));
+  });
+
+  it('deletes an existing plan item through the public service seam', async () => {
+    await ensureActiveBudgetPlan(database, '2026-09-10');
+    const expense = (await getDatabaseTransactionCategories(database)).find((item) => item.name === 'Makan')!;
+    await createDatabasePlanItem(database, { type: 'allocation', name: 'Makan fleksibel', categoryId: expense.id, targetAmount: 300 });
+    const item = (await getDatabasePlanView(database, '2026-09-10')).plan.allocationItems[0];
+
+    await deleteDatabasePlanItem(database, item);
+
+    expect((await getDatabasePlanView(database, '2026-09-10')).plan.allocationItems).toHaveLength(0);
   });
 });

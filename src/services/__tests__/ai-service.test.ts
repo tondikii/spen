@@ -31,6 +31,19 @@ describe('AIService', () => {
     expect(request).toHaveBeenCalledWith('https://api.groq.com/openai/v1/chat/completions', expect.objectContaining({ method: 'POST', headers: expect.objectContaining({ Authorization: 'Bearer test-key' }), body: expect.stringContaining('json_schema') }));
   });
 
+  it('accepts an add_goal suggestion with a target and wallet from the structured response', async () => {
+    const request = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ choices: [{ message: { content: JSON.stringify({ suggestions: [{ action: 'add_goal', title: 'Dana Darurat', description: 'Bangun dana darurat bertahap.', amount: null, categoryName: null, targetAmount: 12000000, walletName: 'Tabungan', monthlyContribution: 1000000 }] }) } }] }),
+    });
+    const service = new AIService({ apiKey: 'test-key', fetchImpl: request });
+
+    await expect(service.suggestBudget(input)).resolves.toEqual({
+      source: 'ai',
+      suggestions: [{ action: 'add_goal', title: 'Dana Darurat', description: 'Bangun dana darurat bertahap.', amount: null, categoryName: null, targetAmount: 12000000, walletName: 'Tabungan', monthlyContribution: 1000000 }],
+    });
+  });
+
   it('falls back when structured output is invalid and generates Indonesian insight text', async () => {
     const request = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ choices: [{ message: { content: '{invalid' } }] }) });
     const service = new AIService({ apiKey: 'test-key', fetchImpl: request });
