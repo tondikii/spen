@@ -117,10 +117,10 @@ export default function ReportScreen({
             <ThemedText type="smallBold" themeColor="pine">AI Insight</ThemedText>
           </Pressable>
         </View>
-        <View
+        <ThemedView
           style={[
             styles.summary,
-            { backgroundColor: theme.background },
+            { backgroundColor: theme.pine2 },
           ]}
         >
           <Metric
@@ -141,7 +141,7 @@ export default function ReportScreen({
             color={snapshot.netSaving < 0 ? theme.expense : theme.pine}
             theme={theme}
           />
-        </View>
+        </ThemedView>
         <ChartCard title="Pengeluaran" trailing={formatMonth(period.endDate)} theme={theme}>
           <View style={styles.pieArea}>
             <Donut expenses={expenses} total={snapshot.totalExpense} theme={theme} />
@@ -296,8 +296,8 @@ const styles = StyleSheet.create({
   },
   eyebrow: { ...Typography.eyebrow },
   aiButton: { borderRadius: Radius.pill, borderWidth: 1, marginTop: 14, paddingHorizontal: 12, paddingVertical: 10 },
-  summary: { gap: 8, marginBottom: 24 },
-  metric: { borderRadius: Radius.hero, gap: 8, minHeight: 82, padding: 17, ...Shadows.hero },
+  summary: { borderRadius: Radius.hero, gap: 8, marginBottom: 24, padding: 21, ...Shadows.hero },
+  metric: { flex: 1, gap: 5, minHeight: 58 },
   card: { borderRadius: 22, borderWidth: 1, marginBottom: 14, padding: 17 },
   cardHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
   pieArea: { alignItems: "center", height: 183, justifyContent: "center", marginTop: 8 },
