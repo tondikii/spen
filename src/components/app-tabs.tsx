@@ -77,6 +77,21 @@ export default function AppTabs() {
           }}
         />
       ))}
+      {/* These are full-screen routes, not items in the persistent tab bar. */}
+      <Tabs.Screen
+        name="daily"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
     </Tabs>
   );
 }

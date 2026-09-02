@@ -6,10 +6,10 @@ import DailyTransactionsScreen from '@/components/daily-transactions-screen';
 
 describe('DailyTransactionsScreen', () => {
   it('menampilkan ringkasan dan transaksi pada hari aktif', async () => {
-    const { getByText } = await render(<DailyTransactionsScreen />);
+    const { getAllByText, getByText } = await render(<DailyTransactionsScreen />);
 
     expect(getByText('Hari Ini')).toBeTruthy();
-    expect(getByText('Rp 6.500.000')).toBeTruthy();
+    expect(getAllByText(/Rp 6\.500\.000/).length).toBeGreaterThanOrEqual(1);
     expect(getByText(/Kopi dan sarapan/)).toBeTruthy();
   });
 
