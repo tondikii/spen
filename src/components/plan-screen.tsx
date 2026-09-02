@@ -4,6 +4,7 @@ import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from
 import { Fonts, Radius, Shadows, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
 import { getDatabasePlanView, getPaymentLabel, getPlanView } from '@/services/plan-service';
+import { aiService, type BudgetAIInput, type BudgetSuggestion } from '@/services/ai-service';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
@@ -15,7 +16,7 @@ type GoalDraft = Omit<Goal, 'id' | 'archived'>;
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
-export default function PlanScreen({ planView = getPlanView(), onPeriodStartDayChange, onItemAction, onGoalSave, onGoalArchive, onGoalSaveAction, onGoalWithdraw }: { planView?: PlanView; onPeriodStartDayChange?: (day: number) => void | Promise<void>; onItemAction?: (item: BudgetPlanItem, amount: number) => void | Promise<void>; onGoalSave?: (goal: Goal | null, draft: GoalDraft) => void | Promise<void>; onGoalArchive?: (goal: Goal) => void | Promise<void>; onGoalSaveAction?: (goal: Goal) => void | Promise<void>; onGoalWithdraw?: (goal: Goal, amount: number) => void | Promise<void> }) {
+export default function PlanScreen({ planView = getPlanView(), onPeriodStartDayChange, onItemAction, onGoalSave, onGoalArchive, onGoalSaveAction, onGoalWithdraw, aiInput, onSuggestionApply }: { planView?: PlanView; onPeriodStartDayChange?: (day: number) => void | Promise<void>; onItemAction?: (item: BudgetPlanItem, amount: number) => void | Promise<void>; onGoalSave?: (goal: Goal | null, draft: GoalDraft) => void | Promise<void>; onGoalArchive?: (goal: Goal) => void | Promise<void>; onGoalSaveAction?: (goal: Goal) => void | Promise<void>; onGoalWithdraw?: (goal: Goal, amount: number) => void | Promise<void>; aiInput?: BudgetAIInput; onSuggestionApply?: (suggestion: BudgetSuggestion) => void | Promise<void> }) {
   const theme = useTheme();
   const { snapshot, plan, goals, wallets, period } = planView;
   const [startDay, setStartDay] = useState(Number(period.startDate.slice(-2)));
@@ -23,12 +24,21 @@ export default function PlanScreen({ planView = getPlanView(), onPeriodStartDayC
   const [aiOpen, setAiOpen] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [applied, setApplied] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<BudgetSuggestion[]>([]);
+  const [aiSource, setAiSource] = useState<'ai' | 'fallback'>('fallback');
 
   useEffect(() => {
     if (!aiOpen) return;
-    const timer = setTimeout(() => setAiLoading(false), 120);
-    return () => clearTimeout(timer);
-  }, [aiOpen]);
+    let cancelled = false;
+    setAiLoading(true);
+    const timer = setTimeout(() => { void aiService.suggestBudget(aiInput ?? { spareBudget: snapshot.spareBudget, totalIncome: snapshot.totalIncome, fixedExpense: 0, goalContributions: snapshot.goalBalance, netSaving: snapshot.netSaving }).then((result) => {
+      if (cancelled) return;
+      setSuggestions(result.suggestions);
+      setAiSource(result.source);
+      setAiLoading(false);
+    }); }, 120);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [aiOpen, aiInput]);
 
   const periodLabel = formatPeriodLabel(period, startDay);
   const itemState = (item: BudgetPlanItem) => snapshot.planItems.find((state) => state.itemId === item.id);
@@ -38,8 +48,10 @@ export default function PlanScreen({ planView = getPlanView(), onPeriodStartDayC
     void onItemAction?.(item, amount);
   };
 
+  const applySuggestion = async (suggestion: BudgetSuggestion) => { await onSuggestionApply?.(suggestion); setApplied((current) => current.includes(suggestion.title) ? current : [...current, suggestion.title]); };
+
   return <ThemedView style={styles.page}><ScrollView contentContainerStyle={styles.content}>
-    <View style={styles.header}><View><ThemedText type="code" themeColor="muted" style={styles.eyebrow}>BUDGET PLAN</ThemedText><ThemedText type="title" style={styles.title}>Rencana</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Ubah Budget period" onPress={() => setPeriodOpen(true)}><ThemedText type="small" themeColor="muted">{periodLabel}</ThemedText></Pressable></View><Pressable accessibilityRole="button" accessibilityLabel="AI Suggestion" onPress={() => { setAiLoading(true); setAiOpen(true); }} style={[styles.aiButton, { borderColor: theme.line, backgroundColor: theme.mint }]}><ThemedText type="smallBold" themeColor="pine">✦ AI Suggestion</ThemedText></Pressable></View>
+    <View style={styles.header}><View><ThemedText type="code" themeColor="muted" style={styles.eyebrow}>BUDGET PLAN</ThemedText><ThemedText type="title" style={styles.title}>Rencana</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Ubah Budget period" onPress={() => setPeriodOpen(true)}><ThemedText type="small" themeColor="muted">{periodLabel}</ThemedText></Pressable></View><Pressable accessibilityRole="button" accessibilityLabel="AI Suggestion" onPress={() => setAiOpen(true)} style={[styles.aiButton, { borderColor: theme.line, backgroundColor: theme.mint }]}><ThemedText type="smallBold" themeColor="pine">✦ AI Suggestion</ThemedText></Pressable></View>
     <ThemedView style={[styles.hero, { backgroundColor: theme.pine2 }]}><ThemedText type="code" style={{ color: theme.heroMuted }}>SALDO TERSEDIA</ThemedText><ThemedText style={[styles.heroAmount, { color: theme.heroText }]}>{formatMoney(snapshot.availableBalance)}</ThemedText><View style={[styles.heroStats, { borderTopColor: theme.heroDivider }]}><View><ThemedText type="small" style={{ color: theme.heroMuted }}>Tersedia bebas</ThemedText><ThemedText type="smallBold" style={{ color: theme.heroText }}>{formatMoney(snapshot.freeBalance)}</ThemedText></View><View><ThemedText type="small" style={{ color: theme.heroMuted }}>Terikat goal</ThemedText><ThemedText type="smallBold" style={{ color: theme.heroText }}>{formatMoney(snapshot.goalBalance)}</ThemedText></View></View></ThemedView>
     <View style={[styles.spare, { borderColor: theme.line, backgroundColor: theme.card }]}><View><ThemedText type="code" themeColor="muted">SPARE BUDGET</ThemedText><ThemedText type="subtitle">{formatMoney(snapshot.spareBudget)}</ThemedText><ThemedText type="small" themeColor="muted">Pendapatan − fixed expense − goal</ThemedText></View><ThemedText style={[styles.spareGlyph, { color: theme.pine }]}>◌</ThemedText></View>
     <PlanSection title="Pendapatan" action="+ Tambah" theme={theme}>{plan.incomeItems.map((item) => <PlanItem key={item.id} item={item} state={itemState(item)} action="Catat" color={theme.income} theme={theme} onAction={handleItemAction} />)}</PlanSection>
@@ -48,7 +60,7 @@ export default function PlanScreen({ planView = getPlanView(), onPeriodStartDayC
     <PlanSection title="Alokasi" action="+ Tambah" theme={theme}>{plan.allocationItems.map((item) => <PlanItem key={item.id} item={item} state={itemState(item)} action="" color={itemState(item)?.overBudget ? theme.expense : theme.pine} theme={theme} onAction={handleItemAction} />)}</PlanSection>
   </ScrollView>
   <Modal transparent animationType="slide" visible={periodOpen} onRequestClose={() => setPeriodOpen(false)}><Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={() => setPeriodOpen(false)}><View style={[styles.sheet, { backgroundColor: theme.card }]}><ThemedText type="sectionHeading">Budget period</ThemedText><ThemedText type="small" themeColor="muted">Pilih tanggal mulai</ThemedText>{[1, 5, 25].map((day) => <Pressable key={day} accessibilityRole="button" accessibilityLabel={`Mulai tanggal ${day}`} onPress={() => { setStartDay(day); setPeriodOpen(false); void onPeriodStartDayChange?.(day); }} style={[styles.sheetOption, { borderTopColor: theme.line }]}><ThemedText type="smallBold" themeColor={startDay === day ? 'pine' : 'ink'}>Tanggal {day}</ThemedText></Pressable>)}</View></Pressable></Modal>
-  <Modal transparent animationType="slide" visible={aiOpen} onRequestClose={() => setAiOpen(false)}><Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={() => setAiOpen(false)}><View style={[styles.sheet, { backgroundColor: theme.card }]}><ThemedText type="sectionHeading">✦ Saran untuk Budget plan</ThemedText>{aiLoading ? <View style={styles.loading}><ThemedText style={[styles.loadingGlyph, { color: theme.pine }]}>✦</ThemedText><ThemedText type="smallBold">Membaca pola keuanganmu…</ThemedText><ThemedText type="small" themeColor="muted">Sebentar ya.</ThemedText></View> : ['Naikkan alokasi Makan menjadi Rp 1.500.000', 'Sisihkan Rp 300.000 untuk Dana Nikah'].map((suggestion) => <View key={suggestion} style={[styles.suggestion, { borderTopColor: theme.line }]}><ThemedText type="small" style={styles.suggestionText}>{suggestion}</ThemedText><Pressable accessibilityRole="button" accessibilityLabel={`Terapkan ${suggestion}`} onPress={() => setApplied((current) => current.includes(suggestion) ? current : [...current, suggestion])}><ThemedText type="smallBold" themeColor={applied.includes(suggestion) ? 'income' : 'pine'}>{applied.includes(suggestion) ? '✓ Diterapkan' : 'Terapkan'}</ThemedText></Pressable></View>)}<Pressable accessibilityRole="button" accessibilityLabel="Tutup saran" onPress={() => setAiOpen(false)} style={styles.closeSheet}><ThemedText type="smallBold" style={{ color: theme.heroText }}>Mengerti</ThemedText></Pressable></View></Pressable></Modal>
+  <Modal transparent animationType="slide" visible={aiOpen} onRequestClose={() => setAiOpen(false)}><Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={() => setAiOpen(false)}><View style={[styles.sheet, { backgroundColor: theme.card }]}><ThemedText type="sectionHeading">✦ Saran untuk Budget plan</ThemedText>{aiLoading ? <View style={styles.loading}><ThemedText style={[styles.loadingGlyph, { color: theme.pine }]}>✦</ThemedText><ThemedText type="smallBold">Membaca pola keuanganmu…</ThemedText><ThemedText type="small" themeColor="muted">Sebentar ya.</ThemedText></View> : <>{aiSource === 'fallback' && <ThemedText type="small" themeColor="muted">Saran lokal berdasarkan data Budget plan.</ThemedText>}{suggestions.map((suggestion) => <View key={suggestion.title} style={[styles.suggestion, { borderTopColor: theme.line }]}><ThemedText type="small" style={styles.suggestionText}>{suggestion.title}{`\n`}{suggestion.description}</ThemedText><Pressable accessibilityRole="button" accessibilityLabel={`Terapkan ${suggestion.title}`} onPress={() => void applySuggestion(suggestion)}><ThemedText type="smallBold" themeColor={applied.includes(suggestion.title) ? 'income' : 'pine'}>{applied.includes(suggestion.title) ? '✓ Diterapkan' : 'Terapkan'}</ThemedText></Pressable></View>)}</>}<Pressable accessibilityRole="button" accessibilityLabel="Tutup saran" onPress={() => setAiOpen(false)} style={styles.closeSheet}><ThemedText type="smallBold" style={{ color: theme.heroText }}>Mengerti</ThemedText></Pressable></View></Pressable></Modal>
   </ThemedView>;
 }
 

@@ -5,37 +5,47 @@ import { router } from 'expo-router';
 import { Fonts, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
 import { getDatabaseReportView, getReportNetSavingLabel, getReportView, type ReportExpense } from '@/services/report-service';
+import { aiService, type BudgetAIInput } from '@/services/ai-service';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 
 type ReportView = ReturnType<typeof getReportView> | Awaited<ReturnType<typeof getDatabaseReportView>>;
 
-export default function ReportScreen({ reportView = getReportView(), onRangeChange, onCategoryPress }: { reportView?: ReportView; onRangeChange?: (months: number) => void | Promise<void>; onCategoryPress?: (expense: ReportExpense, period: ReportView['period']) => void }) {
+export default function ReportScreen({ reportView = getReportView(), onRangeChange, onCategoryPress, aiInput }: { reportView?: ReportView; onRangeChange?: (months: number) => void | Promise<void>; onCategoryPress?: (expense: ReportExpense, period: ReportView['period']) => void; aiInput?: BudgetAIInput }) {
   const theme = useTheme();
   const { snapshot, expenses, period, netSavingByPeriod } = reportView;
   const [range, setRange] = useState(3);
   const [insightOpen, setInsightOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [insightText, setInsightText] = useState('');
+  const [insightSource, setInsightSource] = useState<'ai' | 'fallback'>('fallback');
   useEffect(() => {
     if (!insightOpen) return;
-    const timer = setTimeout(() => setLoading(false), 120);
-    return () => clearTimeout(timer);
-  }, [insightOpen]);
+    let cancelled = false;
+    setLoading(true);
+    const timer = setTimeout(() => { void aiService.generateInsight(aiInput ?? { spareBudget: reportView.snapshot.spareBudget, totalIncome: reportView.snapshot.totalIncome, fixedExpense: 0, goalContributions: 0, netSaving: reportView.snapshot.netSaving, topExpenses: reportView.expenses.map((expense) => ({ name: expense.name, amount: expense.amount })) }).then((result) => {
+      if (cancelled) return;
+      setInsightText(result.text);
+      setInsightSource(result.source);
+      setLoading(false);
+    }); }, 120);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [aiInput, insightOpen]);
 
   const openCategory = (expense: ReportExpense) => onCategoryPress ? onCategoryPress(expense, period) : router.push({ pathname: '/history', params: { categoryId: expense.categoryId, categoryName: expense.name, startDate: period.startDate, endDate: period.endDate } } as never);
   const chartPoints = netSavingByPeriod.slice(-range);
   const maxNetSaving = Math.max(...chartPoints.map((point) => Math.abs(point.netSaving)), 1);
 
   return <ThemedView style={styles.page}><ScrollView contentContainerStyle={styles.content}>
-    <View style={styles.header}><View><ThemedText type="code" themeColor="muted" style={styles.eyebrow}>REPORT</ThemedText><ThemedText type="title">Keuanganmu</ThemedText><ThemedText type="small" themeColor="muted">{formatPeriod(period)}</ThemedText></View><Pressable accessibilityRole="button" accessibilityLabel="Tanya insight" onPress={() => { setLoading(true); setInsightOpen(true); }} style={[styles.insightButton, { backgroundColor: theme.mint, borderColor: theme.line }]}><ThemedText type="smallBold" themeColor="pine">✦ Tanya insight</ThemedText></Pressable></View>
+    <View style={styles.header}><View><ThemedText type="code" themeColor="muted" style={styles.eyebrow}>REPORT</ThemedText><ThemedText type="title">Keuanganmu</ThemedText><ThemedText type="small" themeColor="muted">{formatPeriod(period)}</ThemedText></View><Pressable accessibilityRole="button" accessibilityLabel="Tanya insight" onPress={() => { setLoading(true); setInsightOpen(true); }} style={[styles.insightButton, { backgroundColor: theme.mint, borderColor: theme.line }]}><ThemedText type="smallBold" themeColor="pine">âœ¦ Tanya insight</ThemedText></Pressable></View>
     <View style={[styles.summary, { borderColor: theme.line, backgroundColor: theme.card }]}><Metric label="Pendapatan" value={snapshot.totalIncome} color={theme.income} /><Metric label="Pengeluaran" value={snapshot.totalExpense} color={theme.expense} /><Metric label={getReportNetSavingLabel(snapshot.netSaving)} value={snapshot.netSaving} color={snapshot.netSaving < 0 ? theme.expense : theme.pine} /></View>
     <ChartCard title="Pengeluaran per kategori" theme={theme}><View style={styles.donutRow}><View style={[styles.donut, { borderColor: theme.expense, backgroundColor: theme.mint }]}><ThemedText type="smallBold">{formatMoney(snapshot.totalExpense)}</ThemedText><ThemedText type="small" themeColor="muted">total keluar</ThemedText></View><View style={styles.legend}>{expenses.map((item, index) => <Pressable key={item.categoryId} accessibilityRole="button" accessibilityLabel={`Lihat kategori ${item.name}`} onPress={() => openCategory(item)} style={styles.legendRow}><View style={[styles.dot, { backgroundColor: [theme.expense, theme.gold, theme.pine][index % 3] }]} /><ThemedText type="small" style={styles.legendName}>{item.name}</ThemedText><ThemedText type="small" themeColor="muted">{formatMoney(item.amount)}</ThemedText></Pressable>)}</View></View></ChartCard>
     <ChartCard title="Net saving" theme={theme}><View style={styles.rangeRow}>{[[3, '3 bulan'], [6, '6 bulan'], [12, '12 bulan']].map(([months, label]) => <Pressable key={String(months)} accessibilityRole="button" accessibilityLabel={`Rentang ${label}`} onPress={() => { setRange(Number(months)); void onRangeChange?.(Number(months)); }}><ThemedText type="smallBold" themeColor={range === Number(months) ? 'pine' : 'muted'}>{label}</ThemedText></Pressable>)}</View><View style={[styles.chart, { borderBottomColor: theme.line }]}>{chartPoints.map((point) => <View key={point.period.id} style={[styles.bar, { backgroundColor: point.netSaving < 0 ? theme.expense : theme.pine, height: `${Math.max(Math.abs(point.netSaving) / maxNetSaving * 100, point.netSaving === 0 ? 0 : 4)}%` }]} />)}</View><View style={styles.months}>{chartPoints.map((point) => <ThemedText key={point.period.id} type="small" themeColor="muted">{point.period.startDate.slice(5, 7)}</ThemedText>)}</View></ChartCard>
-  </ScrollView><Modal transparent animationType="slide" visible={insightOpen} onRequestClose={() => setInsightOpen(false)}><Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={() => setInsightOpen(false)}><View style={[styles.sheet, { backgroundColor: theme.card }]}>{loading ? <View style={styles.loading}><ThemedText style={[styles.loadingGlyph, { color: theme.pine }]}>✦</ThemedText><ThemedText type="smallBold">Menghubungkan titik-titik…</ThemedText><ThemedText type="small" themeColor="muted">Membaca pola keuanganmu.</ThemedText></View> : <><ThemedText type="sectionHeading">Insight bulan ini</ThemedText><ThemedText style={styles.insightText}>Pengeluaran terbesar ada di kategori Makan. Net saving masih positif, jadi kamu punya ruang untuk menjaga alokasi tetap nyaman.</ThemedText><View style={[styles.takeaway, { backgroundColor: theme.mint }]}><ThemedText type="smallBold" themeColor="pine">Langkah kecil</ThemedText><ThemedText type="small" themeColor="pine">Coba cek kembali transaksi Makan minggu ini.</ThemedText></View><Pressable accessibilityRole="button" accessibilityLabel="Mengerti" onPress={() => setInsightOpen(false)} style={[styles.closeInsight, { backgroundColor: theme.pine }]}><ThemedText type="smallBold" style={{ color: theme.heroText }}>Mengerti</ThemedText></Pressable></>}</View></Pressable></Modal></ThemedView>;
+  </ScrollView><Modal transparent animationType="slide" visible={insightOpen} onRequestClose={() => setInsightOpen(false)}><Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={() => setInsightOpen(false)}><View style={[styles.sheet, { backgroundColor: theme.card }]}>{loading ? <View style={styles.loading}><ThemedText style={[styles.loadingGlyph, { color: theme.pine }]}>âœ¦</ThemedText><ThemedText type="smallBold">Menghubungkan titik-titik…</ThemedText><ThemedText type="small" themeColor="muted">Membaca pola keuanganmu.</ThemedText></View> : <><ThemedText type="sectionHeading">Insight bulan ini</ThemedText><ThemedText style={styles.insightText}>{insightText}</ThemedText><View style={[styles.takeaway, { backgroundColor: theme.mint }]}><ThemedText type="smallBold" themeColor="pine">Langkah kecil</ThemedText><ThemedText type="small" themeColor="pine">Gunakan insight ini sebagai bahan pertimbangan.</ThemedText></View><Pressable accessibilityRole="button" accessibilityLabel="Mengerti" onPress={() => setInsightOpen(false)} style={[styles.closeInsight, { backgroundColor: theme.pine }]}><ThemedText type="smallBold" style={{ color: theme.heroText }}>Mengerti</ThemedText></Pressable></>}</View></Pressable></Modal></ThemedView>;
 }
 
-function formatPeriod(period: { startDate: string; endDate: string }) { return `${Number(period.startDate.slice(-2))}–${Number(period.endDate.slice(-2))} ${new Date(`${period.endDate}T12:00:00`).toLocaleDateString('id-ID', { month: 'short' })}⌄`; }
+function formatPeriod(period: { startDate: string; endDate: string }) { return `${Number(period.startDate.slice(-2))}â€“${Number(period.endDate.slice(-2))} ${new Date(`${period.endDate}T12:00:00`).toLocaleDateString('id-ID', { month: 'short' })}ÃƒÂ¢Ã…â€™Ã¢â‚¬Å¾`; }
 function Metric({ label, value, color }: { label: string; value: number; color: string }) { return <View style={styles.metric}><ThemedText type="small" themeColor="muted">{label}</ThemedText><ThemedText type="smallBold" style={{ color, fontFamily: Fonts.mono }}>{formatMoney(value)}</ThemedText></View>; }
 function ChartCard({ title, children, theme }: { title: string; children: ReactNode; theme: ReturnType<typeof useTheme> }) { return <ThemedView style={[styles.card, { backgroundColor: theme.card, borderColor: theme.line }]}><ThemedText type="sectionHeading">{title}</ThemedText>{children}</ThemedView>; }
 
