@@ -7,7 +7,7 @@ describe('PlanScreen', () => {
     const { getByText } = await render(<PlanScreen />);
 
     expect(getByText('SALDO TERSEDIA')).toBeTruthy();
-    expect(getByText('SPARE BUDGET')).toBeTruthy();
+    expect(getByText('Spare budget')).toBeTruthy();
     expect(getByText('Pendapatan')).toBeTruthy();
     expect(getByText('Fixed expense')).toBeTruthy();
     expect(getByText('Goal')).toBeTruthy();
