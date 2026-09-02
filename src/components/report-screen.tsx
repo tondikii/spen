@@ -117,30 +117,13 @@ export default function ReportScreen({
             <ThemedText type="smallBold" themeColor="pine">AI Insight</ThemedText>
           </Pressable>
         </View>
-        <ThemedView
-          style={[
-            styles.summary,
-            { backgroundColor: theme.pine2 },
-          ]}
-        >
-          <Metric
-            label="Pendapatan"
-            value={snapshot.totalIncome}
-            color={theme.income}
-            theme={theme}
-          />
-          <Metric
-            label="Pengeluaran"
-            value={snapshot.totalExpense}
-            color={theme.expense}
-            theme={theme}
-          />
-          <Metric
-            label={getReportNetSavingLabel(snapshot.netSaving)}
-            value={snapshot.netSaving}
-            color={snapshot.netSaving < 0 ? theme.expense : theme.pine}
-            theme={theme}
-          />
+        <ThemedView style={[styles.summary, { backgroundColor: theme.pine2 }]}>
+          <ThemedText type="code" style={{ color: theme.heroMuted }}>{getReportNetSavingLabel(snapshot.netSaving).toUpperCase()}</ThemedText>
+          <ThemedText style={[styles.heroAmount, { color: snapshot.netSaving < 0 ? theme.expense : theme.heroText }]}>{formatMoney(snapshot.netSaving)}</ThemedText>
+          <View style={[styles.heroStats, { borderTopColor: theme.heroDivider }]}>
+            <View><ThemedText type="small" style={{ color: theme.heroMuted }}>Pendapatan</ThemedText><ThemedText type="smallBold" style={{ color: theme.heroText }}>{formatMoney(snapshot.totalIncome)}</ThemedText></View>
+            <View><ThemedText type="small" style={{ color: theme.heroMuted }}>Pengeluaran</ThemedText><ThemedText type="smallBold" style={{ color: theme.heroText }}>{formatMoney(snapshot.totalExpense)}</ThemedText></View>
+          </View>
         </ThemedView>
         <ChartCard title="Pengeluaran" trailing={formatMonth(period.endDate)} theme={theme}>
           <View style={styles.pieArea}>
@@ -296,7 +279,9 @@ const styles = StyleSheet.create({
   },
   eyebrow: { ...Typography.eyebrow },
   aiButton: { borderRadius: Radius.pill, borderWidth: 1, marginTop: 14, paddingHorizontal: 12, paddingVertical: 10 },
-  summary: { borderRadius: Radius.hero, gap: 8, marginBottom: 24, padding: 21, ...Shadows.hero },
+  summary: { borderRadius: Radius.hero, marginBottom: 24, padding: 21, ...Shadows.hero },
+  heroAmount: { fontFamily: Fonts.serifBold, fontSize: 30, lineHeight: 34, marginVertical: 12 },
+  heroStats: { borderTopWidth: 1, flexDirection: "row", gap: 28, paddingTop: 13 },
   metric: { flex: 1, gap: 5, minHeight: 58 },
   card: { borderRadius: 22, borderWidth: 1, marginBottom: 14, padding: 17 },
   cardHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
