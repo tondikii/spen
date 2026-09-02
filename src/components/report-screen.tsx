@@ -5,7 +5,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Fonts, Radius, Typography } from "@/constants/theme";
+import { Fonts, Radius, Shadows, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { formatMoney } from "@/lib/money";
 import { aiService, type BudgetAIInput } from "@/services/ai-service";
@@ -251,11 +251,11 @@ function Metric({
   theme: ReturnType<typeof useTheme>;
 }) {
   return (
-    <ThemedView style={[styles.metric, { backgroundColor: theme.card, borderColor: theme.line }]}>
-      <ThemedText type="small" themeColor="muted">
+    <ThemedView style={[styles.metric, { backgroundColor: theme.pine2 }]}>
+      <ThemedText type="code" style={{ color: theme.heroMuted }}>
         {label}
       </ThemedText>
-      <ThemedText type="smallBold" style={{ color, fontFamily: Fonts.mono }}>
+      <ThemedText type="smallBold" style={{ color, fontFamily: Fonts.serifBold, fontSize: 24, lineHeight: 28, letterSpacing: -1 }}>
         {formatMoney(value)}
       </ThemedText>
     </ThemedView>
@@ -296,8 +296,8 @@ const styles = StyleSheet.create({
   },
   eyebrow: { ...Typography.eyebrow },
   aiButton: { borderRadius: Radius.pill, borderWidth: 1, marginTop: 14, paddingHorizontal: 12, paddingVertical: 10 },
-  summary: { flexDirection: "row", gap: 8, marginBottom: 24 },
-  metric: { borderRadius: 19, borderWidth: 1, flex: 1, gap: 5, minHeight: 82, padding: 13 },
+  summary: { gap: 8, marginBottom: 24 },
+  metric: { borderRadius: Radius.hero, gap: 8, minHeight: 82, padding: 17, ...Shadows.hero },
   card: { borderRadius: 22, borderWidth: 1, marginBottom: 14, padding: 17 },
   cardHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
   pieArea: { alignItems: "center", height: 183, justifyContent: "center", marginTop: 8 },
