@@ -36,7 +36,7 @@ export async function seedDefaultCategories(database: SQLiteDatabase) {
   const setting = await database.getFirstAsync<{ id: number }>('SELECT id FROM settings WHERE id = 1 LIMIT 1;');
   if (!setting) {
     await database.runAsync(
-      `INSERT INTO settings (id, currency, theme_mode) VALUES (1, 'IDR', 'system');`,
+      `INSERT INTO settings (id, currency, theme_mode, budget_start_day) VALUES (1, 'IDR', 'system', 1);`,
     );
   }
 }

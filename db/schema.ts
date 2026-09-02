@@ -1,6 +1,6 @@
 // Skema awal Spen — fondasi tabel inti (lengkap di tiket #17 Data foundation).
 // Invariant: angka uang integer (rupiah tanpa desimal). Lihat ADR-0001/0003/0004/0005.
-import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const wallets = sqliteTable('wallets', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -48,7 +48,7 @@ export const budgetPlans = sqliteTable('budget_plans', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   budgetPeriodId: integer('budget_period_id').notNull().references(() => budgetPeriods.id),
 }, (table) => ({
-  periodIndex: index('budget_plans_period_idx').on(table.budgetPeriodId),
+  periodUnique: uniqueIndex('budget_plans_period_unique').on(table.budgetPeriodId),
 }));
 
 export const incomeItems = sqliteTable('income_items', {
@@ -97,4 +97,5 @@ export const settings = sqliteTable('settings', {
   id: integer('id').primaryKey(),
   currency: text('currency', { enum: ['IDR', 'USD', 'SGD', 'MYR', 'EUR', 'GBP', 'JPY', 'AUD', 'SAR', 'AED'] }).notNull().default('IDR'),
   themeMode: text('theme_mode', { enum: ['system', 'light', 'dark'] }).notNull().default('system'),
+  budgetStartDay: integer('budget_start_day').notNull().default(1),
 });

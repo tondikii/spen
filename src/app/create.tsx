@@ -6,10 +6,10 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { TransactionForm } from '@/components/transaction-form';
 import { archiveDatabaseCategory, deleteDatabaseTransaction, getDatabaseTransactionCategories, getDatabaseTransactions, saveDatabaseCategory, saveDatabaseTransaction } from '@/services/transaction-service';
 import { getWallets } from '@/services/wallet-service';
-import type { Category, Transaction, Wallet } from '@/types/domain';
+import type { Category, Transaction, TransactionType, Wallet } from '@/types/domain';
 
 export default function CreateTransactionScreen() {
-  const { transactionId } = useLocalSearchParams<{ transactionId?: string }>();
+  const { transactionId, type, categoryId, amount, walletId } = useLocalSearchParams<{ transactionId?: string; type?: TransactionType; categoryId?: string; amount?: string; walletId?: string }>();
   const database = useSQLiteContext();
   const [data, setData] = useState<{ wallets: Wallet[]; categories: Category[]; transactions: Transaction[] } | null>(null);
 
@@ -29,6 +29,10 @@ export default function CreateTransactionScreen() {
   return <TransactionForm
     mode={transaction ? 'edit' : 'create'}
     transaction={transaction}
+    initialType={type === 'income' || type === 'expense' || type === 'transfer' ? type : undefined}
+    initialCategoryId={categoryId}
+    initialAmount={amount ? Number(amount) : undefined}
+    initialWalletId={walletId}
     wallets={data.wallets}
     categories={data.categories}
     existingTransactions={data.transactions}

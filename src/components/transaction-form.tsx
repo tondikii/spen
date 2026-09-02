@@ -15,6 +15,10 @@ import type { TransactionDraft } from '@/types/domain';
 type TransactionFormProps = {
   mode: 'create' | 'edit';
   transaction?: Transaction;
+  initialType?: Exclude<TransactionType, 'adjustment'>;
+  initialCategoryId?: string;
+  initialAmount?: number;
+  initialWalletId?: string;
   wallets?: Wallet[];
   categories?: Category[];
   existingTransactions?: Transaction[];
@@ -31,15 +35,15 @@ const tabs: Array<{ type: TransactionType; label: string }> = [
   { type: 'transfer', label: 'Transfer' },
 ];
 
-export function TransactionForm({ mode, transaction, wallets = getActiveTransactionWallets(), categories: categoriesProp, existingTransactions = [], onClose, onSave, onDelete, onCategorySave, onCategoryArchive }: TransactionFormProps) {
+export function TransactionForm({ mode, transaction, initialType, initialCategoryId, initialAmount, initialWalletId, wallets = getActiveTransactionWallets(), categories: categoriesProp, existingTransactions = [], onClose, onSave, onDelete, onCategorySave, onCategoryArchive }: TransactionFormProps) {
   const theme = useTheme();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0, left: 0, right: 0 };
-  const initialType: TransactionType = transaction?.type === 'adjustment' ? 'expense' : transaction?.type ?? 'income';
-  const [type, setType] = useState<TransactionType>(initialType);
-  const [walletId, setWalletId] = useState(transaction?.walletId ?? wallets[0]?.id ?? null);
+  const resolvedInitialType: TransactionType = transaction?.type === 'adjustment' ? 'expense' : transaction?.type ?? initialType ?? 'income';
+  const [type, setType] = useState<TransactionType>(resolvedInitialType);
+  const [walletId, setWalletId] = useState(transaction?.walletId ?? initialWalletId ?? wallets[0]?.id ?? null);
   const [toWalletId, setToWalletId] = useState(transaction?.toWalletId ?? wallets[1]?.id ?? wallets[0]?.id ?? null);
-  const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? null);
-  const [amount, setAmount] = useState(transaction ? String(transaction.amount) : '');
+  const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? initialCategoryId ?? null);
+  const [amount, setAmount] = useState(transaction ? String(transaction.amount) : initialAmount ? String(initialAmount) : '');
   const [note, setNote] = useState(transaction?.note ?? '');
   const [categories, setCategories] = useState<Category[]>(categoriesProp ?? getActiveTransactionCategories());
   const [categoryEditorOpen, setCategoryEditorOpen] = useState(false);

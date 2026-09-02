@@ -2,16 +2,22 @@
 
 import m0000 from './20260901102535_foamy_runaways/migration.sql';
 import m0001 from './20260901191900_unknown_baron_strucker/migration.sql';
+import m0002 from './20260901193906_nostalgic_dragon_lord/migration.sql';
+import m0003 from './20260902031456_windy_starbolt/migration.sql';
 
-  export default {
-    journal: {
-      entries: [
-        { idx: 0, version: '7', when: 20260901102535, tag: '20260901102535_foamy_runaways', breakpoints: true },
-        { idx: 1, version: '7', when: 20260901191900, tag: '20260901191900_unknown_baron_strucker', breakpoints: true },
-      ],
-    },
-    migrations: {
-      "20260901102535_foamy_runaways": m0000,
-      "20260901191900_unknown_baron_strucker": m0001,
-    },
-  };
+export default {
+  journal: {
+    entries: [
+      { idx: 0, version: '7', when: 20260901102535, tag: 'foamy_runaways', breakpoints: true },
+      { idx: 1, version: '7', when: 20260901191900, tag: 'unknown_baron_strucker', breakpoints: true },
+      { idx: 2, version: '7', when: 20260901193906, tag: 'nostalgic_dragon_lord', breakpoints: true },
+      { idx: 3, version: '7', when: 20260902031456, tag: 'windy_starbolt', breakpoints: true },
+    ],
+  },
+  migrations: {
+    '20260901102535_foamy_runaways': m0000,
+    '20260901191900_unknown_baron_strucker': m0001,
+    '20260901193906_nostalgic_dragon_lord': m0002,
+    '20260902031456_windy_starbolt': m0003,
+  },
+};

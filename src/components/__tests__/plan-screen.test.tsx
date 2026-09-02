@@ -28,4 +28,22 @@ describe('PlanScreen', () => {
     await fireEvent.press(getAllByText('Terapkan')[0]);
     expect(getByText('✓ Diterapkan')).toBeTruthy();
   });
+
+  it('membuka form transaksi dari aksi item plan', async () => {
+    const onItemAction = jest.fn();
+    const { getByLabelText } = await render(<PlanScreen onItemAction={onItemAction} />);
+
+    await fireEvent.press(getByLabelText('Catat Gaji'));
+
+    expect(onItemAction).toHaveBeenCalledWith(expect.objectContaining({ type: 'income', name: 'Gaji' }), 6500000);
+  });
+
+  it('mengirim sisa nominal saat membayar fixed expense sebagian', async () => {
+    const onItemAction = jest.fn();
+    const { getByLabelText } = await render(<PlanScreen onItemAction={onItemAction} />);
+
+    await fireEvent.press(getByLabelText('Bayar Internet'));
+
+    expect(onItemAction).toHaveBeenCalledWith(expect.objectContaining({ type: 'fixedExpense', name: 'Internet' }), 175000);
+  });
 });

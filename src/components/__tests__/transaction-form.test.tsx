@@ -69,4 +69,11 @@ describe('TransactionForm', () => {
 
     expect(queryByLabelText('Kategori Kesehatan')).toBeNull();
   });
+
+  it('menerima preset dari aksi plan untuk membuka form transaksi siap catat', async () => {
+    const { getByLabelText } = await render(<TransactionForm mode="create" initialType="expense" initialCategoryId="category-makan" initialAmount={175000} onClose={jest.fn()} onSave={jest.fn()} />);
+
+    expect(getByLabelText('Nominal transaksi').props.value).toBe('175000');
+    expect(getByLabelText('Kategori Makan')).toBeTruthy();
+  });
 });
