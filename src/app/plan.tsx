@@ -2,12 +2,11 @@ import PlanScreen from '@/components/plan-screen';
 import { useSQLiteContext } from 'expo-sqlite';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { createDatabasePlanItem, deleteDatabasePlanItem, getDatabasePlanView, setBudgetPeriodStartDay, updateDatabasePlanItem } from '@/services/plan-service';
+import { applyDatabaseBudgetSuggestion, createDatabasePlanItem, deleteDatabasePlanItem, getDatabasePlanView, setBudgetPeriodStartDay, updateDatabasePlanItem } from '@/services/plan-service';
 import type { BudgetSuggestion } from '@/services/ai-service';
 import { getDatabaseTransactionCategories } from '@/services/transaction-service';
 import { archiveGoal, createGoal, updateGoal, withdrawFromGoal, type GoalDraft } from '@/services/goal-service';
 import { DataState } from '@/components/screen-skeleton';
-import { createWallet } from '@/services/wallet-service';
 
 export default function PlanRoute() {
   const database = useSQLiteContext();
@@ -32,31 +31,7 @@ export default function PlanRoute() {
   }} onItemAction={(item, amount) => {
     router.push({ pathname: '/create', params: { type: item.type === 'income' ? 'income' : 'expense', categoryId: item.categoryId, amount: String(amount) } });
   }} onSuggestionApply={async (suggestion: BudgetSuggestion) => {
-    if (suggestion.action === 'review_expense') return;
-    if (suggestion.action === 'add_goal') {
-      const targetAmount = suggestion.targetAmount ?? suggestion.amount;
-      if (typeof targetAmount !== 'number' || !Number.isSafeInteger(targetAmount) || targetAmount <= 0) throw new Error('Saran Goal belum memiliki target nominal yang valid.');
-      const existingGoalWalletIds = new Set(planView.goals.map((goal) => goal.walletId));
-      const requestedWalletName = suggestion.walletName?.trim().toLowerCase();
-      let wallet = planView.wallets.find((candidate) => !candidate.archived && !existingGoalWalletIds.has(candidate.id) && requestedWalletName && candidate.name.toLowerCase() === requestedWalletName);
-      if (!wallet) wallet = planView.wallets.find((candidate) => !candidate.archived && !existingGoalWalletIds.has(candidate.id));
-      if (!wallet) wallet = await createWallet(database, suggestion.walletName?.trim() || `${suggestion.title.trim()} Wallet`, 0);
-      const monthlyContribution = suggestion.monthlyContribution ?? 0;
-      if (!Number.isSafeInteger(monthlyContribution) || monthlyContribution < 0) throw new Error('Saran Goal memiliki kontribusi bulanan yang tidak valid.');
-      await createGoal(database, { name: suggestion.title.trim(), targetAmount, targetDate: null, walletId: wallet.id, monthlyContribution });
-      await load();
-      return;
-    }
-    const category = categories.find((item) => item.type === 'expense' && !item.archived && item.name.toLowerCase() === suggestion.categoryName?.toLowerCase())
-      ?? categories.find((item) => item.type === 'expense' && !item.archived && item.name === 'Belanja');
-    if (!category || !suggestion.amount || suggestion.amount <= 0) throw new Error('Saran belum memiliki kategori atau nominal yang bisa diterapkan.');
-    if (suggestion.action === 'increase_allocation') {
-      const existing = planView.plan.allocationItems.find((item) => item.categoryId === category.id);
-      if (existing) await updateDatabasePlanItem(database, existing, { type: 'allocation', name: existing.name, categoryId: category.id, targetAmount: existing.targetAmount + suggestion.amount });
-      else await createDatabasePlanItem(database, { type: 'allocation', name: `Alokasi ${category.name}`, categoryId: category.id, targetAmount: suggestion.amount });
-    } else {
-      await createDatabasePlanItem(database, { type: 'allocation', name: 'Alokasi spare budget', categoryId: category.id, targetAmount: suggestion.amount });
-    }
+    await applyDatabaseBudgetSuggestion(database, suggestion, { plan: planView.plan, goals: planView.goals, wallets: planView.wallets, categories });
     await load();
   }} aiInput={{ spareBudget: planView.snapshot.spareBudget, totalIncome: planView.snapshot.totalIncome, fixedExpense: planView.plan.fixedExpenseItems.reduce((sum, item) => sum + item.targetAmount, 0), goalContributions: planView.goals.reduce((sum, goal) => sum + goal.monthlyContribution, 0), netSaving: planView.snapshot.netSaving, goals: planView.goals.map((goal) => ({ name: goal.name, targetAmount: goal.targetAmount, savedAmount: planView.wallets.find((wallet) => wallet.id === goal.walletId)?.balance ?? 0 })), wallets: planView.wallets.filter((wallet) => !wallet.archived).map((wallet) => ({ name: wallet.name, balance: wallet.balance })) }} onGoalSave={async (goal, draft: GoalDraft) => {
     if (goal) await updateGoal(database, goal.id, draft);

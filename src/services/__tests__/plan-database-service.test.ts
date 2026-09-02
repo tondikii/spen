@@ -5,7 +5,7 @@ import { configureDatabase } from '../../../db/database';
 import { seedDefaultCategories } from '../../../db/seed';
 import { createWallet } from '@/services/wallet-service';
 import { getDatabaseTransactionCategories, saveDatabaseTransaction } from '@/services/transaction-service';
-import { createDatabasePlanItem, deleteDatabasePlanItem, ensureActiveBudgetPlan, getDatabasePlanView, setBudgetPeriodStartDay, updateDatabasePlanItem } from '@/services/plan-service';
+import { applyDatabaseBudgetSuggestion, createDatabasePlanItem, deleteDatabasePlanItem, ensureActiveBudgetPlan, getDatabasePlanView, setBudgetPeriodStartDay, updateDatabasePlanItem } from '@/services/plan-service';
 
 type TempSQLite = {
   exec(source: string): void;
@@ -147,5 +147,25 @@ describe('database plan service', () => {
     await deleteDatabasePlanItem(database, item);
 
     expect((await getDatabasePlanView(database, '2026-09-10')).plan.allocationItems).toHaveLength(0);
+  });
+
+  it('applies an add_goal suggestion by creating a Wallet Goal when needed', async () => {
+    const view = await getDatabasePlanView(database, '2026-09-10');
+    const categories = await getDatabaseTransactionCategories(database);
+
+    await applyDatabaseBudgetSuggestion(database, {
+      action: 'add_goal',
+      title: 'Dana Darurat',
+      description: 'Bangun dana darurat.',
+      targetAmount: 12000000,
+      walletName: 'Tabungan Darurat',
+      monthlyContribution: 1000000,
+      amount: null,
+      categoryName: null,
+    }, { ...view, categories });
+
+    const nextView = await getDatabasePlanView(database, '2026-09-10');
+    expect(nextView.goals).toEqual([expect.objectContaining({ name: 'Dana Darurat', targetAmount: 12000000, monthlyContribution: 1000000 })]);
+    expect(nextView.wallets).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Tabungan Darurat', isSavings: true })]));
   });
 });

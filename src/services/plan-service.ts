@@ -2,8 +2,10 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import mockData from '@/data/mock-data';
 import { getDatabaseTransactions } from '@/services/transaction-service';
-import { getWallets } from '@/services/wallet-service';
-import type { BudgetPlan, BudgetPlanItem, BudgetPeriod, FixedExpenseItem, Goal, IncomeItem, AllocationItem, MockBudgetSnapshot, MockPlanItemState, PlanItemType } from '@/types/domain';
+import { createWallet, getWallets } from '@/services/wallet-service';
+import { createGoal } from '@/services/goal-service';
+import type { BudgetSuggestion } from '@/services/ai-service';
+import type { BudgetPlan, BudgetPlanItem, BudgetPeriod, Category, FixedExpenseItem, Goal, IncomeItem, AllocationItem, MockBudgetSnapshot, MockPlanItemState, PlanItemType, Wallet } from '@/types/domain';
 
 export type PlanItemDraft = { type: PlanItemType; name: string; categoryId: string; targetAmount: number };
 
@@ -108,6 +110,40 @@ export async function updateDatabasePlanItem(database: SQLiteDatabase, item: Bud
 export async function deleteDatabasePlanItem(database: SQLiteDatabase, item: BudgetPlanItem): Promise<void> {
   const result = await database.runAsync(`DELETE FROM ${tableFor(item.type)} WHERE id = ?;`, databaseId(item.id));
   if (result.changes === 0) throw new Error('Item plan tidak ditemukan');
+}
+
+export type BudgetSuggestionContext = {
+  categories: Category[];
+  plan: Pick<BudgetPlan, 'allocationItems'>;
+  goals: Goal[];
+  wallets: Wallet[];
+};
+
+export async function applyDatabaseBudgetSuggestion(database: SQLiteDatabase, suggestion: BudgetSuggestion, context: BudgetSuggestionContext): Promise<void> {
+  if (suggestion.action === 'review_expense') return;
+  if (suggestion.action === 'add_goal') {
+    const targetAmount = suggestion.targetAmount ?? suggestion.amount;
+    if (typeof targetAmount !== 'number' || !Number.isSafeInteger(targetAmount) || targetAmount <= 0) throw new Error('Saran Goal belum memiliki target nominal yang valid.');
+    const existingGoalWalletIds = new Set(context.goals.map((goal) => goal.walletId));
+    const requestedWalletName = suggestion.walletName?.trim().toLowerCase();
+    let wallet = context.wallets.find((candidate) => !candidate.archived && !existingGoalWalletIds.has(candidate.id) && requestedWalletName && candidate.name.toLowerCase() === requestedWalletName);
+    if (!wallet) wallet = context.wallets.find((candidate) => !candidate.archived && !existingGoalWalletIds.has(candidate.id));
+    if (!wallet) wallet = await createWallet(database, suggestion.walletName?.trim() || `${suggestion.title.trim()} Wallet`, 0);
+    const monthlyContribution = suggestion.monthlyContribution ?? 0;
+    if (!Number.isSafeInteger(monthlyContribution) || monthlyContribution < 0) throw new Error('Saran Goal memiliki kontribusi bulanan yang tidak valid.');
+    await createGoal(database, { name: suggestion.title.trim(), targetAmount, targetDate: null, walletId: wallet.id, monthlyContribution });
+    return;
+  }
+  const category = context.categories.find((item) => item.type === 'expense' && !item.archived && item.name.toLowerCase() === suggestion.categoryName?.toLowerCase())
+    ?? context.categories.find((item) => item.type === 'expense' && !item.archived && item.name === 'Belanja');
+  if (!category || typeof suggestion.amount !== 'number' || !Number.isSafeInteger(suggestion.amount) || suggestion.amount <= 0) throw new Error('Saran belum memiliki kategori atau nominal yang bisa diterapkan.');
+  if (suggestion.action === 'increase_allocation') {
+    const existing = context.plan.allocationItems.find((item) => item.categoryId === category.id);
+    if (existing) await updateDatabasePlanItem(database, existing, { type: 'allocation', name: existing.name, categoryId: category.id, targetAmount: existing.targetAmount + suggestion.amount });
+    else await createDatabasePlanItem(database, { type: 'allocation', name: `Alokasi ${category.name}`, categoryId: category.id, targetAmount: suggestion.amount });
+  } else {
+    await createDatabasePlanItem(database, { type: 'allocation', name: 'Alokasi spare budget', categoryId: category.id, targetAmount: suggestion.amount });
+  }
 }
 
 export async function ensureActiveBudgetPlan(database: SQLiteDatabase, today = dateOnly()) {
