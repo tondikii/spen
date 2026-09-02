@@ -1,56 +1,49 @@
-# Welcome to your Expo app 👋
+# Spen
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Spen adalah aplikasi budgeting berbasis Expo SDK 57 untuk Android, iOS, dan web.
 
-## Get started
+## Mulai
 
-1. Install dependencies
+1. Install dependency.
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Siapkan env lokal.
 
    ```bash
-   npx expo start
+   cp .env.example .env.local
    ```
 
-In the output, you'll find options to open the app in a
+   Lalu isi `EXPO_PUBLIC_GROQ_API_KEY` jika ingin fitur AI suggestion memakai Groq.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+3. Jalankan aplikasi.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   ```bash
+   npm run start
+   ```
 
-## Get a fresh project
+## Environment
 
-When you're ready, run:
+Expo membaca variabel dengan prefix `EXPO_PUBLIC_` dari file `.env*` di root project. Untuk repo ini, variabel yang dipakai aplikasi adalah:
 
-```bash
-npm run reset-project
-```
+- `EXPO_PUBLIC_GROQ_API_KEY`: API key Groq untuk AI suggestion.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Kalau variabel ini kosong, aplikasi tetap berjalan dan memakai fallback deterministik lokal untuk saran budget.
 
-### Other setup steps
+Jangan commit file env lokal atau API key ke repository.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Script
 
-## Learn more
+- `npm run start`
+- `npm run android`
+- `npm run ios`
+- `npm run web`
+- `npm test`
+- `npm run lint`
 
-To learn more about developing your project with Expo, look at the following resources:
+## Catatan
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Project ini memakai file-based routing dengan `expo-router`.
+- `npm run reset-project` tersedia untuk mengembalikan layout starter Expo, tetapi biasanya tidak diperlukan untuk kerja harian repo ini.

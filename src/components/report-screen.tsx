@@ -121,11 +121,7 @@ function ReportScreenContent({
             onPress={() => { setLoading(true); setInsightOpen(true); }}
             style={[styles.aiButton, { borderColor: theme.line, backgroundColor: theme.mint }]}
           >
-            <ThemedText type="smallBold" themeColor="pine" style={{ display: "none" }}>
-              âœ¦ Tanya insight
-            </ThemedText>
-            <ThemedText type="code" themeColor="muted" style={{ display: "none" }}>{formatPeriodAccurate(period)}⌄</ThemedText>
-            <ThemedText type="smallBold" themeColor="pine">AI Insight</ThemedText>
+            <ThemedText type="smallBold" themeColor="pine" style={styles.aiButtonText}>✦ AI Insight</ThemedText>
           </Pressable>
         </View>
         <FinanceHeroCard label={getReportNetSavingLabel(snapshot.netSaving).toUpperCase()} amount={snapshot.netSaving} amountColor={snapshot.netSaving < 0 ? theme.expense : undefined} footer={[{ label: "Pendapatan", value: formatMoney(snapshot.totalIncome) }, { label: "Pengeluaran", value: formatMoney(snapshot.totalExpense) }]} style={styles.summary} />
@@ -138,17 +134,9 @@ function ReportScreenContent({
         </ChartCard>
         <Pressable accessibilityRole="button" accessibilityLabel="Pilih rentang Report" onPress={() => setRangeOpen(true)} style={styles.rangeButton}><ThemedText type="smallBold" themeColor="pine">Rentang: {range} bulan</ThemedText></Pressable>
         <ChartCard title="Net saving" trailing={`${range} bulan⌄`} theme={theme}>
-          <View style={[styles.chart, { borderBottomColor: theme.line }]}><Svg width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="none"><Path d={linePath(chartPoints)} fill="none" stroke={theme.pine} strokeWidth="3" /><Path d={`${linePath(chartPoints)} L318 120 L2 120Z`} fill={theme.pine} opacity="0.1" /></Svg></View>
-          <View style={styles.months}>
-            {chartPoints.map((point) => (
-              <ThemedText key={point.period.id} type="small" themeColor="muted">
-                {formatMonthShort(point.period.startDate)}
-              </ThemedText>
-            ))}
-          </View>
+          {chartPoints.length === 0 ? <View style={styles.empty}><ThemedText style={styles.emptyGlyph}>◌</ThemedText><ThemedText type="smallBold">Belum ada saving trend</ThemedText><ThemedText type="small" themeColor="muted">Belum ada data net saving untuk rentang ini.</ThemedText></View> : <><View style={[styles.chart, { borderBottomColor: theme.line }]}><Svg width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="none"><Path d={linePath(chartPoints)} fill="none" stroke={theme.pine} strokeWidth="3" /><Path d={`${linePath(chartPoints)} L318 120 L2 120Z`} fill={theme.pine} opacity="0.1" /></Svg></View><View style={styles.months}>{chartPoints.map((point) => <ThemedText key={point.period.id} type="small" themeColor="muted">{formatMonthShort(point.period.startDate)}</ThemedText>)}</View></>}
         </ChartCard>
       </ScrollView>
-      <Pressable accessibilityRole="button" accessibilityLabel="Tanya insight" onPress={() => { setLoading(true); setInsightOpen(true); }} style={[styles.insightCta, { backgroundColor: theme.pine }]}><ThemedText style={styles.insightGlyph}>✦</ThemedText><View style={styles.insightCopy}><ThemedText type="smallBold" style={{ color: theme.heroText }}>Tanya insight untuk bulan ini</ThemedText><ThemedText type="small" style={{ color: theme.heroMuted }}>Ringkas, jelas, dan bisa ditindaklanjuti.</ThemedText></View><ThemedText style={{ color: theme.heroText, fontSize: 18 }}>→</ThemedText></Pressable>
       <Modal
         transparent
         animationType="slide"
@@ -302,6 +290,7 @@ const styles = StyleSheet.create({
   },
   eyebrow: { ...Typography.eyebrow },
   aiButton: { borderRadius: Radius.pill, borderWidth: 1, marginTop: 14, paddingHorizontal: 12, paddingVertical: 10 },
+  aiButtonText: { fontSize: 11, lineHeight: 14 },
   summary: { marginBottom: 24 },
   metric: { flex: 1, gap: 5, minHeight: 58 },
   card: { borderRadius: 22, borderWidth: 1, marginBottom: 14, padding: 17 },
@@ -336,9 +325,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     paddingTop: 7,
   },
-  insightCta: { alignItems: "center", borderRadius: 19, flexDirection: "row", gap: 10, marginHorizontal: 21, marginBottom: BottomTabInset, padding: 16 },
-  insightGlyph: { color: "#D5EADE", fontSize: 21 },
-  insightCopy: { flex: 1 },
   overlay: { flex: 1, justifyContent: "flex-end" },
   sheet: { borderTopLeftRadius: 27, borderTopRightRadius: 27, padding: 21 },
   sheetOption: { borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: 15 },

@@ -3,15 +3,26 @@ jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import ReportScreen from '@/components/report-screen';
+import { getReportView } from '@/services/report-service';
 
 describe('ReportScreen', () => {
   it('menampilkan ringkasan, breakdown expense, dan net saving', async () => {
-    const { getAllByText, getByText } = await render(<ReportScreen />);
+    const { getAllByText, getByText, queryByLabelText } = await render(<ReportScreen />);
 
     expect(getByText('Report')).toBeTruthy();
     expect(getAllByText('Pengeluaran').length).toBeGreaterThan(0);
     expect(getByText('Makan')).toBeTruthy();
     expect(getAllByText('Net saving').length).toBeGreaterThan(0);
+    expect(queryByLabelText('Tanya insight')).toBeNull();
+  });
+
+  it('menampilkan empty state saat saving trend belum memiliki data', async () => {
+    const view = { ...getReportView(), netSavingByPeriod: [] };
+
+    const { getByText } = await render(<ReportScreen reportView={view} />);
+
+    expect(getByText('Belum ada saving trend')).toBeTruthy();
+    expect(getByText('Belum ada data net saving untuk rentang ini.')).toBeTruthy();
   });
 
   it('menampilkan loading lalu insight Bahasa Indonesia', async () => {
