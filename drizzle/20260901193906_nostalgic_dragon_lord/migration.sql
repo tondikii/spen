@@ -4,4 +4,5 @@ UPDATE allocation_items SET budget_plan_id = (SELECT MIN(keeper.id) FROM budget_
 DELETE FROM budget_plans WHERE id NOT IN (SELECT MIN(id) FROM budget_plans GROUP BY budget_period_id);--> statement-breakpoint
 DROP INDEX IF EXISTS `budget_plans_period_idx`;--> statement-breakpoint
 DROP INDEX IF EXISTS `budget_plans_period_unique`;--> statement-breakpoint
-CREATE UNIQUE INDEX `budget_plans_period_unique` ON `budget_plans` (`budget_period_id`);
+CREATE UNIQUE INDEX IF NOT EXISTS `budget_plans_period_unique` ON `budget_plans` (`budget_period_id`);
+
