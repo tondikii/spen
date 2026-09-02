@@ -7,6 +7,7 @@ import { getDatabasePlanView, getPaymentLabel, getPlanView, type PlanItemDraft }
 import { aiService, type BudgetAIInput, type BudgetSuggestion } from '@/services/ai-service';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { FinanceHeroCard } from '@/components/finance-hero-card';
 import { useTheme } from '@/hooks/use-theme';
 import type { BudgetPlanItem, Category, Goal, PaymentStatus, PlanItemType, Wallet } from '@/types/domain';
 
@@ -64,7 +65,7 @@ export default function PlanScreen({ planView = getPlanView(), categories = [], 
 
   return <ThemedView style={styles.page}>{aiError && <ThemedText type="small" style={{ color: theme.expense, paddingHorizontal: 21, paddingTop: 8 }}>{aiError}</ThemedText>}<ScrollView contentContainerStyle={styles.content}>
     <View style={styles.header}><View><ThemedText type="title" style={styles.title}>Rencana</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Ubah Budget period" onPress={() => setPeriodOpen(true)}><ThemedText type="code" themeColor="muted" style={styles.periodLabel}>{periodLabel}</ThemedText></Pressable></View><Pressable accessibilityRole="button" accessibilityLabel="AI Suggestion" onPress={() => setAiOpen(true)} style={[styles.aiButton, { borderColor: theme.line, backgroundColor: theme.mint }]}><ThemedText type="smallBold" themeColor="pine" style={styles.aiButtonText}>✦ AI Suggestion</ThemedText></Pressable></View>
-    <View style={[styles.available, { borderLeftColor: theme.pine }]}><ThemedText type="code" themeColor="muted">SALDO TERSEDIA</ThemedText><ThemedText style={styles.availableAmount}>{formatMoney(snapshot.availableBalance)}</ThemedText><View style={styles.availableFooter}><View><ThemedText type="small" themeColor="muted">Tersedia bebas</ThemedText><ThemedText type="code" style={styles.availableFooterValue}>{formatMoney(snapshot.freeBalance)}</ThemedText></View><View style={styles.availableStatRight}><ThemedText type="small" themeColor="muted">Terikat goal</ThemedText><ThemedText type="code" style={styles.availableFooterValue}>{formatMoney(snapshot.goalBalance)}</ThemedText></View></View></View>
+    <FinanceHeroCard label="SALDO TERSEDIA" amount={snapshot.availableBalance} footer={[{ label: 'Tersedia bebas', value: formatMoney(snapshot.freeBalance) }, { label: 'Terikat goal', value: formatMoney(snapshot.goalBalance) }]} style={styles.available} />
     <View style={[styles.spare, { backgroundColor: theme.spareBackground }]}><View style={styles.spareCopy}><ThemedText style={[styles.spareLabel, { color: theme.spareText }]}>Spare budget</ThemedText><ThemedText style={[styles.spareAmount, { color: theme.spareText }]}>{formatMoney(snapshot.spareBudget)}</ThemedText><ThemedText style={[styles.spareNote, { color: theme.spareText }]}>pendapatan − fixed expense − goal</ThemedText></View><View style={[styles.calmRing, { borderColor: theme.pine, borderTopColor: theme.spareText }]}><ThemedText type="code" style={{ color: theme.spareText }}>{sparePercent(snapshot)}%</ThemedText></View></View>
     <PlanSection title="Pendapatan" action="+ Tambah" theme={theme} onAction={() => setPlanItemEditor({ type: 'income' })}>{plan.incomeItems.length ? plan.incomeItems.map((item) => <PlanItem key={item.id} item={item} category={categories.find((category) => category.id === item.categoryId)} state={itemState(item)} action="Catat" color={theme.income} theme={theme} onAction={handleItemAction} />) : <EmptyPlan message="Belum ada Pendapatan." />}</PlanSection>
     <PlanSection title="Fixed expense" action="+ Tambah" theme={theme} onAction={() => setPlanItemEditor({ type: 'fixedExpense' })}>{plan.fixedExpenseItems.length ? plan.fixedExpenseItems.map((item) => <PlanItem key={item.id} item={item} category={categories.find((category) => category.id === item.categoryId)} state={itemState(item)} action={itemState(item)?.paymentStatus?.kind === 'Lunas' ? '' : 'Bayar'} color={theme.expense} theme={theme} onAction={handleItemAction} />) : <EmptyPlan message="Belum ada Fixed expense." />}</PlanSection>
@@ -155,11 +156,7 @@ const styles = StyleSheet.create({
   aiButton: { borderRadius: Radius.pill, borderWidth: 1, marginTop: 14, paddingHorizontal: 12, paddingVertical: 10 },
   aiButtonText: { fontSize: 11, lineHeight: 14 },
   periodLabel: { fontSize: 11, lineHeight: 14 },
-  available: { borderLeftWidth: 2, marginVertical: 4, marginBottom: 17, paddingLeft: 13, paddingVertical: 2 },
-  availableAmount: { fontFamily: Fonts.serifBold, fontSize: 28, lineHeight: 31, letterSpacing: -1.12 },
-  availableFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 9 },
-  availableStatRight: { alignItems: 'flex-end' },
-  availableFooterValue: { fontSize: 10, lineHeight: 13, letterSpacing: 0 },
+  available: { marginBottom: 17 },
   spare: { alignItems: 'center', borderRadius: 22, flexDirection: 'row', justifyContent: 'space-between', marginBottom: 25, padding: 18 },
   spareCopy: { flex: 1 },
   spareLabel: { fontFamily: Fonts.sans, fontSize: 12, lineHeight: 16, marginBottom: 3 },

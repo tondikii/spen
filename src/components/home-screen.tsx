@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { FinanceHeroCard } from '@/components/finance-hero-card';
 import { BottomTabInset, Fonts, Layout, MaxContentWidth, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import type { BudgetPeriod, Category, MockBudgetSnapshot, Transaction, Wallet, WalletTint } from '@/types/domain';
 import { formatMoney } from '@/lib/money';
@@ -39,17 +40,7 @@ function HomeHeader({ today = new Date() }: { today?: Date }) {
 }
 
 function BalanceCard({ total, period }: { total: number; period?: BudgetPeriod }) {
-  const theme = useTheme();
-  return (
-    <ThemedView style={[styles.balanceCard, { backgroundColor: theme.pine2 }]}>
-      <ThemedText style={[styles.heroLabel, { color: theme.heroMuted }]}>Saldo total <ThemedText style={{ color: theme.heroMuted }}>●</ThemedText></ThemedText>
-      <ThemedText style={[styles.heroAmount, { color: theme.heroText }]}>{formatMoney(total)}</ThemedText>
-      <View style={[styles.balanceFooter, { borderTopColor: theme.heroDivider }]}>
-        <ThemedText style={[styles.heroLabel, { color: theme.heroMuted }]}>Budget period</ThemedText>
-        <ThemedText style={[styles.period, { color: theme.heroText }]}>{period ? formatPeriod(period) : 'Budget period'}</ThemedText>
-      </View>
-    </ThemedView>
-  );
+  return <FinanceHeroCard label="Saldo total" marker="●" amount={total} footer={[{ label: 'Budget period', value: period ? formatPeriod(period) : 'Budget period' }]} style={styles.balanceCard} />;
 }
 
 function WalletCards({ wallets, onSelect, onAdd }: { wallets: Wallet[]; onSelect: (wallet: Wallet) => void; onAdd: () => void }) {
@@ -241,11 +232,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: Layout.pagePadding, paddingTop: 28, paddingBottom: BottomTabInset + Spacing.four, gap: 0 },
   header: { alignItems: 'flex-start', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   eyebrow: { ...Typography.eyebrow },
-  balanceCard: { borderRadius: Radius.hero, marginBottom: Layout.sectionGap, padding: 21, ...Shadows.hero },
-  heroLabel: { fontFamily: Fonts.sans, fontSize: 12, lineHeight: 18 },
-  heroAmount: { ...Typography.moneyHero, marginVertical: Spacing.three },
-  balanceFooter: { borderTopWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingTop: Spacing.two },
-  period: { fontFamily: Fonts.monoMedium, fontSize: 11 },
+  balanceCard: { marginBottom: Layout.sectionGap },
   sectionTitle: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   walletSection: {},
   walletRow: { gap: Layout.walletGap, paddingTop: 2, paddingBottom: 18 },

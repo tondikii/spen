@@ -5,7 +5,8 @@ import Svg, { Circle, Path } from "react-native-svg";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Fonts, Radius, Shadows, Typography } from "@/constants/theme";
+import { FinanceHeroCard } from "@/components/finance-hero-card";
+import { Fonts, Radius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { formatMoney } from "@/lib/money";
 import { aiService, type BudgetAIInput } from "@/services/ai-service";
@@ -126,14 +127,7 @@ export default function ReportScreen({
             <ThemedText type="smallBold" themeColor="pine">AI Insight</ThemedText>
           </Pressable>
         </View>
-        <ThemedView style={[styles.summary, { backgroundColor: theme.pine2 }]}>
-          <ThemedText type="code" style={{ color: theme.heroMuted }}>{getReportNetSavingLabel(snapshot.netSaving).toUpperCase()}</ThemedText>
-          <ThemedText style={[styles.heroAmount, { color: snapshot.netSaving < 0 ? theme.expense : theme.heroText }]}>{formatMoney(snapshot.netSaving)}</ThemedText>
-          <View style={[styles.heroStats, { borderTopColor: theme.heroDivider }]}>
-            <View><ThemedText type="small" style={{ color: theme.heroMuted }}>Pendapatan</ThemedText><ThemedText type="smallBold" style={{ color: theme.heroText }}>{formatMoney(snapshot.totalIncome)}</ThemedText></View>
-            <View><ThemedText type="small" style={{ color: theme.heroMuted }}>Pengeluaran</ThemedText><ThemedText type="smallBold" style={{ color: theme.heroText }}>{formatMoney(snapshot.totalExpense)}</ThemedText></View>
-          </View>
-        </ThemedView>
+        <FinanceHeroCard label={getReportNetSavingLabel(snapshot.netSaving).toUpperCase()} amount={snapshot.netSaving} amountColor={snapshot.netSaving < 0 ? theme.expense : undefined} footer={[{ label: "Pendapatan", value: formatMoney(snapshot.totalIncome) }, { label: "Pengeluaran", value: formatMoney(snapshot.totalExpense) }]} style={styles.summary} />
         <ChartCard title="Pengeluaran" trailing={formatMonth(period.endDate)} theme={theme}>
           {expenses.length === 0 ? <View style={styles.empty}><ThemedText style={styles.emptyGlyph}>◌</ThemedText><ThemedText type="smallBold">Belum ada pengeluaran</ThemedText><ThemedText type="small" themeColor="muted">Belum ada catatan expense di Budget period ini.</ThemedText></View> : <View style={styles.pieArea}>
             <Donut expenses={expenses} total={snapshot.totalExpense} theme={theme} />
@@ -302,9 +296,7 @@ const styles = StyleSheet.create({
   },
   eyebrow: { ...Typography.eyebrow },
   aiButton: { borderRadius: Radius.pill, borderWidth: 1, marginTop: 14, paddingHorizontal: 12, paddingVertical: 10 },
-  summary: { borderRadius: Radius.hero, marginBottom: 24, padding: 21, ...Shadows.hero },
-  heroAmount: { fontFamily: Fonts.serifBold, fontSize: 30, lineHeight: 34, marginVertical: 12 },
-  heroStats: { borderTopWidth: 1, flexDirection: "row", gap: 28, paddingTop: 13 },
+  summary: { marginBottom: 24 },
   metric: { flex: 1, gap: 5, minHeight: 58 },
   card: { borderRadius: 22, borderWidth: 1, marginBottom: 14, padding: 17 },
   cardHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
