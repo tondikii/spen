@@ -11,7 +11,7 @@ describe('SetupWizard', () => {
     await fireEvent.press(getByLabelText('Lanjut'));
     expect(getByText('WALLET PERTAMA')).toBeTruthy();
     await fireEvent.press(getByLabelText('Lanjut'));
-    expect(getByText('Pilih currency')).toBeTruthy();
+    expect(getByText('Pilih mata uang')).toBeTruthy();
     expect(queryByText(/periode/i)).toBeNull();
     expect(queryByText(/tipe wallet/i)).toBeNull();
   });
@@ -24,7 +24,7 @@ describe('SetupWizard', () => {
     await fireEvent.changeText(getByLabelText('Nama wallet pertama'), 'BCA');
     await fireEvent.changeText(getByLabelText('Saldo awal wallet pertama'), '2000000');
     await fireEvent.press(getByLabelText('Lanjut'));
-    await fireEvent.press(getByLabelText('Pilih currency USD'));
+    await fireEvent.press(getByLabelText('Pilih mata uang USD'));
     await fireEvent.press(getByLabelText('Masuk ke Spen'));
 
     await waitFor(() => expect(onComplete).toHaveBeenCalledWith('BCA', 2000000, 'USD'));

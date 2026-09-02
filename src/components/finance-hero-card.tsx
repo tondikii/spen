@@ -1,9 +1,9 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { ReactNode } from 'react';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Fonts, Shadows, Typography } from '@/constants/theme';
+import { Fonts, Layout, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -19,7 +19,7 @@ type FinanceHeroCardProps = {
   marker?: string;
   amountColor?: string;
   footer: FinanceHeroFooterItem[];
-  style?: object;
+  style?: StyleProp<ViewStyle>;
 };
 
 export function FinanceHeroCard({ label, amount, marker, amountColor, footer, style }: FinanceHeroCardProps) {
@@ -44,10 +44,10 @@ export function FinanceHeroCard({ label, amount, marker, amountColor, footer, st
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 26, padding: 21, ...Shadows.hero },
+  card: { borderRadius: Radius.hero, padding: Layout.pagePadding, ...Shadows.hero },
   label: { fontFamily: Fonts.sans, fontSize: 12, lineHeight: 18 },
-  amount: { ...Typography.moneyHero, marginVertical: 12 },
-  footer: { borderTopWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingTop: 12 },
+  amount: { ...Typography.moneyHero, marginVertical: Spacing.two },
+  footer: { borderTopWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingTop: Spacing.two },
   footerItem: { flex: 1 },
   footerItemRight: { alignItems: 'flex-end' },
   footerLabel: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },

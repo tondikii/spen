@@ -2,7 +2,7 @@ import { Tabs, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Fonts, Radius, Shadows, Spacing } from '@/constants/theme';
+import { Fonts, Shadows, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 type TabItem = {
@@ -32,7 +32,7 @@ export default function AppTabs() {
         tabBarStyle: [
           styles.tabBar,
           {
-            backgroundColor: theme.card,
+            backgroundColor: `${theme.card}F0`,
             borderTopColor: theme.line,
             paddingBottom: Math.max(insets.bottom, Spacing.two),
             height: 74 + Math.max(insets.bottom, Spacing.two),
@@ -61,7 +61,7 @@ export default function AppTabs() {
               accessibilityLabel="Tambah transaksi"
               accessibilityRole="button"
               onPress={() => router.push({ pathname: '/create' } as never)}
-              style={({ pressed }) => [styles.addButton, { backgroundColor: theme.pine }, pressed && styles.pressed]}>
+              style={({ pressed }) => [styles.addButton, { backgroundColor: theme.pine, borderColor: theme.background }, pressed && styles.pressed]}>
               <Text style={styles.addIcon}>＋</Text>
             </Pressable>
           ),
@@ -119,11 +119,13 @@ const styles = StyleSheet.create({
   addButton: {
     alignItems: 'center',
     backgroundColor: '#235B50',
-    borderRadius: Radius.medium,
-    height: 52,
+    borderRadius: 20,
+    borderWidth: 4,
+    height: 58,
     justifyContent: 'center',
     marginHorizontal: Spacing.two,
-    marginTop: -22,
+    marginTop: -31,
+    width: 58,
     ...Shadows.fab,
   },
   addIcon: {

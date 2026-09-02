@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ComponentProps, type ReactNode } from 'react';
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { Fonts, Radius, Typography } from '@/constants/theme';
@@ -8,6 +8,7 @@ import { aiService, type BudgetAIInput, type BudgetSuggestion } from '@/services
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { FinanceHeroCard } from '@/components/finance-hero-card';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
 import type { BudgetPlanItem, Category, Goal, PaymentStatus, PlanItemType, Wallet } from '@/types/domain';
 
@@ -17,7 +18,7 @@ type GoalDraft = Omit<Goal, 'id' | 'archived'>;
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
-export default function PlanScreen({ planView = getPlanView(), categories = [], onPeriodStartDayChange, onItemAction, onPlanItemSave, onGoalSave, onGoalArchive, onGoalSaveAction, onGoalWithdraw, aiInput, onSuggestionApply }: { planView?: PlanView; categories?: Category[]; onPeriodStartDayChange?: (day: number) => void | Promise<void>; onItemAction?: (item: BudgetPlanItem, amount: number) => void | Promise<void>; onPlanItemSave?: (item: BudgetPlanItem | null, draft: PlanItemDraft) => void | Promise<void>; onGoalSave?: (goal: Goal | null, draft: GoalDraft) => void | Promise<void>; onGoalArchive?: (goal: Goal) => void | Promise<void>; onGoalSaveAction?: (goal: Goal) => void | Promise<void>; onGoalWithdraw?: (goal: Goal, amount: number) => void | Promise<void>; aiInput?: BudgetAIInput; onSuggestionApply?: (suggestion: BudgetSuggestion) => void | Promise<void> }) {
+function PlanScreenContent({ planView = getPlanView(), categories = [], onPeriodStartDayChange, onItemAction, onPlanItemSave, onGoalSave, onGoalArchive, onGoalSaveAction, onGoalWithdraw, aiInput, onSuggestionApply }: { planView?: PlanView; categories?: Category[]; onPeriodStartDayChange?: (day: number) => void | Promise<void>; onItemAction?: (item: BudgetPlanItem, amount: number) => void | Promise<void>; onPlanItemSave?: (item: BudgetPlanItem | null, draft: PlanItemDraft) => void | Promise<void>; onGoalSave?: (goal: Goal | null, draft: GoalDraft) => void | Promise<void>; onGoalArchive?: (goal: Goal) => void | Promise<void>; onGoalSaveAction?: (goal: Goal) => void | Promise<void>; onGoalWithdraw?: (goal: Goal, amount: number) => void | Promise<void>; aiInput?: BudgetAIInput; onSuggestionApply?: (suggestion: BudgetSuggestion) => void | Promise<void> }) {
   const theme = useTheme();
   const { snapshot, plan, goals, wallets, period } = planView;
   const [startDay, setStartDay] = useState(Number(period.startDate.slice(-2)));
@@ -90,6 +91,10 @@ function EmptyPlan({ message }: { message: string }) {
   return <View style={styles.emptyGoal}><ThemedText type="small" themeColor="muted">{message}</ThemedText></View>;
 }
 
+export default function PlanScreen(props: ComponentProps<typeof PlanScreenContent>) {
+  return <SafeAreaView style={styles.safeArea}><PlanScreenContent {...props} /></SafeAreaView>;
+}
+
 function sparePercent(snapshot: { spareBudget: number; totalIncome: number }) {
   if (snapshot.totalIncome <= 0) return 0;
   return Math.max(0, Math.min(100, Math.round(snapshot.spareBudget / snapshot.totalIncome * 100)));
@@ -149,7 +154,8 @@ function Progress({ value, color, theme }: { value: number; color: string; theme
 
 const styles = StyleSheet.create({
   page: { flex: 1 },
-  content: { paddingBottom: 40, paddingHorizontal: 21, paddingTop: 28, width: '100%' },
+  safeArea: { flex: 1 },
+  content: { alignSelf: 'center', paddingBottom: 104, paddingHorizontal: 21, paddingTop: 28, width: '100%' },
   header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
   eyebrow: { ...Typography.eyebrow },
   title: { fontFamily: Fonts.serifSemiBold, fontSize: 29, lineHeight: 31, letterSpacing: -1.16, marginBottom: 5 },

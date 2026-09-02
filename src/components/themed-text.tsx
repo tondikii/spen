@@ -43,13 +43,13 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
 const styles = StyleSheet.create({
   small: {
     fontFamily: Fonts.sans,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 12,
+    lineHeight: 18,
   },
   smallBold: {
     fontFamily: Fonts.sansBold,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 12,
+    lineHeight: 18,
   },
   default: {
     fontFamily: Fonts.sans,
@@ -58,9 +58,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: Fonts.serifSemiBold,
-    fontSize: 37,
-    lineHeight: 40,
-    letterSpacing: -1.48,
+    fontSize: 29,
+    lineHeight: 31,
+    letterSpacing: -1.16,
   },
   subtitle: {
     fontFamily: Fonts.serifSemiBold,

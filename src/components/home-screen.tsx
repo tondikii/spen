@@ -275,6 +275,6 @@ const styles = StyleSheet.create({
   transactionAmountText: { fontSize: 12, lineHeight: 16 },
   transactionTime: { fontSize: 10, lineHeight: 14 },
   empty: { alignItems: 'center', gap: 7, paddingVertical: 34 },
-  emptyGlyph: { color: '#7B8882', fontSize: 38 },
+  emptyGlyph: { fontSize: 38 },
   emptyButton: { borderRadius: 15, marginTop: 8, paddingHorizontal: 18, paddingVertical: 12 },
 });

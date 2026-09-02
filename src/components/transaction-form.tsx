@@ -4,13 +4,11 @@ import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 import { Fonts, Radius, Spacing, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
-import type { Category, Transaction, TransactionType, Wallet } from '@/types/domain';
+import type { Category, Transaction, TransactionDraft, TransactionType, Wallet } from '@/types/domain';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { TRANSACTION_ICON_CHOICES, archiveMockCategory, getActiveTransactionCategories, getActiveTransactionWallets, getAllocationLimit, getTransactionCategories, hasSimilarIncome, saveMockCategory } from '@/services/transaction-service';
-
-import type { TransactionDraft } from '@/types/domain';
 
 type TransactionFormProps = {
   mode: 'create' | 'edit';
@@ -32,7 +30,7 @@ type TransactionFormProps = {
   onCategoryArchive?: (category: Category) => void | Promise<void>;
 };
 
-const tabs: Array<{ type: TransactionType; label: string }> = [
+const tabs: { type: TransactionType; label: string }[] = [
   { type: 'income', label: 'Masuk' },
   { type: 'expense', label: 'Keluar' },
   { type: 'transfer', label: 'Transfer' },

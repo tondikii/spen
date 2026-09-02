@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ComponentProps } from 'react';
 import { Modal, Pressable, SectionList, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Fonts, Radius, Spacing, Typography } from '@/constants/theme';
+import { Radius, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
 import { filterHistoryPeriod, filterHistoryTransactions, getHistoryPage, groupHistoryByDate, type HistoryFilter } from '@/services/history-service';
 import { getTransactionPresentation } from '@/services/home-service';
@@ -13,11 +14,11 @@ import { useTheme } from '@/hooks/use-theme';
 
 type HistoryChip = HistoryFilter | 'makan';
 
-const filterOptions: Array<{ key: HistoryChip; label: string }> = [
+const filterOptions: { key: HistoryChip; label: string }[] = [
   { key: 'all', label: 'Semua' }, { key: 'expense', label: 'Pengeluaran' }, { key: 'income', label: 'Pendapatan' }, { key: 'transfer', label: 'Transfer' }, { key: 'makan', label: 'Makan' },
 ];
 
-export default function HistoryScreen({ transactions: transactionsProp, categories, wallets }: { transactions?: Transaction[]; categories?: Category[]; wallets?: Wallet[] } = {}) {
+function HistoryScreenContent({ transactions: transactionsProp, categories, wallets }: { transactions?: Transaction[]; categories?: Category[]; wallets?: Wallet[] } = {}) {
   const theme = useTheme();
   const { categoryId: categoryParam, walletId: walletParam, startDate, endDate } = useLocalSearchParams<{ categoryId?: string; walletId?: string; startDate?: string; endDate?: string }>();
   const [filter, setFilter] = useState<HistoryFilter>(categoryParam ? 'expense' : 'all');
@@ -50,6 +51,10 @@ export default function HistoryScreen({ transactions: transactionsProp, categori
   </ThemedView>;
 }
 
+export default function HistoryScreen(props: ComponentProps<typeof HistoryScreenContent>) {
+  return <SafeAreaView style={styles.safeArea}><HistoryScreenContent {...props} /></SafeAreaView>;
+}
+
 function HistoryTransaction({ transaction, categories, wallets }: { transaction: Transaction; categories?: Category[]; wallets?: Wallet[] }) {
   const theme = useTheme();
   const presentation = getTransactionPresentation(transaction, categories, wallets);
@@ -63,5 +68,5 @@ function HistoryTransaction({ transaction, categories, wallets }: { transaction:
 function formatDate(date: string) { return new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${date}T12:00:00`)); }
 
 const styles = StyleSheet.create({
-  page: { flex: 1 }, content: { padding: 21, paddingBottom: 100 }, header: { alignItems: 'center', flexDirection: 'row', marginBottom: 16 }, back: { fontSize: 32, lineHeight: 36 }, headerCopy: { flex: 1, marginLeft: 14 }, eyebrow: { ...Typography.eyebrow }, title: { fontSize: 29, lineHeight: 32 }, sectionHeader: { borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 11 }, transaction: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', gap: 11, paddingVertical: 12 }, icon: { alignItems: 'center', borderRadius: 12, height: 35, justifyContent: 'center', width: 35 }, copy: { flex: 1, minWidth: 0 }, amount: { alignItems: 'flex-end' }, footer: { alignItems: 'center', padding: 22 }, filterBar: { alignItems: 'center', borderTopWidth: 1, bottom: 0, flexDirection: 'row', gap: 7, justifyContent: 'center', left: 0, padding: 10, position: 'absolute', right: 0 }, chip: { borderRadius: Radius.pill, borderWidth: 1, paddingHorizontal: 11, paddingVertical: 8 }, overlay: { flex: 1, justifyContent: 'flex-end' }, filterSheet: { borderTopLeftRadius: 27, borderTopRightRadius: 27, gap: 4, padding: 21 }, filterOption: { borderTopWidth: 1, borderTopColor: '#E3E4DD', paddingVertical: 15 }, empty: { alignItems: 'center', gap: 8, paddingVertical: 58 }, emptyGlyph: { fontSize: 38 },
+  page: { alignSelf: 'center', flex: 1, maxWidth: 430, width: '100%' }, safeArea: { flex: 1 }, content: { paddingHorizontal: 21, paddingTop: 28, paddingBottom: 40 }, header: { alignItems: 'center', flexDirection: 'row', marginBottom: 16 }, back: { fontSize: 26, lineHeight: 30 }, headerCopy: { flex: 1, marginLeft: 14 }, eyebrow: { ...Typography.eyebrow }, title: { fontSize: 29, lineHeight: 32 }, sectionHeader: { borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 11 }, transaction: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', gap: 11, paddingVertical: 12 }, icon: { alignItems: 'center', borderRadius: 12, height: 35, justifyContent: 'center', width: 35 }, copy: { flex: 1, minWidth: 0 }, amount: { alignItems: 'flex-end' }, footer: { alignItems: 'center', padding: 22 }, filterBar: { alignItems: 'center', borderTopWidth: 1, bottom: 0, flexDirection: 'row', gap: 7, justifyContent: 'center', left: 0, padding: 10, position: 'absolute', right: 0 }, chip: { borderRadius: Radius.pill, borderWidth: 1, paddingHorizontal: 11, paddingVertical: 8 }, overlay: { flex: 1, justifyContent: 'flex-end' }, filterSheet: { borderTopLeftRadius: 27, borderTopRightRadius: 27, gap: 4, padding: 21 }, filterOption: { borderTopWidth: 1, borderTopColor: '#E3E4DD', paddingVertical: 15 }, empty: { alignItems: 'center', gap: 8, paddingVertical: 58 }, emptyGlyph: { fontSize: 38 },
 });

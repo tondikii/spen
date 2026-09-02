@@ -1,12 +1,13 @@
 import { router } from "expo-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ComponentProps, type ReactNode } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { FinanceHeroCard } from "@/components/finance-hero-card";
-import { Fonts, Radius, Typography } from "@/constants/theme";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { BottomTabInset, Fonts, Radius, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { formatMoney } from "@/lib/money";
 import { aiService, type BudgetAIInput } from "@/services/ai-service";
@@ -21,7 +22,7 @@ type ReportView =
   | ReturnType<typeof getReportView>
   | Awaited<ReturnType<typeof getDatabaseReportView>>;
 
-export default function ReportScreen({
+function ReportScreenContent({
   reportView = getReportView(),
   onRangeChange,
   onCategoryPress,
@@ -41,7 +42,7 @@ export default function ReportScreen({
   const [insightOpen, setInsightOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [insightText, setInsightText] = useState("");
-  const [insightSource, setInsightSource] = useState<"ai" | "fallback">(
+  const [, setInsightSource] = useState<"ai" | "fallback">(
     "fallback",
   );
   const [insightError, setInsightError] = useState("");
@@ -229,6 +230,10 @@ function linePath(points: ReportView["netSavingByPeriod"]) {
     return `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${Math.max(20, Math.min(110, y)).toFixed(1)}`;
   }).join(" ");
 }
+
+export default function ReportScreen(props: ComponentProps<typeof ReportScreenContent>) {
+  return <SafeAreaView style={styles.safeArea}><ReportScreenContent {...props} /></SafeAreaView>;
+}
 function chartColors(theme: ReturnType<typeof useTheme>) { return [theme.expense, theme.gold, theme.pine, theme.muted]; }
 /* eslint-disable react-hooks/immutability -- SVG segment offsets are derived during render. */
 function Donut({ expenses, total, theme }: { expenses: ReportExpense[]; total: number; theme: ReturnType<typeof useTheme> }) {
@@ -287,7 +292,8 @@ function ChartCard({
 
 const styles = StyleSheet.create({
   page: { flex: 1 },
-  content: { padding: 21, paddingBottom: 40 },
+  safeArea: { flex: 1 },
+  content: { alignSelf: "center", maxWidth: 430, paddingHorizontal: 21, paddingTop: 28, paddingBottom: BottomTabInset + 24, width: "100%" },
   header: {
     alignItems: "flex-start",
     flexDirection: "row",
@@ -302,7 +308,7 @@ const styles = StyleSheet.create({
   cardHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
   pieArea: { alignItems: "center", height: 183, justifyContent: "center", marginTop: 8 },
   empty: { alignItems: "center", gap: 7, paddingVertical: 38 },
-  emptyGlyph: { color: "#7B8882", fontSize: 38 },
+  emptyGlyph: { fontSize: 38 },
   pieLabel: { alignItems: "center", position: "absolute" },
   pieAmount: { fontFamily: Fonts.mono, fontSize: 13, letterSpacing: -1 },
   donut: { height: 145, width: 145 },
@@ -330,7 +336,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     paddingTop: 7,
   },
-  insightCta: { alignItems: "center", borderRadius: 19, display: "none", flexDirection: "row", gap: 10, marginHorizontal: 21, marginBottom: 14, padding: 16 },
+  insightCta: { alignItems: "center", borderRadius: 19, flexDirection: "row", gap: 10, marginHorizontal: 21, marginBottom: BottomTabInset, padding: 16 },
   insightGlyph: { color: "#D5EADE", fontSize: 21 },
   insightCopy: { flex: 1 },
   overlay: { flex: 1, justifyContent: "flex-end" },

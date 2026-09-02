@@ -38,7 +38,7 @@ export function DataState({ kind, title, description, onRetry }: { kind: 'loadin
 const styles = StyleSheet.create({
   page: { flex: 1 },
   safeArea: { flex: 1 },
-  content: { flex: 1, gap: Spacing.two, maxWidth: 430, padding: Spacing.four, width: '100%' },
+  content: { alignSelf: 'center', flex: 1, gap: Spacing.two, maxWidth: 430, paddingHorizontal: 21, paddingTop: 28, paddingBottom: 40, width: '100%' },
   eyebrow: { fontFamily: Fonts.monoMedium, letterSpacing: 0.9, marginTop: Spacing.two },
   card: {
     alignItems: 'center',
@@ -48,8 +48,8 @@ const styles = StyleSheet.create({
     padding: Spacing.five,
   },
   dot: { borderRadius: Radius.pill, height: 12, marginBottom: Spacing.one, width: 12 },
-  description: { fontFamily: Fonts.sans, lineHeight: 22, textAlign: 'center' },
-  state: { alignItems: 'center', flex: 1, gap: Spacing.two, justifyContent: 'center', padding: Spacing.five },
+  description: { fontFamily: Fonts.sans, fontSize: 12, lineHeight: 18, textAlign: 'center' },
+  state: { alignItems: 'center', alignSelf: 'center', flex: 1, gap: Spacing.two, justifyContent: 'center', maxWidth: 430, padding: 21, width: '100%' },
   stateGlyph: { alignItems: 'center', borderRadius: Radius.large, height: 70, justifyContent: 'center', marginBottom: Spacing.two, width: 70 },
   stateDescription: { lineHeight: 21, maxWidth: 280, textAlign: 'center' },
   retry: { borderRadius: Radius.medium, paddingHorizontal: 20, paddingVertical: 13 },
