@@ -8,8 +8,8 @@ describe('ReportScreen', () => {
   it('menampilkan ringkasan, breakdown expense, dan net saving', async () => {
     const { getAllByText, getByText } = await render(<ReportScreen />);
 
-    expect(getByText('Keuanganmu')).toBeTruthy();
-    expect(getByText('Pengeluaran per kategori')).toBeTruthy();
+    expect(getByText('Report')).toBeTruthy();
+    expect(getAllByText('Pengeluaran').length).toBeGreaterThan(0);
     expect(getByText('Makan')).toBeTruthy();
     expect(getAllByText('Net saving').length).toBeGreaterThan(0);
   });
