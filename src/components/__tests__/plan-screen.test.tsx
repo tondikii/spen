@@ -46,4 +46,25 @@ describe('PlanScreen', () => {
 
     expect(onItemAction).toHaveBeenCalledWith(expect.objectContaining({ type: 'fixedExpense', name: 'Internet' }), 175000);
   });
+
+  it('membuka form Goal baru dan mengirim draft yang diisi pengguna', async () => {
+    const onGoalSave = jest.fn();
+    const { getByLabelText } = await render(<PlanScreen onGoalSave={onGoalSave} />);
+
+    await fireEvent.press(getByLabelText('+ Tambah Goal'));
+    await fireEvent.changeText(getByLabelText('Nama Goal'), 'Dana Motor');
+    await fireEvent.changeText(getByLabelText('Target Goal'), '10000000');
+    await fireEvent.press(getByLabelText('Simpan Goal'));
+
+    expect(onGoalSave).toHaveBeenCalledWith(null, expect.objectContaining({ name: 'Dana Motor', targetAmount: 10000000 }));
+  });
+
+  it('meneruskan aksi Nabung Goal ke route transaksi', async () => {
+    const onGoalSaveAction = jest.fn();
+    const { getByLabelText } = await render(<PlanScreen onGoalSaveAction={onGoalSaveAction} />);
+
+    await fireEvent.press(getByLabelText('Nabung ke Goal Dana Nikah'));
+
+    expect(onGoalSaveAction).toHaveBeenCalledWith(expect.objectContaining({ id: 'goal-dana-nikah' }));
+  });
 });

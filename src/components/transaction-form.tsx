@@ -19,6 +19,7 @@ type TransactionFormProps = {
   initialCategoryId?: string;
   initialAmount?: number;
   initialWalletId?: string;
+  initialToWalletId?: string;
   wallets?: Wallet[];
   categories?: Category[];
   existingTransactions?: Transaction[];
@@ -35,13 +36,13 @@ const tabs: Array<{ type: TransactionType; label: string }> = [
   { type: 'transfer', label: 'Transfer' },
 ];
 
-export function TransactionForm({ mode, transaction, initialType, initialCategoryId, initialAmount, initialWalletId, wallets = getActiveTransactionWallets(), categories: categoriesProp, existingTransactions = [], onClose, onSave, onDelete, onCategorySave, onCategoryArchive }: TransactionFormProps) {
+export function TransactionForm({ mode, transaction, initialType, initialCategoryId, initialAmount, initialWalletId, initialToWalletId, wallets = getActiveTransactionWallets(), categories: categoriesProp, existingTransactions = [], onClose, onSave, onDelete, onCategorySave, onCategoryArchive }: TransactionFormProps) {
   const theme = useTheme();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0, left: 0, right: 0 };
   const resolvedInitialType: TransactionType = transaction?.type === 'adjustment' ? 'expense' : transaction?.type ?? initialType ?? 'income';
   const [type, setType] = useState<TransactionType>(resolvedInitialType);
   const [walletId, setWalletId] = useState(transaction?.walletId ?? initialWalletId ?? wallets[0]?.id ?? null);
-  const [toWalletId, setToWalletId] = useState(transaction?.toWalletId ?? wallets[1]?.id ?? wallets[0]?.id ?? null);
+  const [toWalletId, setToWalletId] = useState(transaction?.toWalletId ?? initialToWalletId ?? wallets[1]?.id ?? wallets[0]?.id ?? null);
   const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? initialCategoryId ?? null);
   const [amount, setAmount] = useState(transaction ? String(transaction.amount) : initialAmount ? String(initialAmount) : '');
   const [note, setNote] = useState(transaction?.note ?? '');

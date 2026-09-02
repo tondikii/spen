@@ -9,7 +9,7 @@ import { getWallets } from '@/services/wallet-service';
 import type { Category, Transaction, TransactionType, Wallet } from '@/types/domain';
 
 export default function CreateTransactionScreen() {
-  const { transactionId, type, categoryId, amount, walletId } = useLocalSearchParams<{ transactionId?: string; type?: TransactionType; categoryId?: string; amount?: string; walletId?: string }>();
+  const { transactionId, type, categoryId, amount, walletId, toWalletId } = useLocalSearchParams<{ transactionId?: string; type?: TransactionType; categoryId?: string; amount?: string; walletId?: string; toWalletId?: string }>();
   const database = useSQLiteContext();
   const [data, setData] = useState<{ wallets: Wallet[]; categories: Category[]; transactions: Transaction[] } | null>(null);
 
@@ -33,6 +33,7 @@ export default function CreateTransactionScreen() {
     initialCategoryId={categoryId}
     initialAmount={amount ? Number(amount) : undefined}
     initialWalletId={walletId}
+    initialToWalletId={toWalletId}
     wallets={data.wallets}
     categories={data.categories}
     existingTransactions={data.transactions}
