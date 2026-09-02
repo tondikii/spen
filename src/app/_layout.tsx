@@ -27,14 +27,17 @@ import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import migrations from '../../drizzle/migrations';
 import { configureDatabase } from '../../db/database';
 import { seedDefaultCategories } from '../../db/seed';
+import { completeSetup, getSetupState } from '@/services/setup-service';
+import { setSelectedCurrency } from '@/services/settings-service';
 
-function AppNavigation() {
+function AppNavigation({ initialSetupComplete }: { initialSetupComplete: boolean }) {
   const { colorScheme } = useAppTheme();
-  const [setupComplete, setSetupComplete] = useState(false);
+  const sqlite = useSQLiteContext();
+  const [setupComplete, setSetupComplete] = useState(initialSetupComplete);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {setupComplete ? <AppTabs /> : <SetupWizard onComplete={() => setSetupComplete(true)} />}
+      {setupComplete ? <AppTabs /> : <SetupWizard onComplete={async (name, balance, currency) => { await completeSetup(sqlite, name, balance, currency); setSetupComplete(true); }} />}
     </ThemeProvider>
   );
 }
@@ -44,13 +47,19 @@ function DatabaseGate() {
   const database = useMemo(() => drizzle(sqlite), [sqlite]);
   const { success, error } = useMigrations(database, migrations);
   const [seeded, setSeeded] = useState(false);
+  const [setupComplete, setSetupComplete] = useState(false);
 
   useEffect(() => {
     if (!success) return;
 
     let cancelled = false;
-    void seedDefaultCategories(sqlite).then(() => {
-      if (!cancelled) setSeeded(true);
+    void seedDefaultCategories(sqlite).then(async () => {
+      const setup = await getSetupState(sqlite);
+      setSelectedCurrency(setup.currency);
+      if (!cancelled) {
+        setSetupComplete(setup.hasWallet);
+        setSeeded(true);
+      }
     });
     return () => {
       cancelled = true;
@@ -59,7 +68,7 @@ function DatabaseGate() {
 
   if (error) throw error;
   if (!success || !seeded) return null;
-  return <AppThemeProvider><AppNavigation /></AppThemeProvider>;
+  return <AppThemeProvider><AppNavigation initialSetupComplete={setupComplete} /></AppThemeProvider>;
 }
 
 export default function RootLayout() {

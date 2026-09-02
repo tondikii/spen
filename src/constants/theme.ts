@@ -1,3 +1,5 @@
+import { getSelectedCurrency } from '@/services/settings-service';
+
 export const Colors = {
   light: {
     background: '#F6F5F0',
@@ -207,7 +209,7 @@ const CurrencySymbols: Record<string, string> = {
   AED: 'د.إ',
 };
 
-export function formatMoney(amount: number, currency = 'IDR') {
+export function formatMoney(amount: number, currency = getSelectedCurrency()) {
   const symbol = CurrencySymbols[currency] ?? currency;
   const formattedAmount = new Intl.NumberFormat('id-ID', {
     maximumFractionDigits: 0,
