@@ -5,7 +5,7 @@ import { configureDatabase } from '../../../db/database';
 import { seedDefaultCategories } from '../../../db/seed';
 import { createWallet } from '@/services/wallet-service';
 import { getDatabaseTransactionCategories, saveDatabaseTransaction } from '@/services/transaction-service';
-import { ensureActiveBudgetPlan, getDatabasePlanView, setBudgetPeriodStartDay } from '@/services/plan-service';
+import { createDatabasePlanItem, ensureActiveBudgetPlan, getDatabasePlanView, setBudgetPeriodStartDay, updateDatabasePlanItem } from '@/services/plan-service';
 
 type TempSQLite = {
   exec(source: string): void;
@@ -120,6 +120,21 @@ describe('database plan service', () => {
     expect(view.snapshot.totalTransferOut).toBe(100);
     expect(view.snapshot.netSaving).toBe(500);
     expect(view.snapshot.availableBalance).toBe(500);
+    expect(active.planId).toBe(Number(view.plan.id.replace('plan-', '')));
+  });
+
+  it('creates and updates plan items using a matching active category', async () => {
+    const active = await ensureActiveBudgetPlan(database, '2026-09-10');
+    const categories = await getDatabaseTransactionCategories(database);
+    const expense = categories.find((item) => item.name === 'Makan')!;
+    await createDatabasePlanItem(database, { type: 'allocation', name: 'Makan fleksibel', categoryId: expense.id, targetAmount: 300 });
+    let view = await getDatabasePlanView(database, '2026-09-10');
+    const item = view.plan.allocationItems[0];
+    expect(item).toMatchObject({ name: 'Makan fleksibel', targetAmount: 300, categoryId: expense.id });
+
+    await updateDatabasePlanItem(database, item, { type: 'allocation', name: 'Makan harian', categoryId: expense.id, targetAmount: 500 });
+    view = await getDatabasePlanView(database, '2026-09-10');
+    expect(view.plan.allocationItems[0]).toMatchObject({ name: 'Makan harian', targetAmount: 500 });
     expect(active.planId).toBe(Number(view.plan.id.replace('plan-', '')));
   });
 });

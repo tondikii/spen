@@ -4,27 +4,41 @@ import { useEffect, useState } from 'react';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import { TransactionForm } from '@/components/transaction-form';
+import { DataState } from '@/components/screen-skeleton';
 import { saveToGoal } from '@/services/goal-service';
 import { archiveDatabaseCategory, deleteDatabaseTransaction, getDatabaseTransactionCategories, getDatabaseTransactions, saveDatabaseCategory, saveDatabaseTransaction } from '@/services/transaction-service';
+import { getDatabasePlanView } from '@/services/plan-service';
 import { getWallets } from '@/services/wallet-service';
 import type { Category, Transaction, TransactionType, Wallet } from '@/types/domain';
 
 export default function CreateTransactionScreen() {
   const { transactionId, goalId, type, categoryId, amount, walletId, toWalletId, lockedToWalletId } = useLocalSearchParams<{ transactionId?: string; goalId?: string; type?: TransactionType; categoryId?: string; amount?: string; walletId?: string; toWalletId?: string; lockedToWalletId?: string }>();
   const database = useSQLiteContext();
-  const [data, setData] = useState<{ wallets: Wallet[]; categories: Category[]; transactions: Transaction[] } | null>(null);
+  const [data, setData] = useState<{ wallets: Wallet[]; categories: Category[]; transactions: Transaction[]; allocationLimit: number } | null>(null);
+  const [error, setError] = useState('');
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([getWallets(database), getDatabaseTransactionCategories(database), getDatabaseTransactions(database)]).then(([wallets, categories, transactions]) => {
-      if (!cancelled) setData({ wallets, categories, transactions });
-    });
+    void Promise.all([getWallets(database), getDatabaseTransactionCategories(database), getDatabaseTransactions(database), getDatabasePlanView(database)]).then(([wallets, categories, transactions, planView]) => {
+      if (!cancelled) {
+        const selectedCategory = categoryId;
+        const allocationLimit = selectedCategory
+          ? [...planView.plan.fixedExpenseItems, ...planView.plan.allocationItems]
+            .filter((item) => item.categoryId === selectedCategory)
+            .reduce((sum, item) => sum + item.targetAmount, 0)
+          : 0;
+        setData({ wallets, categories, transactions, allocationLimit });
+      }
+      setError('');
+    }).catch((cause) => { if (!cancelled) setError(cause instanceof Error ? cause.message : 'Form transaksi tidak dapat dimuat.'); });
     return () => {
       cancelled = true;
     };
-  }, [database]);
+  }, [categoryId, database, retry]);
 
-  if (!data) return null;
+  if (error) return <DataState kind="error" title="Transaksi belum siap" description={error} onRetry={() => { setError(''); setData(null); setRetry((value) => value + 1); }} />;
+  if (!data) return <DataState kind="loading" title="Memuat transaksi" description="Menyiapkan Wallet dan kategori." />;
   const transaction = data.transactions.find((item) => item.id === transactionId);
 
   return <TransactionForm
@@ -39,6 +53,7 @@ export default function CreateTransactionScreen() {
     wallets={data.wallets}
     categories={data.categories}
     existingTransactions={data.transactions}
+    allocationLimit={data.allocationLimit}
     onClose={() => router.back()}
     onSave={async (draft) => { if (goalId && draft.type === 'transfer' && draft.walletId) await saveToGoal(database, goalId, draft.walletId, draft.amount, draft.date, draft.time); else await saveDatabaseTransaction(database, draft, transaction?.id); router.back(); }}
     onDelete={transaction ? async () => { await deleteDatabaseTransaction(database, transaction.id); router.back(); } : undefined}

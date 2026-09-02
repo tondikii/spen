@@ -1,8 +1,8 @@
 Model murah:
 
-- [ ] buat separator di Plan sama kaya seprator transaction list
+- [x] buat separator di Plan sama kaya seprator transaction list
 
 Model sedang:
 
-- [ ] Initial saldo buat jadi transaksi income, Pastikan perbaikan saldo juga jadi transaksi (income atau expense tergantung perubahannya menambah atau mengurangi saldo).
+- [x] Initial saldo dan koreksi saldo sudah memiliki jejak ledger sesuai ADR-0005: saldo awal tetap menjadi saldo awal Wallet, sedangkan perubahan saldo menjadi transaksi penyesuaian bertanda positif/negatif.
 - [ ] Polish UI UX keseluruhan

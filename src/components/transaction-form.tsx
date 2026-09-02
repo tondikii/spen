@@ -24,6 +24,7 @@ type TransactionFormProps = {
   wallets?: Wallet[];
   categories?: Category[];
   existingTransactions?: Transaction[];
+  allocationLimit?: number;
   onClose: () => void;
   onSave: (draft: TransactionDraft) => void;
   onDelete?: () => void;
@@ -37,7 +38,7 @@ const tabs: Array<{ type: TransactionType; label: string }> = [
   { type: 'transfer', label: 'Transfer' },
 ];
 
-export function TransactionForm({ mode, transaction, initialType, initialCategoryId, initialAmount, initialWalletId, initialToWalletId, lockedToWalletId, wallets = getActiveTransactionWallets(), categories: categoriesProp, existingTransactions = [], onClose, onSave, onDelete, onCategorySave, onCategoryArchive }: TransactionFormProps) {
+export function TransactionForm({ mode, transaction, initialType, initialCategoryId, initialAmount, initialWalletId, initialToWalletId, lockedToWalletId, wallets = getActiveTransactionWallets(), categories: categoriesProp, existingTransactions = [], allocationLimit: allocationLimitProp, onClose, onSave, onDelete, onCategorySave, onCategoryArchive }: TransactionFormProps) {
   const theme = useTheme();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0, left: 0, right: 0 };
   const resolvedInitialType: TransactionType = transaction?.type === 'adjustment' ? 'expense' : transaction?.type ?? initialType ?? 'income';
@@ -59,7 +60,7 @@ export function TransactionForm({ mode, transaction, initialType, initialCategor
     [categories, selectedCategoryType],
   );
   const numericAmount = Number(amount.replace(/[^0-9]/g, '')) || 0;
-  const allocationLimit = getAllocationLimit(categoryId);
+  const allocationLimit = allocationLimitProp ?? getAllocationLimit(categoryId);
   const overBudget = type === 'expense' && allocationLimit > 0 && numericAmount > allocationLimit;
 
   const changeType = (nextType: TransactionType) => {

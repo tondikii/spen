@@ -3,12 +3,12 @@ import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from
 
 import { Fonts, Radius, Shadows, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
-import { getDatabasePlanView, getPaymentLabel, getPlanView } from '@/services/plan-service';
+import { getDatabasePlanView, getPaymentLabel, getPlanView, type PlanItemDraft } from '@/services/plan-service';
 import { aiService, type BudgetAIInput, type BudgetSuggestion } from '@/services/ai-service';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
-import type { BudgetPlanItem, Goal, PaymentStatus, Wallet } from '@/types/domain';
+import type { BudgetPlanItem, Category, Goal, PaymentStatus, PlanItemType, Wallet } from '@/types/domain';
 
 type PlanView = ReturnType<typeof getPlanView> | Awaited<ReturnType<typeof getDatabasePlanView>>;
 type PlanItemState = { realizedAmount: number; progressPercent: number; paymentStatus?: PaymentStatus; overBudget: boolean };
@@ -16,7 +16,7 @@ type GoalDraft = Omit<Goal, 'id' | 'archived'>;
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
-export default function PlanScreen({ planView = getPlanView(), onPeriodStartDayChange, onItemAction, onGoalSave, onGoalArchive, onGoalSaveAction, onGoalWithdraw, aiInput, onSuggestionApply }: { planView?: PlanView; onPeriodStartDayChange?: (day: number) => void | Promise<void>; onItemAction?: (item: BudgetPlanItem, amount: number) => void | Promise<void>; onGoalSave?: (goal: Goal | null, draft: GoalDraft) => void | Promise<void>; onGoalArchive?: (goal: Goal) => void | Promise<void>; onGoalSaveAction?: (goal: Goal) => void | Promise<void>; onGoalWithdraw?: (goal: Goal, amount: number) => void | Promise<void>; aiInput?: BudgetAIInput; onSuggestionApply?: (suggestion: BudgetSuggestion) => void | Promise<void> }) {
+export default function PlanScreen({ planView = getPlanView(), categories = [], onPeriodStartDayChange, onItemAction, onPlanItemSave, onGoalSave, onGoalArchive, onGoalSaveAction, onGoalWithdraw, aiInput, onSuggestionApply }: { planView?: PlanView; categories?: Category[]; onPeriodStartDayChange?: (day: number) => void | Promise<void>; onItemAction?: (item: BudgetPlanItem, amount: number) => void | Promise<void>; onPlanItemSave?: (item: BudgetPlanItem | null, draft: PlanItemDraft) => void | Promise<void>; onGoalSave?: (goal: Goal | null, draft: GoalDraft) => void | Promise<void>; onGoalArchive?: (goal: Goal) => void | Promise<void>; onGoalSaveAction?: (goal: Goal) => void | Promise<void>; onGoalWithdraw?: (goal: Goal, amount: number) => void | Promise<void>; aiInput?: BudgetAIInput; onSuggestionApply?: (suggestion: BudgetSuggestion) => void | Promise<void> }) {
   const theme = useTheme();
   const { snapshot, plan, goals, wallets, period } = planView;
   const [startDay, setStartDay] = useState(Number(period.startDate.slice(-2)));
@@ -26,19 +26,24 @@ export default function PlanScreen({ planView = getPlanView(), onPeriodStartDayC
   const [applied, setApplied] = useState<string[]>([]);
   const [suggestions, setSuggestions] = useState<BudgetSuggestion[]>([]);
   const [aiSource, setAiSource] = useState<'ai' | 'fallback'>('fallback');
+  const [aiError, setAiError] = useState('');
+  const [planItemEditor, setPlanItemEditor] = useState<{ type: PlanItemType; item?: BudgetPlanItem } | null>(null);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- opening the sheet starts its loading state. */
   useEffect(() => {
     if (!aiOpen) return;
     let cancelled = false;
     setAiLoading(true);
-    const timer = setTimeout(() => { void aiService.suggestBudget(aiInput ?? { spareBudget: snapshot.spareBudget, totalIncome: snapshot.totalIncome, fixedExpense: 0, goalContributions: snapshot.goalBalance, netSaving: snapshot.netSaving }).then((result) => {
+    setAiError('');
+    const timer = setTimeout(() => { setAiLoading(true); setAiError(''); void aiService.suggestBudget(aiInput ?? { spareBudget: snapshot.spareBudget, totalIncome: snapshot.totalIncome, fixedExpense: 0, goalContributions: snapshot.goalBalance, netSaving: snapshot.netSaving }).then((result) => {
       if (cancelled) return;
       setSuggestions(result.suggestions);
       setAiSource(result.source);
       setAiLoading(false);
-    }); }, 120);
+    }).catch(() => { if (!cancelled) { setAiError('Saran AI tidak tersedia. Coba lagi nanti.'); setAiLoading(false); } }); }, 120);
     return () => { cancelled = true; clearTimeout(timer); };
   }, [aiOpen, aiInput]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const periodLabel = formatPeriodLabel(period, startDay);
   const itemState = (item: BudgetPlanItem) => snapshot.planItems.find((state) => state.itemId === item.id);
@@ -48,17 +53,25 @@ export default function PlanScreen({ planView = getPlanView(), onPeriodStartDayC
     void onItemAction?.(item, amount);
   };
 
-  const applySuggestion = async (suggestion: BudgetSuggestion) => { await onSuggestionApply?.(suggestion); setApplied((current) => current.includes(suggestion.title) ? current : [...current, suggestion.title]); };
+  const applySuggestion = async (suggestion: BudgetSuggestion) => {
+    try {
+      await onSuggestionApply?.(suggestion);
+      setApplied((current) => current.includes(suggestion.title) ? current : [...current, suggestion.title]);
+    } catch (cause) {
+      setAiError(cause instanceof Error ? cause.message : 'Saran tidak dapat diterapkan.');
+    }
+  };
 
-  return <ThemedView style={styles.page}><ScrollView contentContainerStyle={styles.content}>
+  return <ThemedView style={styles.page}>{aiError && <ThemedText type="small" style={{ color: theme.expense, paddingHorizontal: 21, paddingTop: 8 }}>{aiError}</ThemedText>}<ScrollView contentContainerStyle={styles.content}>
     <View style={styles.header}><View><ThemedText type="code" themeColor="muted" style={styles.eyebrow}>BUDGET PLAN</ThemedText><ThemedText type="title" style={styles.title}>Rencana</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Ubah Budget period" onPress={() => setPeriodOpen(true)}><ThemedText type="small" themeColor="muted">{periodLabel}</ThemedText></Pressable></View><Pressable accessibilityRole="button" accessibilityLabel="AI Suggestion" onPress={() => setAiOpen(true)} style={[styles.aiButton, { borderColor: theme.line, backgroundColor: theme.mint }]}><ThemedText type="smallBold" themeColor="pine">✦ AI Suggestion</ThemedText></Pressable></View>
     <ThemedView style={[styles.hero, { backgroundColor: theme.pine2 }]}><ThemedText type="code" style={{ color: theme.heroMuted }}>SALDO TERSEDIA</ThemedText><ThemedText style={[styles.heroAmount, { color: theme.heroText }]}>{formatMoney(snapshot.availableBalance)}</ThemedText><View style={[styles.heroStats, { borderTopColor: theme.heroDivider }]}><View><ThemedText type="small" style={{ color: theme.heroMuted }}>Tersedia bebas</ThemedText><ThemedText type="smallBold" style={{ color: theme.heroText }}>{formatMoney(snapshot.freeBalance)}</ThemedText></View><View><ThemedText type="small" style={{ color: theme.heroMuted }}>Terikat goal</ThemedText><ThemedText type="smallBold" style={{ color: theme.heroText }}>{formatMoney(snapshot.goalBalance)}</ThemedText></View></View></ThemedView>
     <View style={[styles.spare, { borderColor: theme.line, backgroundColor: theme.card }]}><View><ThemedText type="code" themeColor="muted">SPARE BUDGET</ThemedText><ThemedText type="subtitle">{formatMoney(snapshot.spareBudget)}</ThemedText><ThemedText type="small" themeColor="muted">Pendapatan − fixed expense − goal</ThemedText></View><ThemedText style={[styles.spareGlyph, { color: theme.pine }]}>◌</ThemedText></View>
-    <PlanSection title="Pendapatan" action="+ Tambah" theme={theme}>{plan.incomeItems.map((item) => <PlanItem key={item.id} item={item} state={itemState(item)} action="Catat" color={theme.income} theme={theme} onAction={handleItemAction} />)}</PlanSection>
-    <PlanSection title="Fixed expense" action="+ Tambah" theme={theme}>{plan.fixedExpenseItems.map((item) => <PlanItem key={item.id} item={item} state={itemState(item)} action={itemState(item)?.paymentStatus?.kind === 'Lunas' ? '' : 'Bayar'} color={theme.expense} theme={theme} onAction={handleItemAction} />)}</PlanSection>
+    <PlanSection title="Pendapatan" action="+ Tambah" theme={theme} onAction={() => setPlanItemEditor({ type: 'income' })}>{plan.incomeItems.length ? plan.incomeItems.map((item) => <PlanItem key={item.id} item={item} state={itemState(item)} action="Catat" color={theme.income} theme={theme} onAction={handleItemAction} />) : <EmptyPlan message="Belum ada Pendapatan." />}</PlanSection>
+    <PlanSection title="Fixed expense" action="+ Tambah" theme={theme} onAction={() => setPlanItemEditor({ type: 'fixedExpense' })}>{plan.fixedExpenseItems.length ? plan.fixedExpenseItems.map((item) => <PlanItem key={item.id} item={item} state={itemState(item)} action={itemState(item)?.paymentStatus?.kind === 'Lunas' ? '' : 'Bayar'} color={theme.expense} theme={theme} onAction={handleItemAction} />) : <EmptyPlan message="Belum ada Fixed expense." />}</PlanSection>
     <GoalSection goals={goals} wallets={wallets} theme={theme} onSave={onGoalSave} onArchive={onGoalArchive} onSaveAction={onGoalSaveAction} onWithdraw={onGoalWithdraw} />
-    <PlanSection title="Alokasi" action="+ Tambah" theme={theme}>{plan.allocationItems.map((item) => <PlanItem key={item.id} item={item} state={itemState(item)} action="" color={itemState(item)?.overBudget ? theme.expense : theme.pine} theme={theme} onAction={handleItemAction} />)}</PlanSection>
+    <PlanSection title="Alokasi" action="+ Tambah" theme={theme} onAction={() => setPlanItemEditor({ type: 'allocation' })}>{plan.allocationItems.length ? plan.allocationItems.map((item) => <PlanItem key={item.id} item={item} state={itemState(item)} action="" color={itemState(item)?.overBudget ? theme.expense : theme.pine} theme={theme} onAction={handleItemAction} />) : <EmptyPlan message="Belum ada Alokasi." />}</PlanSection>
   </ScrollView>
+  {planItemEditor && <PlanItemFormModal item={planItemEditor.item} type={planItemEditor.type} categories={categories} theme={theme} onClose={() => setPlanItemEditor(null)} onSave={async (draft) => { await onPlanItemSave?.(planItemEditor.item ?? null, draft); setPlanItemEditor(null); }} />}
   <Modal transparent animationType="slide" visible={periodOpen} onRequestClose={() => setPeriodOpen(false)}><Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={() => setPeriodOpen(false)}><View style={[styles.sheet, { backgroundColor: theme.card }]}><ThemedText type="sectionHeading">Budget period</ThemedText><ThemedText type="small" themeColor="muted">Pilih tanggal mulai</ThemedText>{[1, 5, 25].map((day) => <Pressable key={day} accessibilityRole="button" accessibilityLabel={`Mulai tanggal ${day}`} onPress={() => { setStartDay(day); setPeriodOpen(false); void onPeriodStartDayChange?.(day); }} style={[styles.sheetOption, { borderTopColor: theme.line }]}><ThemedText type="smallBold" themeColor={startDay === day ? 'pine' : 'ink'}>Tanggal {day}</ThemedText></Pressable>)}</View></Pressable></Modal>
   <Modal transparent animationType="slide" visible={aiOpen} onRequestClose={() => setAiOpen(false)}><Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={() => setAiOpen(false)}><View style={[styles.sheet, { backgroundColor: theme.card }]}><ThemedText type="sectionHeading">✦ Saran untuk Budget plan</ThemedText>{aiLoading ? <View style={styles.loading}><ThemedText style={[styles.loadingGlyph, { color: theme.pine }]}>✦</ThemedText><ThemedText type="smallBold">Membaca pola keuanganmu…</ThemedText><ThemedText type="small" themeColor="muted">Sebentar ya.</ThemedText></View> : <>{aiSource === 'fallback' && <ThemedText type="small" themeColor="muted">Saran lokal berdasarkan data Budget plan.</ThemedText>}{suggestions.map((suggestion) => <View key={suggestion.title} style={[styles.suggestion, { borderTopColor: theme.line }]}><ThemedText type="small" style={styles.suggestionText}>{suggestion.title}{`\n`}{suggestion.description}</ThemedText><Pressable accessibilityRole="button" accessibilityLabel={`Terapkan ${suggestion.title}`} onPress={() => void applySuggestion(suggestion)}><ThemedText type="smallBold" themeColor={applied.includes(suggestion.title) ? 'income' : 'pine'}>{applied.includes(suggestion.title) ? '✓ Diterapkan' : 'Terapkan'}</ThemedText></Pressable></View>)}</>}<Pressable accessibilityRole="button" accessibilityLabel="Tutup saran" onPress={() => setAiOpen(false)} style={styles.closeSheet}><ThemedText type="smallBold" style={{ color: theme.heroText }}>Mengerti</ThemedText></Pressable></View></Pressable></Modal>
   </ThemedView>;
@@ -71,6 +84,23 @@ function formatPeriodLabel(period: { startDate: string; endDate: string }, start
 }
 
 function PlanSection({ title, action, children, theme, onAction }: { title: string; action: string; children: ReactNode; theme: ReturnType<typeof useTheme>; onAction?: () => void }) { return <View style={styles.section}><View style={styles.sectionTitle}><ThemedText type="sectionHeading">{title}</ThemedText><Pressable accessibilityRole="button" accessibilityLabel={`${action} ${title}`} onPress={onAction}><ThemedText type="smallBold" themeColor="pine">{action}</ThemedText></Pressable></View><ThemedView style={[styles.card, { borderColor: theme.line, backgroundColor: theme.card }]}>{children}</ThemedView></View>; }
+
+function EmptyPlan({ message }: { message: string }) {
+  return <View style={styles.emptyGoal}><ThemedText type="small" themeColor="muted">{message}</ThemedText></View>;
+}
+
+function PlanItemFormModal({ item, type, categories, theme, onClose, onSave }: { item?: BudgetPlanItem; type: PlanItemType; categories: Category[]; theme: ReturnType<typeof useTheme>; onClose: () => void; onSave: (draft: PlanItemDraft) => void | Promise<void> }) {
+  const [name, setName] = useState(item?.name ?? '');
+  const [target, setTarget] = useState(item ? String(item.targetAmount) : '');
+  const options = categories.filter((category) => !category.archived && category.type === (type === 'income' ? 'income' : 'expense') && !category.isAdjustment);
+  const [categoryId, setCategoryId] = useState(item?.categoryId ?? options[0]?.id ?? null);
+  const submit = () => {
+    const targetAmount = Number(target.replace(/[^0-9]/g, ''));
+    if (!name.trim() || !categoryId || !Number.isSafeInteger(targetAmount) || targetAmount <= 0) return;
+    void onSave({ type, name: name.trim(), categoryId, targetAmount });
+  };
+  return <Modal transparent animationType="slide" visible onRequestClose={onClose}><Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={onClose}><View style={[styles.goalSheet, { backgroundColor: theme.card }]}><View style={styles.sheetHeader}><ThemedText type="sectionHeading">{item ? 'Edit item plan' : 'Item plan baru'}</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Tutup form item plan" onPress={onClose}><ThemedText type="subtitle" themeColor="muted">×</ThemedText></Pressable></View><ThemedText type="small" themeColor="muted">Target adalah rencana; realisasi mengikuti transaksi.</ThemedText><ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>NAMA ITEM</ThemedText><TextInput accessibilityLabel="Nama item plan" placeholder={type === 'income' ? 'Mis. Gaji' : 'Mis. Makan'} placeholderTextColor={theme.muted} value={name} onChangeText={setName} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} /><ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>TARGET NOMINAL</ThemedText><TextInput accessibilityLabel="Target item plan" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={target} onChangeText={setTarget} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} /><ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>KATEGORI</ThemedText><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.goalWallets}>{options.map((category) => <Pressable key={category.id} accessibilityRole="button" accessibilityLabel={`Kategori ${category.name}`} onPress={() => setCategoryId(category.id)} style={[styles.goalWallet, { borderColor: categoryId === category.id ? theme.pine : theme.line, backgroundColor: categoryId === category.id ? theme.mint : theme.card }]}><ThemedText type="smallBold">{category.icon} {category.name}</ThemedText></Pressable>)}</ScrollView>{options.length === 0 && <ThemedText type="small" style={{ color: theme.expense }}>Belum ada kategori yang sesuai.</ThemedText>}<Pressable accessibilityRole="button" accessibilityLabel="Simpan item plan" onPress={submit} style={[styles.saveGoal, { backgroundColor: theme.pine }]}><ThemedText type="smallBold" style={{ color: theme.heroText }}>{item ? 'Simpan perubahan' : 'Simpan item'}</ThemedText></Pressable></View></Pressable></Modal>;
+}
 
 function GoalSection({ goals, wallets, theme, onSave, onArchive, onSaveAction, onWithdraw }: { goals: Goal[]; wallets: Wallet[]; theme: ReturnType<typeof useTheme>; onSave?: (goal: Goal | null, draft: GoalDraft) => void | Promise<void>; onArchive?: (goal: Goal) => void | Promise<void>; onSaveAction?: (goal: Goal) => void | Promise<void>; onWithdraw?: (goal: Goal, amount: number) => void | Promise<void> }) {
   const [editor, setEditor] = useState<Goal | 'new' | null>(null);

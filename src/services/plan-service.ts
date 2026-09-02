@@ -3,7 +3,9 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import mockData from '@/data/mock-data';
 import { getDatabaseTransactions } from '@/services/transaction-service';
 import { getWallets } from '@/services/wallet-service';
-import type { BudgetPlan, BudgetPlanItem, BudgetPeriod, FixedExpenseItem, Goal, IncomeItem, AllocationItem, MockBudgetSnapshot, MockPlanItemState } from '@/types/domain';
+import type { BudgetPlan, BudgetPlanItem, BudgetPeriod, FixedExpenseItem, Goal, IncomeItem, AllocationItem, MockBudgetSnapshot, MockPlanItemState, PlanItemType } from '@/types/domain';
+
+export type PlanItemDraft = { type: PlanItemType; name: string; categoryId: string; targetAmount: number };
 
 export function getPlanView() {
   const snapshot = mockData.budgetSnapshot;
@@ -58,6 +60,54 @@ function toItem(row: ItemRow, type: BudgetPlanItem['type']): BudgetPlanItem {
 
 function toGoal(row: GoalRow): Goal {
   return { id: `goal-${row.id}`, name: row.name, targetAmount: row.target_amount, targetDate: row.target_date, walletId: `wallet-${row.wallet_id}`, monthlyContribution: row.monthly_contribution, archived: Boolean(row.archived) };
+}
+
+function databaseId(value: string | number) {
+  const id = typeof value === 'number' ? value : Number(String(value).replace(/^category-/, '').replace(/^(?:income|fixed-expense|allocation)-item-/, ''));
+  if (!Number.isInteger(id) || id < 1) throw new Error(`ID plan tidak valid: ${value}`);
+  return id;
+}
+
+function tableFor(type: PlanItemType) {
+  if (type === 'income') return 'income_items';
+  if (type === 'fixedExpense') return 'fixed_expense_items';
+  return 'allocation_items';
+}
+
+function categoryTypeFor(type: PlanItemType) {
+  return type === 'income' ? 'income' : 'expense';
+}
+
+function validatePlanItem(draft: PlanItemDraft) {
+  if (!draft.name.trim()) throw new Error('Nama item plan wajib diisi');
+  if (!Number.isSafeInteger(draft.targetAmount) || draft.targetAmount <= 0) throw new Error('Nominal item plan harus berupa angka bulat positif');
+  databaseId(draft.categoryId);
+}
+
+export async function createDatabasePlanItem(database: SQLiteDatabase, draft: PlanItemDraft): Promise<void> {
+  validatePlanItem(draft);
+  const active = await ensureActiveBudgetPlan(database);
+  await database.withExclusiveTransactionAsync(async (transaction) => {
+    const category = await transaction.getFirstAsync<{ id: number }>('SELECT id FROM categories WHERE id = ? AND type = ? AND archived = 0 LIMIT 1;', databaseId(draft.categoryId), categoryTypeFor(draft.type));
+    if (!category) throw new Error('Kategori item plan tidak sesuai atau sudah diarsipkan');
+    await transaction.runAsync(`INSERT INTO ${tableFor(draft.type)} (budget_plan_id, name, category_id, target_amount) VALUES (?, ?, ?, ?);`, active.planId, draft.name.trim(), category.id, draft.targetAmount);
+  });
+}
+
+export async function updateDatabasePlanItem(database: SQLiteDatabase, item: BudgetPlanItem, draft: PlanItemDraft): Promise<void> {
+  validatePlanItem(draft);
+  if (item.type !== draft.type) throw new Error('Tipe item plan tidak dapat diubah');
+  await database.withExclusiveTransactionAsync(async (transaction) => {
+    const category = await transaction.getFirstAsync<{ id: number }>('SELECT id FROM categories WHERE id = ? AND type = ? AND archived = 0 LIMIT 1;', databaseId(draft.categoryId), categoryTypeFor(draft.type));
+    if (!category) throw new Error('Kategori item plan tidak sesuai atau sudah diarsipkan');
+    const result = await transaction.runAsync(`UPDATE ${tableFor(item.type)} SET name = ?, category_id = ?, target_amount = ? WHERE id = ?;`, draft.name.trim(), category.id, draft.targetAmount, databaseId(item.id));
+    if (result.changes === 0) throw new Error('Item plan tidak ditemukan');
+  });
+}
+
+export async function deleteDatabasePlanItem(database: SQLiteDatabase, item: BudgetPlanItem): Promise<void> {
+  const result = await database.runAsync(`DELETE FROM ${tableFor(item.type)} WHERE id = ?;`, databaseId(item.id));
+  if (result.changes === 0) throw new Error('Item plan tidak ditemukan');
 }
 
 export async function ensureActiveBudgetPlan(database: SQLiteDatabase, today = dateOnly()) {

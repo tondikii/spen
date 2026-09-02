@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   Modal,
@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Fonts, Layout, MaxContentWidth, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import type { Category, Transaction, Wallet, WalletTint } from '@/types/domain';
+import type { BudgetPeriod, Category, MockBudgetSnapshot, Transaction, Wallet, WalletTint } from '@/types/domain';
 import { formatMoney } from '@/lib/money';
 import { useTheme } from '@/hooks/use-theme';
 import { addMockWallet, archiveMockWallet, getHomeRecentTransactions, getHomeSnapshot, getHomeWallets, getTransactionPresentation, getWalletTotal, updateMockWallet } from '@/services/home-service';
@@ -27,17 +27,18 @@ function walletGlyph(wallet: Wallet) {
   return 'D';
 }
 
-function HomeHeader() {
+function HomeHeader({ today = new Date() }: { today?: Date }) {
+  const label = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }).format(today).toUpperCase();
   return (
     <View style={styles.header}>
       <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-        SELASA, 1 SEPTEMBER
+      {label}
       </ThemedText>
     </View>
   );
 }
 
-function BalanceCard({ total }: { total: number }) {
+function BalanceCard({ total, period }: { total: number; period?: BudgetPeriod }) {
   const theme = useTheme();
   return (
     <ThemedView style={[styles.balanceCard, { backgroundColor: theme.pine2 }]}>
@@ -45,7 +46,7 @@ function BalanceCard({ total }: { total: number }) {
       <ThemedText style={[styles.heroAmount, { color: theme.heroText }]}>{formatMoney(total)}</ThemedText>
       <View style={[styles.balanceFooter, { borderTopColor: theme.heroDivider }]}>
         <ThemedText style={[styles.heroLabel, { color: theme.heroMuted }]}>Budget period</ThemedText>
-        <ThemedText style={[styles.period, { color: theme.heroText }]}>1 — 30 Sep  ◫</ThemedText>
+        <ThemedText style={[styles.period, { color: theme.heroText }]}>{period ? formatPeriod(period) : 'Budget period'}</ThemedText>
       </View>
     </ThemedView>
   );
@@ -62,6 +63,7 @@ function WalletCards({ wallets, onSelect, onAdd }: { wallets: Wallet[]; onSelect
         </Pressable>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.walletRow}>
+        {wallets.length === 0 && <ThemedText type="small" themeColor="muted">Belum ada Wallet.</ThemedText>}
         {wallets.map((wallet) => (
           <Pressable
             key={wallet.id}
@@ -92,10 +94,10 @@ function ProgressBar({ progress }: { progress: number }) {
   );
 }
 
-function PlanSnapshot({ onPress }: { onPress: () => void }) {
+function PlanSnapshot({ onPress, snapshot: snapshotProp }: { onPress: () => void; snapshot?: MockBudgetSnapshot }) {
   const theme = useTheme();
-  const snapshot = getHomeSnapshot();
-  const progress = (snapshot.totalExpense / snapshot.totalIncome) * 100;
+  const snapshot = snapshotProp ?? getHomeSnapshot();
+  const progress = snapshot.totalIncome > 0 ? (snapshot.totalExpense / snapshot.totalIncome) * 100 : 0;
   return (
     <ThemedView type="card" style={[styles.planSnapshot, { borderColor: theme.line }]}>
       <View>
@@ -171,22 +173,22 @@ function WalletForm(props: WalletFormProps) {
 type HomeScreenProps = {
   onTransactionPress?: (transaction: Transaction) => void;
   onDailyPress?: () => void;
+  onPlanPress?: () => void;
   wallets?: Wallet[];
   transactions?: Transaction[];
   categories?: Category[];
+  snapshot?: MockBudgetSnapshot;
+  period?: BudgetPeriod;
   onWalletSave?: (wallet: Wallet | null, name: string, balance: number) => void | Promise<void>;
   onWalletArchive?: (wallet: Wallet) => void | Promise<void>;
 };
 
-export default function HomeScreen({ onTransactionPress, onDailyPress, wallets: walletsProp, transactions: transactionsProp, categories: categoriesProp, onWalletSave, onWalletArchive }: HomeScreenProps = {}) {
+export default function HomeScreen({ onTransactionPress, onDailyPress, onPlanPress, wallets: walletsProp, transactions: transactionsProp, categories: categoriesProp, snapshot, period, onWalletSave, onWalletArchive }: HomeScreenProps = {}) {
+  const theme = useTheme();
   const [wallets, setWallets] = useState<Wallet[]>(walletsProp ?? getHomeWallets);
   const [formWallet, setFormWallet] = useState<Wallet | 'new' | null>(null);
   const recentTransactions = transactionsProp ?? getHomeRecentTransactions();
   const total = getWalletTotal(wallets);
-
-  useEffect(() => {
-    if (walletsProp) setWallets(walletsProp);
-  }, [walletsProp]);
 
   const saveWallet = async (name: string, balance: number) => {
     if (onWalletSave) {
@@ -208,12 +210,12 @@ export default function HomeScreen({ onTransactionPress, onDailyPress, wallets: 
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <HomeHeader />
-          <BalanceCard total={total} />
+          <BalanceCard total={total} period={period} />
           <WalletCards wallets={wallets} onSelect={(wallet) => setFormWallet(wallet)} onAdd={() => setFormWallet('new')} />
-          <PlanSnapshot onPress={() => undefined} />
+          <PlanSnapshot snapshot={snapshot} onPress={onPlanPress ?? (() => undefined)} />
           <View style={styles.recent}>
             <View style={styles.sectionTitle}><ThemedText type="sectionHeading">Terbaru</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Lihat Semua Transaksi" onPress={onDailyPress ?? (() => Alert.alert('Transaksi', 'View transaksi harian akan tersedia di layar Riwayat.'))}><ThemedText type="smallBold" themeColor="pine">Lihat Semua</ThemedText></Pressable></View>
-            {recentTransactions.map((transaction) => <RecentTransaction key={transaction.id} transaction={transaction} wallets={wallets} categories={categoriesProp} onPress={onTransactionPress ? () => onTransactionPress(transaction) : undefined} />)}
+            {recentTransactions.length === 0 ? <View style={styles.empty}><ThemedText style={styles.emptyGlyph}>◌</ThemedText><ThemedText type="smallBold">Belum ada catatan</ThemedText><ThemedText type="small" themeColor="muted">Tambahkan transaksi pertama untuk melihat ringkasanmu.</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Tambah transaksi" onPress={onDailyPress} style={[styles.emptyButton, { backgroundColor: theme.pine }]}><ThemedText type="smallBold" style={{ color: theme.heroText }}>Tambah transaksi</ThemedText></Pressable></View> : recentTransactions.map((transaction) => <RecentTransaction key={transaction.id} transaction={transaction} wallets={wallets} categories={categoriesProp} onPress={onTransactionPress ? () => onTransactionPress(transaction) : undefined} />)}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -225,6 +227,12 @@ export default function HomeScreen({ onTransactionPress, onDailyPress, wallets: 
       }} />}
     </ThemedView>
   );
+}
+
+function formatPeriod(period: BudgetPeriod) {
+  const start = new Date(`${period.startDate}T12:00:00`);
+  const end = new Date(`${period.endDate}T12:00:00`);
+  return `${start.getDate()} — ${end.getDate()} ${new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(end)}`;
 }
 
 const styles = StyleSheet.create({
@@ -279,4 +287,7 @@ const styles = StyleSheet.create({
   transactionDetail: { fontSize: 10, lineHeight: 14, marginTop: Spacing.half },
   transactionAmountText: { fontSize: 12, lineHeight: 16 },
   transactionTime: { fontSize: 10, lineHeight: 14 },
+  empty: { alignItems: 'center', gap: 7, paddingVertical: 34 },
+  emptyGlyph: { color: '#7B8882', fontSize: 38 },
+  emptyButton: { borderRadius: 15, marginTop: 8, paddingHorizontal: 18, paddingVertical: 12 },
 });

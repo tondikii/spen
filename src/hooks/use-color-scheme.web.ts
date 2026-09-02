@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+
+/* The hydration flip is intentional for static web rendering. */
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useColorScheme as useRNColorScheme } from 'react-native';
 
 /**
@@ -19,3 +22,4 @@ export function useColorScheme() {
 
   return 'light';
 }
+/* eslint-enable react-hooks/set-state-in-effect */

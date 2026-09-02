@@ -43,11 +43,13 @@ export default function ReportScreen({
   const [insightSource, setInsightSource] = useState<"ai" | "fallback">(
     "fallback",
   );
+  const [insightError, setInsightError] = useState("");
+  const [rangeOpen, setRangeOpen] = useState(false);
   useEffect(() => {
     if (!insightOpen) return;
     let cancelled = false;
-    setLoading(true);
     const timer = setTimeout(() => {
+      setLoading(true);
       void aiService
         .generateInsight(
           aiInput ?? {
@@ -67,6 +69,12 @@ export default function ReportScreen({
           setInsightText(result.text);
           setInsightSource(result.source);
           setLoading(false);
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setInsightError("Insight belum tersedia. Coba lagi nanti.");
+            setLoading(false);
+          }
         });
     }, 120);
     return () => {
@@ -88,10 +96,11 @@ export default function ReportScreen({
           },
         } as never);
   const chartPoints = netSavingByPeriod.slice(-range);
-  const maxNetSaving = Math.max(
-    ...chartPoints.map((point) => Math.abs(point.netSaving)),
-    1,
-  );
+  const updateRange = (months: number) => {
+    setRange(months);
+    setRangeOpen(false);
+    void onRangeChange?.(months);
+  };
 
   return (
     <ThemedView style={styles.page}>
@@ -126,14 +135,15 @@ export default function ReportScreen({
           </View>
         </ThemedView>
         <ChartCard title="Pengeluaran" trailing={formatMonth(period.endDate)} theme={theme}>
-          <View style={styles.pieArea}>
+          {expenses.length === 0 ? <View style={styles.empty}><ThemedText style={styles.emptyGlyph}>◌</ThemedText><ThemedText type="smallBold">Belum ada pengeluaran</ThemedText><ThemedText type="small" themeColor="muted">Belum ada catatan expense di Budget period ini.</ThemedText></View> : <View style={styles.pieArea}>
             <Donut expenses={expenses} total={snapshot.totalExpense} theme={theme} />
             <View style={styles.pieLabel}><ThemedText type="smallBold" style={styles.pieAmount}>{formatMoney(snapshot.totalExpense)}</ThemedText><ThemedText type="small" themeColor="muted">total keluar</ThemedText></View>
-          </View>
+          </View>}
           <View style={styles.legend}>{expenses.map((item, index) => <Pressable key={item.categoryId} accessibilityRole="button" accessibilityLabel={`Lihat kategori ${item.name}`} onPress={() => openCategory(item)} style={[styles.legendRow, { borderTopColor: theme.line }]}><View style={[styles.dot, { backgroundColor: chartColors(theme)[index % chartColors(theme).length] }]} /><ThemedText type="small" style={styles.legendName}>{item.name}</ThemedText><ThemedText type="smallBold" themeColor="muted">{percentage(item.amount, snapshot.totalExpense)}%</ThemedText></Pressable>)}</View>
         </ChartCard>
-        <ChartCard title="Net saving" trailing="3 bulan⌄" theme={theme}>
-          <View style={[styles.chart, { borderBottomColor: theme.line }]}><Svg width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="none"><Path d="M2 100 C55 94, 58 50, 105 65 S172 42, 214 55 S275 18, 318 24" fill="none" stroke={theme.pine} strokeWidth="3" /><Path d="M2 100 C55 94, 58 50, 105 65 S172 42, 214 55 S275 18, 318 24 L318 120 L2 120Z" fill={theme.pine} opacity="0.1" /></Svg></View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Pilih rentang Report" onPress={() => setRangeOpen(true)} style={styles.rangeButton}><ThemedText type="smallBold" themeColor="pine">Rentang: {range} bulan</ThemedText></Pressable>
+        <ChartCard title="Net saving" trailing={`${range} bulan⌄`} theme={theme}>
+          <View style={[styles.chart, { borderBottomColor: theme.line }]}><Svg width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="none"><Path d={linePath(chartPoints)} fill="none" stroke={theme.pine} strokeWidth="3" /><Path d={`${linePath(chartPoints)} L318 120 L2 120Z`} fill={theme.pine} opacity="0.1" /></Svg></View>
           <View style={styles.months}>
             {chartPoints.map((point) => (
               <ThemedText key={point.period.id} type="small" themeColor="muted">
@@ -172,9 +182,7 @@ export default function ReportScreen({
             ) : (
               <>
                 <ThemedText type="sectionHeading">Insight bulan ini</ThemedText>
-                <ThemedText style={styles.insightText}>
-                  {insightText}
-                </ThemedText>
+                {insightError ? <ThemedText style={{ color: theme.expense }}>{insightError}</ThemedText> : <ThemedText style={styles.insightText}>{insightText}</ThemedText>}
                 <View
                   style={[styles.takeaway, { backgroundColor: theme.mint }]}
                 >
@@ -203,6 +211,7 @@ export default function ReportScreen({
           </View>
         </Pressable>
       </Modal>
+      <Modal transparent animationType="slide" visible={rangeOpen} onRequestClose={() => setRangeOpen(false)}><Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={() => setRangeOpen(false)}><View style={[styles.sheet, { backgroundColor: theme.card }]}><ThemedText type="sectionHeading">Rentang Report</ThemedText>{[3, 6, 12].map((months) => <Pressable key={months} accessibilityRole="button" accessibilityLabel={`Report ${months} bulan`} onPress={() => updateRange(months)} style={[styles.sheetOption, { borderTopColor: theme.line }]}><ThemedText type="smallBold" themeColor={range === months ? 'pine' : 'ink'}>{months} bulan</ThemedText></Pressable>)}</View></Pressable></Modal>
     </ThemedView>
   );
 }
@@ -214,11 +223,25 @@ function formatPeriodAccurate(period: { startDate: string; endDate: string }) {
 function formatMonth(date: string) { return new Intl.DateTimeFormat("id-ID", { month: "long" }).format(new Date(`${date}T12:00:00`)); }
 function formatMonthShort(date: string) { return new Intl.DateTimeFormat("id-ID", { month: "short" }).format(new Date(`${date}T12:00:00`)); }
 function percentage(amount: number, total: number) { return total > 0 ? Math.round((amount / total) * 100) : 0; }
+function linePath(points: ReportView["netSavingByPeriod"]) {
+  if (points.length === 0) return "M2 110 L318 110";
+  const values = points.map((point) => point.netSaving);
+  const min = Math.min(...values, 0);
+  const max = Math.max(...values, 0);
+  const spread = Math.max(max - min, 1);
+  return values.map((value, index) => {
+    const x = points.length === 1 ? 160 : 2 + index * (316 / (points.length - 1));
+    const y = 110 - ((value - min) / spread) * 90;
+    return `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${Math.max(20, Math.min(110, y)).toFixed(1)}`;
+  }).join(" ");
+}
 function chartColors(theme: ReturnType<typeof useTheme>) { return [theme.expense, theme.gold, theme.pine, theme.muted]; }
+/* eslint-disable react-hooks/immutability -- SVG segment offsets are derived during render. */
 function Donut({ expenses, total, theme }: { expenses: ReportExpense[]; total: number; theme: ReturnType<typeof useTheme> }) {
   const colors = chartColors(theme); const radius = 57; const circumference = 2 * Math.PI * radius; let offset = 0;
   return <Svg width={145} height={145} viewBox="0 0 145 145" style={styles.donut}><Circle cx="72.5" cy="72.5" r={radius} fill="none" stroke={theme.line} strokeWidth="28" />{expenses.map((item, index) => { const length = total > 0 ? (item.amount / total) * circumference : 0; const segment = <Circle key={item.categoryId} cx="72.5" cy="72.5" r={radius} fill="none" stroke={colors[index % colors.length]} strokeWidth="28" strokeDasharray={`${length} ${circumference - length}`} strokeDashoffset={-offset} transform="rotate(-90 72.5 72.5)" />; offset += length; return segment; })}</Svg>;
 }
+/* eslint-enable react-hooks/immutability */
 function formatPeriod(period: { startDate: string; endDate: string }) {
   return `${Number(period.startDate.slice(-2))}â€“${Number(period.endDate.slice(-2))} ${new Date(`${period.endDate}T12:00:00`).toLocaleDateString("id-ID", { month: "short" })}ÃƒÂ¢Ã…â€™Ã¢â‚¬Å¾`;
 }
@@ -251,7 +274,7 @@ function ChartCard({
   theme,
 }: {
   title: string;
-  trailing?: string;
+  trailing?: ReactNode;
   children: ReactNode;
   theme: ReturnType<typeof useTheme>;
 }) {
@@ -286,6 +309,8 @@ const styles = StyleSheet.create({
   card: { borderRadius: 22, borderWidth: 1, marginBottom: 14, padding: 17 },
   cardHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
   pieArea: { alignItems: "center", height: 183, justifyContent: "center", marginTop: 8 },
+  empty: { alignItems: "center", gap: 7, paddingVertical: 38 },
+  emptyGlyph: { color: "#7B8882", fontSize: 38 },
   pieLabel: { alignItems: "center", position: "absolute" },
   pieAmount: { fontFamily: Fonts.mono, fontSize: 13, letterSpacing: -1 },
   donut: { height: 145, width: 145 },
@@ -306,6 +331,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     marginTop: 10,
   },
+  rangeButton: { alignSelf: "flex-end", marginBottom: 10 },
   chart: { alignItems: "flex-end", borderBottomWidth: 1, height: 130, justifyContent: "flex-end", marginTop: 8 },
   months: {
     flexDirection: "row",
@@ -317,6 +343,7 @@ const styles = StyleSheet.create({
   insightCopy: { flex: 1 },
   overlay: { flex: 1, justifyContent: "flex-end" },
   sheet: { borderTopLeftRadius: 27, borderTopRightRadius: 27, padding: 21 },
+  sheetOption: { borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: 15 },
   loading: { alignItems: "center", paddingVertical: 45 },
   loadingGlyph: { fontSize: 29, marginBottom: 12 },
   insightText: { fontSize: 13, lineHeight: 21, marginTop: 17 },

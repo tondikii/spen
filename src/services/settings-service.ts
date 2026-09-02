@@ -1,4 +1,4 @@
-import type { CurrencyCode } from '@/types/domain';
+import type { CurrencyCode, ThemeMode } from '@/types/domain';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 let selectedCurrency: CurrencyCode = 'IDR';
@@ -16,4 +16,8 @@ export async function getDatabaseSettings(database: SQLiteDatabase) {
 export async function setDatabaseCurrency(database: SQLiteDatabase, currency: CurrencyCode) {
   await database.runAsync('UPDATE settings SET currency = ? WHERE id = 1;', currency);
   return setSelectedCurrency(currency);
+}
+
+export async function setDatabaseThemeMode(database: SQLiteDatabase, mode: ThemeMode) {
+  await database.runAsync('UPDATE settings SET theme_mode = ? WHERE id = 1;', mode);
 }

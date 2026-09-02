@@ -1,9 +1,8 @@
-import { createContext, type PropsWithChildren, useContext, useMemo, useState } from 'react';
+import { createContext, type PropsWithChildren, useCallback, useContext, useMemo, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { Colors, type ColorScheme, type Theme } from '@/constants/theme';
-
-type ThemeMode = 'system' | ColorScheme;
+import type { ThemeMode } from '@/types/domain';
 
 type ThemeContextValue = {
   theme: Theme;
@@ -14,13 +13,17 @@ type ThemeContextValue = {
 
 export const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-export function AppThemeProvider({ children }: PropsWithChildren) {
+export function AppThemeProvider({ children, initialMode = 'system', onModeChange }: PropsWithChildren<{ initialMode?: ThemeMode; onModeChange?: (mode: ThemeMode) => void | Promise<void> }>) {
   const systemScheme = useColorScheme();
-  const [mode, setMode] = useState<ThemeMode>('system');
+  const [mode, setModeState] = useState<ThemeMode>(initialMode);
+  const setMode = useCallback((nextMode: ThemeMode) => {
+    setModeState(nextMode);
+    void onModeChange?.(nextMode);
+  }, [onModeChange]);
   const colorScheme: ColorScheme = mode === 'system' ? (systemScheme === 'dark' ? 'dark' : 'light') : mode;
   const value = useMemo(
     () => ({ theme: Colors[colorScheme], mode, colorScheme, setMode }),
-    [colorScheme, mode],
+    [colorScheme, mode, setMode],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
