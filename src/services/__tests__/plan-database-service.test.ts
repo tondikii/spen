@@ -69,6 +69,7 @@ describe('database plan service', () => {
     const firstPeriod = await setBudgetPeriodStartDay(database, 1, '2026-09-10');
     expect(firstPeriod.period?.start_date).toBe('2026-09-01');
     expect(firstPeriod.period?.end_date).toBe('2026-09-30');
+    expect((await getDatabasePlanView(database, '2026-09-10')).period.startDate).toBe('2026-09-01');
   });
 
   it('derives realisation, payment status, over-budget, spare, and balance split from the ledger', async () => {

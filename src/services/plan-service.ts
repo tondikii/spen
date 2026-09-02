@@ -64,19 +64,15 @@ export async function ensureActiveBudgetPlan(database: SQLiteDatabase, today = d
   let planId = 0;
   let periodId = 0;
   await database.withExclusiveTransactionAsync(async (transaction) => {
-    const active = await transaction.getFirstAsync<PeriodRow>(
-      `SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date <= ? AND end_date >= ? ORDER BY id DESC LIMIT 1;`,
-      today,
-      today,
-    );
-    const activePlan = active && await transaction.getFirstAsync<{ id: number }>('SELECT id FROM budget_plans WHERE budget_period_id = ? LIMIT 1;', active.id);
-    if (active && activePlan) {
-      periodId = active.id;
-      planId = activePlan.id;
-      return;
-    }
     const setting = await transaction.getFirstAsync<{ budget_start_day: number }>('SELECT budget_start_day FROM settings WHERE id = 1 LIMIT 1;');
     const bounds = periodBounds(setting?.budget_start_day ?? 1, today);
+    const configuredPeriod = await transaction.getFirstAsync<PeriodRow>('SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date = ? LIMIT 1;', bounds.startDate);
+    const configuredPlan = configuredPeriod && await transaction.getFirstAsync<{ id: number }>('SELECT id FROM budget_plans WHERE budget_period_id = ? LIMIT 1;', configuredPeriod.id);
+    if (configuredPeriod && configuredPlan) {
+      periodId = configuredPeriod.id;
+      planId = configuredPlan.id;
+      return;
+    }
     const existingPeriod = await transaction.getFirstAsync<PeriodRow>('SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date = ? LIMIT 1;', bounds.startDate);
     periodId = existingPeriod?.id ?? (await transaction.runAsync(
       `INSERT INTO budget_periods (start_date, end_date, duration_months) VALUES (?, ?, 1);`,
