@@ -26,7 +26,7 @@ export default function PlanRoute() {
     await load();
   }} onGoalSaveAction={(goal) => {
     const source = planView.wallets.find((wallet) => !wallet.archived && wallet.id !== goal.walletId);
-    if (source) router.push({ pathname: '/create', params: { type: 'transfer', walletId: source.id, toWalletId: goal.walletId } });
+    if (source) router.push({ pathname: '/create', params: { type: 'transfer', walletId: source.id, toWalletId: goal.walletId, goalId: goal.id, lockedToWalletId: goal.walletId } });
   }} onGoalWithdraw={async (goal, amount) => {
     if (amount > 0) await withdrawFromGoal(database, goal.id, amount);
     await load();

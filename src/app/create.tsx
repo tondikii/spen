@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import { TransactionForm } from '@/components/transaction-form';
+import { saveToGoal } from '@/services/goal-service';
 import { archiveDatabaseCategory, deleteDatabaseTransaction, getDatabaseTransactionCategories, getDatabaseTransactions, saveDatabaseCategory, saveDatabaseTransaction } from '@/services/transaction-service';
 import { getWallets } from '@/services/wallet-service';
 import type { Category, Transaction, TransactionType, Wallet } from '@/types/domain';
 
 export default function CreateTransactionScreen() {
-  const { transactionId, type, categoryId, amount, walletId, toWalletId } = useLocalSearchParams<{ transactionId?: string; type?: TransactionType; categoryId?: string; amount?: string; walletId?: string; toWalletId?: string }>();
+  const { transactionId, goalId, type, categoryId, amount, walletId, toWalletId, lockedToWalletId } = useLocalSearchParams<{ transactionId?: string; goalId?: string; type?: TransactionType; categoryId?: string; amount?: string; walletId?: string; toWalletId?: string; lockedToWalletId?: string }>();
   const database = useSQLiteContext();
   const [data, setData] = useState<{ wallets: Wallet[]; categories: Category[]; transactions: Transaction[] } | null>(null);
 
@@ -34,11 +35,12 @@ export default function CreateTransactionScreen() {
     initialAmount={amount ? Number(amount) : undefined}
     initialWalletId={walletId}
     initialToWalletId={toWalletId}
+    lockedToWalletId={lockedToWalletId}
     wallets={data.wallets}
     categories={data.categories}
     existingTransactions={data.transactions}
     onClose={() => router.back()}
-    onSave={async (draft) => { await saveDatabaseTransaction(database, draft, transaction?.id); router.back(); }}
+    onSave={async (draft) => { if (goalId && draft.type === 'transfer' && draft.walletId) await saveToGoal(database, goalId, draft.walletId, draft.amount, draft.date, draft.time); else await saveDatabaseTransaction(database, draft, transaction?.id); router.back(); }}
     onDelete={transaction ? async () => { await deleteDatabaseTransaction(database, transaction.id); router.back(); } : undefined}
     onCategorySave={(category) => saveDatabaseCategory(database, category)}
     onCategoryArchive={(category) => archiveDatabaseCategory(database, category.id)}

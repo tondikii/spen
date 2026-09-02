@@ -78,4 +78,11 @@ describe('goal service', () => {
     expect(await getDatabaseGoals(database)).toEqual([]);
     expect((await getDatabaseGoals(database, true))[0]).toMatchObject({ id: goal.id, archived: true });
   });
+
+  it('does not allow two active Goals to share one Wallet', async () => {
+    const wallet = await createWallet(database, 'Tabungan', 0);
+    await createGoal(database, { name: 'Goal pertama', targetAmount: 1000, targetDate: null, walletId: wallet.id, monthlyContribution: 0 });
+
+    await expect(createGoal(database, { name: 'Goal kedua', targetAmount: 1000, targetDate: null, walletId: wallet.id, monthlyContribution: 0 })).rejects.toThrow('Wallet sudah dipakai Goal lain');
+  });
 });

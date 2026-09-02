@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { getDatabaseTransactionCategories, saveDatabaseTransaction } from '@/services/transaction-service';
+import { getDatabaseTransaction, getDatabaseTransactionCategories, saveDatabaseTransaction } from '@/services/transaction-service';
 import { getWallet, getWallets } from '@/services/wallet-service';
 import type { Goal, GoalProgress, Transaction, Wallet } from '@/types/domain';
 
@@ -59,6 +59,8 @@ export async function createGoal(database: SQLiteDatabase, draft: GoalDraft): Pr
     const walletId = databaseId(draft.walletId);
     const wallet = await connection.getFirstAsync<{ id: number }>('SELECT id FROM wallets WHERE id = ? LIMIT 1;', walletId);
     if (!wallet) throw new Error('Wallet Goal tidak ditemukan');
+    const existingGoal = await connection.getFirstAsync<{ id: number }>('SELECT id FROM goals WHERE wallet_id = ? AND archived = 0 LIMIT 1;', walletId);
+    if (existingGoal) throw new Error('Wallet sudah dipakai Goal lain');
     await connection.runAsync('UPDATE wallets SET is_savings = 1 WHERE id = ?;', walletId);
     const result = await connection.runAsync(
       `INSERT INTO goals (name, target_amount, target_date, wallet_id, monthly_contribution, archived) VALUES (?, ?, ?, ?, ?, 0);`,
@@ -80,6 +82,8 @@ export async function updateGoal(database: SQLiteDatabase, goalId: string, draft
     const walletId = databaseId(draft.walletId);
     const wallet = await connection.getFirstAsync<{ id: number }>('SELECT id FROM wallets WHERE id = ? LIMIT 1;', walletId);
     if (!wallet) throw new Error('Wallet Goal tidak ditemukan');
+    const existingGoal = await connection.getFirstAsync<{ id: number }>('SELECT id FROM goals WHERE wallet_id = ? AND archived = 0 AND id <> ? LIMIT 1;', walletId, id);
+    if (existingGoal) throw new Error('Wallet sudah dipakai Goal lain');
     await connection.runAsync('UPDATE wallets SET is_savings = 1 WHERE id = ?;', walletId);
     await connection.runAsync(
       `UPDATE goals SET name = ?, target_amount = ?, target_date = ?, wallet_id = ?, monthly_contribution = ? WHERE id = ?;`,
@@ -103,26 +107,46 @@ function localDate() {
 
 export async function saveToGoal(database: SQLiteDatabase, goalId: string, sourceWalletId: string, amount: number, date = localDate(), time = '12:00'): Promise<Transaction> {
   if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error('Nominal menabung harus berupa angka bulat positif');
-  const goal = await getDatabaseGoal(database, goalId);
-  if (!goal || goal.archived) throw new Error('Goal tidak ditemukan');
-  if (goal.walletId === sourceWalletId) throw new Error('Wallet asal dan Wallet Goal harus berbeda');
-  const targetWallet = await getWallet(database, goal.walletId);
-  const sourceWallet = await getWallet(database, sourceWalletId);
-  if (!targetWallet || !sourceWallet) throw new Error('Wallet transfer tidak ditemukan');
-  if (sourceWallet.balance < amount) throw new Error('Saldo Wallet asal tidak mencukupi');
-  return saveDatabaseTransaction(database, { type: 'transfer', walletId: sourceWalletId, toWalletId: goal.walletId, categoryId: null, amount, date, time, note: `Nabung untuk ${goal.name}` });
+  const transactionId = await withExclusiveWrite(database, async (connection) => {
+    const goal = await connection.getFirstAsync<GoalRow>('SELECT id, name, target_amount, target_date, wallet_id, monthly_contribution, archived FROM goals WHERE id = ? AND archived = 0 LIMIT 1;', databaseId(goalId));
+    if (!goal) throw new Error('Goal tidak ditemukan');
+    const targetWalletId = `wallet-${goal.wallet_id}`;
+    if (targetWalletId === sourceWalletId) throw new Error('Wallet asal dan Wallet Goal harus berbeda');
+    const targetWallet = await getWallet(connection, targetWalletId);
+    const sourceWallet = await getWallet(connection, sourceWalletId);
+    if (!targetWallet || !sourceWallet) throw new Error('Wallet transfer tidak ditemukan');
+    if (sourceWallet.balance < amount) throw new Error('Saldo Wallet asal tidak mencukupi');
+    const category = await connection.getFirstAsync<{ id: number }>(`SELECT id FROM categories WHERE type = 'transfer' LIMIT 1;`);
+    if (!category) throw new Error('Kategori Transfer belum tersedia');
+    const result = await connection.runAsync(
+      `INSERT INTO transactions (type, wallet_id, to_wallet_id, category_id, amount, date, time, note) VALUES ('transfer', ?, ?, ?, ?, ?, ?, ?);`,
+      databaseId(sourceWalletId), goal.wallet_id, category.id, amount, date, time, `Nabung untuk ${goal.name}`,
+    );
+    return result.lastInsertRowId;
+  });
+  const transaction = await getDatabaseTransaction(database, `transaction-${transactionId}`);
+  if (!transaction) throw new Error('Transaksi menabung gagal disimpan');
+  return transaction;
 }
 
 export async function withdrawFromGoal(database: SQLiteDatabase, goalId: string, amount: number, date = localDate(), time = '12:00'): Promise<Transaction> {
   if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error('Nominal penarikan harus berupa angka bulat positif');
-  const goal = await getDatabaseGoal(database, goalId);
-  if (!goal || goal.archived) throw new Error('Goal tidak ditemukan');
-  const wallet = await getWallet(database, goal.walletId);
-  if (!wallet || wallet.balance < amount) throw new Error('Saldo Wallet Goal tidak mencukupi');
-  const categories = await getDatabaseTransactionCategories(database);
-  const category = categories.find((item) => item.type === 'expense' && item.name === 'Belanja') ?? categories.find((item) => item.type === 'expense' && !item.isAdjustment);
-  if (!category) throw new Error('Kategori pengeluaran belum tersedia');
-  return saveDatabaseTransaction(database, { type: 'expense', walletId: goal.walletId, toWalletId: null, categoryId: category.id, amount, date, time, note: `Penarikan darurat dari ${goal.name}` });
+  const transactionId = await withExclusiveWrite(database, async (connection) => {
+    const goal = await connection.getFirstAsync<GoalRow>('SELECT id, name, target_amount, target_date, wallet_id, monthly_contribution, archived FROM goals WHERE id = ? AND archived = 0 LIMIT 1;', databaseId(goalId));
+    if (!goal) throw new Error('Goal tidak ditemukan');
+    const wallet = await getWallet(connection, `wallet-${goal.wallet_id}`);
+    if (!wallet || wallet.balance < amount) throw new Error('Saldo Wallet Goal tidak mencukupi');
+    const category = await connection.getFirstAsync<{ id: number }>(`SELECT id FROM categories WHERE type = 'expense' AND name = 'Belanja' AND is_adjustment = 0 LIMIT 1;`);
+    if (!category) throw new Error('Kategori pengeluaran belum tersedia');
+    const result = await connection.runAsync(
+      `INSERT INTO transactions (type, wallet_id, category_id, amount, date, time, note) VALUES ('expense', ?, ?, ?, ?, ?, ?);`,
+      goal.wallet_id, category.id, amount, date, time, `Penarikan darurat dari ${goal.name}`,
+    );
+    return result.lastInsertRowId;
+  });
+  const transaction = await getDatabaseTransaction(database, `transaction-${transactionId}`);
+  if (!transaction) throw new Error('Transaksi penarikan gagal disimpan');
+  return transaction;
 }
 
 export async function getGoalWallets(database: SQLiteDatabase): Promise<Wallet[]> {

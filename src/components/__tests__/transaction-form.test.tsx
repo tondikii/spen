@@ -76,4 +76,11 @@ describe('TransactionForm', () => {
     expect(getByLabelText('Nominal transaksi').props.value).toBe('175000');
     expect(getByLabelText('Kategori Makan')).toBeTruthy();
   });
+
+  it('mengunci tujuan transfer saat transaksi berasal dari Goal', async () => {
+    const { getAllByText, getByText } = await render(<TransactionForm mode="create" initialType="transfer" initialToWalletId="wallet-dana-nikah" lockedToWalletId="wallet-dana-nikah" wallets={mockData.wallets} onClose={jest.fn()} onSave={jest.fn()} />);
+
+    expect(getByText('Tujuan Wallet Goal terkunci')).toBeTruthy();
+    expect(getAllByText('Dana Nikah').length).toBeGreaterThan(0);
+  });
 });

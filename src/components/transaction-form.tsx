@@ -20,6 +20,7 @@ type TransactionFormProps = {
   initialAmount?: number;
   initialWalletId?: string;
   initialToWalletId?: string;
+  lockedToWalletId?: string;
   wallets?: Wallet[];
   categories?: Category[];
   existingTransactions?: Transaction[];
@@ -36,7 +37,7 @@ const tabs: Array<{ type: TransactionType; label: string }> = [
   { type: 'transfer', label: 'Transfer' },
 ];
 
-export function TransactionForm({ mode, transaction, initialType, initialCategoryId, initialAmount, initialWalletId, initialToWalletId, wallets = getActiveTransactionWallets(), categories: categoriesProp, existingTransactions = [], onClose, onSave, onDelete, onCategorySave, onCategoryArchive }: TransactionFormProps) {
+export function TransactionForm({ mode, transaction, initialType, initialCategoryId, initialAmount, initialWalletId, initialToWalletId, lockedToWalletId, wallets = getActiveTransactionWallets(), categories: categoriesProp, existingTransactions = [], onClose, onSave, onDelete, onCategorySave, onCategoryArchive }: TransactionFormProps) {
   const theme = useTheme();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0, left: 0, right: 0 };
   const resolvedInitialType: TransactionType = transaction?.type === 'adjustment' ? 'expense' : transaction?.type ?? initialType ?? 'income';
@@ -149,7 +150,7 @@ export function TransactionForm({ mode, transaction, initialType, initialCategor
           <WalletPicker wallets={wallets} selected={walletId} onSelect={setWalletId} />
           <Pressable accessibilityRole="button" accessibilityLabel="Tukar Wallet Transfer" onPress={() => { setWalletId(toWalletId); setToWalletId(walletId); }} style={styles.swap}><ThemedText type="subtitle" themeColor="gold">↕</ThemedText></Pressable>
           <FieldLabel>TRANSFER KE</FieldLabel>
-          <WalletPicker wallets={wallets} selected={toWalletId} onSelect={setToWalletId} exclude={walletId} />
+          {lockedToWalletId ? <View style={[styles.lockedWallet, { borderColor: theme.line, backgroundColor: theme.mint }]}><ThemedText type="smallBold">{wallets.find((wallet) => wallet.id === lockedToWalletId)?.name ?? 'Wallet Goal'}</ThemedText><ThemedText type="small" themeColor="muted">Tujuan Wallet Goal terkunci</ThemedText></View> : <WalletPicker wallets={wallets} selected={toWalletId} onSelect={setToWalletId} exclude={walletId} />}
         </> : <>
           <FieldLabel>WALLET</FieldLabel>
           <WalletPicker wallets={wallets} selected={walletId} onSelect={setWalletId} />
@@ -199,6 +200,7 @@ const styles = StyleSheet.create({
   fieldLabel: { ...Typography.eyebrow, marginTop: Spacing.two },
   walletPicker: { gap: Spacing.two, paddingVertical: Spacing.one },
   walletChoice: { borderRadius: 13, borderWidth: 1, gap: 2, minWidth: 120, padding: 11 },
+  lockedWallet: { borderRadius: 13, borderWidth: 1, gap: 2, padding: 11 },
   swap: { alignSelf: 'center', alignItems: 'center', borderRadius: Radius.pill, height: 34, justifyContent: 'center', width: 34 },
   labelLine: { alignItems: 'baseline', flexDirection: 'row', justifyContent: 'space-between', marginTop: Spacing.two },
   categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
