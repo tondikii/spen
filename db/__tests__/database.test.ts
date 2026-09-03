@@ -63,8 +63,8 @@ describe('database foundation', () => {
       'SELECT COUNT(*) AS count FROM categories;',
     );
 
-    expect(firstCount?.count).toBe(11);
-    expect(secondCount?.count).toBe(11);
+    expect(firstCount?.count).toBe(12);
+    expect(secondCount?.count).toBe(12);
     expect(await database.getFirstAsync('SELECT id FROM settings WHERE id = 1;')).toBeTruthy();
   });
 });

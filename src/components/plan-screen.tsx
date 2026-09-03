@@ -1,8 +1,9 @@
 import { useEffect, useState, type ComponentProps, type ReactNode } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { Fonts, Radius, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
+import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import { getDatabasePlanView, getPaymentLabel, getPlanView, type PlanItemDraft } from '@/services/plan-service';
 import { aiService, type BudgetAIInput, type BudgetSuggestion } from '@/services/ai-service';
 import { ThemedText } from '@/components/themed-text';
@@ -102,15 +103,39 @@ function sparePercent(snapshot: { spareBudget: number; totalIncome: number }) {
 
 function PlanItemFormModal({ item, type, categories, theme, onClose, onSave }: { item?: BudgetPlanItem; type: PlanItemType; categories: Category[]; theme: ReturnType<typeof useTheme>; onClose: () => void; onSave: (draft: PlanItemDraft) => void | Promise<void> }) {
   const [name, setName] = useState(item?.name ?? '');
-  const [target, setTarget] = useState(item ? String(item.targetAmount) : '');
+  const [target, setTarget] = useState(item ? formatMoneyInput(item.targetAmount) : '');
   const options = categories.filter((category) => !category.archived && category.type === (type === 'income' ? 'income' : 'expense') && !category.isAdjustment);
   const [categoryId, setCategoryId] = useState(item?.categoryId ?? options[0]?.id ?? null);
   const submit = () => {
-    const targetAmount = Number(target.replace(/[^0-9]/g, ''));
+    const targetAmount = parseMoneyInput(target);
     if (!name.trim() || !categoryId || !Number.isSafeInteger(targetAmount) || targetAmount <= 0) return;
     void onSave({ type, name: name.trim(), categoryId, targetAmount });
   };
-  return <Modal transparent animationType="slide" visible onRequestClose={onClose}><Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={onClose}><View style={[styles.goalSheet, { backgroundColor: theme.card }]}><View style={styles.sheetHeader}><ThemedText type="sectionHeading">{item ? 'Edit item plan' : 'Item plan baru'}</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Tutup form item plan" onPress={onClose}><ThemedText type="subtitle" themeColor="muted">×</ThemedText></Pressable></View><ThemedText type="small" themeColor="muted">Target adalah rencana; realisasi mengikuti transaksi.</ThemedText><ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>NAMA ITEM</ThemedText><TextInput accessibilityLabel="Nama item plan" placeholder={type === 'income' ? 'Mis. Gaji' : 'Mis. Makan'} placeholderTextColor={theme.muted} value={name} onChangeText={setName} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} /><ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>TARGET NOMINAL</ThemedText><TextInput accessibilityLabel="Target item plan" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={target} onChangeText={setTarget} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} /><ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>KATEGORI</ThemedText><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.goalWallets}>{options.map((category) => <Pressable key={category.id} accessibilityRole="button" accessibilityLabel={`Kategori ${category.name}`} onPress={() => setCategoryId(category.id)} style={[styles.goalWallet, { borderColor: categoryId === category.id ? theme.pine : theme.line, backgroundColor: categoryId === category.id ? theme.mint : theme.card }]}><ThemedText type="smallBold">{category.icon} {category.name}</ThemedText></Pressable>)}</ScrollView>{options.length === 0 && <ThemedText type="small" style={{ color: theme.expense }}>Belum ada kategori yang sesuai.</ThemedText>}<Pressable accessibilityRole="button" accessibilityLabel="Simpan item plan" onPress={submit} style={[styles.saveGoal, { backgroundColor: theme.pine }]}><ThemedText type="smallBold" style={{ color: theme.heroText }}>{item ? 'Simpan perubahan' : 'Simpan item'}</ThemedText></Pressable></View></Pressable></Modal>;
+  return (
+    <Modal transparent animationType="slide" visible onRequestClose={onClose}>
+      <Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={onClose}>
+        <KeyboardAvoidingView style={styles.sheetKeyboard} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
+          <View style={[styles.goalSheet, { backgroundColor: theme.card }]}>
+            <View style={styles.sheetHeader}>
+              <ThemedText type="sectionHeading">{item ? 'Edit item plan' : 'Item plan baru'}</ThemedText>
+              <Pressable accessibilityRole="button" accessibilityLabel="Tutup form item plan" onPress={onClose}><ThemedText type="subtitle" themeColor="muted">×</ThemedText></Pressable>
+            </View>
+            <ScrollView style={styles.sheetScroll} contentContainerStyle={styles.goalSheetContent} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
+              <ThemedText type="small" themeColor="muted">Target adalah rencana; realisasi mengikuti transaksi.</ThemedText>
+              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>NAMA ITEM</ThemedText>
+              <TextInput accessibilityLabel="Nama item plan" placeholder={type === 'income' ? 'Mis. Gaji' : 'Mis. Makan'} placeholderTextColor={theme.muted} value={name} onChangeText={setName} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} />
+              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>TARGET NOMINAL</ThemedText>
+              <TextInput accessibilityLabel="Target item plan" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={target} onChangeText={(value) => setTarget(formatMoneyInput(value))} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} />
+              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>KATEGORI</ThemedText>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.goalWallets}>{options.map((category) => <Pressable key={category.id} accessibilityRole="button" accessibilityLabel={`Kategori ${category.name}`} onPress={() => setCategoryId(category.id)} style={[styles.goalWallet, { borderColor: categoryId === category.id ? theme.pine : theme.line, backgroundColor: categoryId === category.id ? theme.mint : theme.card }]}><ThemedText type="smallBold">{category.icon} {category.name}</ThemedText></Pressable>)}</ScrollView>
+              {options.length === 0 && <ThemedText type="small" style={{ color: theme.expense }}>Belum ada kategori yang sesuai.</ThemedText>}
+              <Pressable accessibilityRole="button" accessibilityLabel="Simpan item plan" onPress={submit} style={[styles.saveGoal, { backgroundColor: theme.pine }]}><ThemedText type="smallBold" style={{ color: theme.heroText }}>{item ? 'Simpan perubahan' : 'Simpan item'}</ThemedText></Pressable>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Pressable>
+    </Modal>
+  );
 }
 
 function GoalSection({ goals, wallets, theme, onSave, onArchive, onSaveAction, onWithdraw }: { goals: Goal[]; wallets: Wallet[]; theme: ReturnType<typeof useTheme>; onSave?: (goal: Goal | null, draft: GoalDraft) => void | Promise<void>; onArchive?: (goal: Goal) => void | Promise<void>; onSaveAction?: (goal: Goal) => void | Promise<void>; onWithdraw?: (goal: Goal, amount: number) => void | Promise<void> }) {
@@ -129,12 +154,39 @@ function GoalSection({ goals, wallets, theme, onSave, onArchive, onSaveAction, o
 
 function GoalFormModal({ goal, wallets, theme, onClose, onSave }: { goal: Goal | null; wallets: Wallet[]; theme: ReturnType<typeof useTheme>; onClose: () => void; onSave: (draft: GoalDraft) => void | Promise<void> }) {
   const [name, setName] = useState(goal?.name ?? '');
-  const [target, setTarget] = useState(goal ? String(goal.targetAmount) : '');
+  const [target, setTarget] = useState(goal ? formatMoneyInput(goal.targetAmount) : '');
   const [targetDate, setTargetDate] = useState(goal?.targetDate ?? '');
-  const [monthly, setMonthly] = useState(goal ? String(goal.monthlyContribution) : '');
+  const [monthly, setMonthly] = useState(goal ? formatMoneyInput(goal.monthlyContribution) : '');
   const [walletId, setWalletId] = useState(goal?.walletId ?? wallets[0]?.id ?? null);
-  const submit = () => { if (!name.trim() || !walletId || !Number(target) || Number(target) < 1) return; void onSave({ name: name.trim(), targetAmount: Number(target), targetDate: targetDate.trim() || null, walletId, monthlyContribution: Number(monthly) || 0 }); };
-  return <Modal transparent animationType="slide" visible onRequestClose={onClose}><Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={onClose}><View style={[styles.goalSheet, { backgroundColor: theme.card }]}><View style={styles.sheetHeader}><ThemedText type="sectionHeading">{goal ? 'Edit Goal' : 'Goal baru'}</ThemedText><Pressable accessibilityRole="button" accessibilityLabel="Tutup form Goal" onPress={onClose}><ThemedText type="subtitle" themeColor="muted">×</ThemedText></Pressable></View><ThemedText type="small" themeColor="muted">Progress Goal selalu mengikuti saldo Wallet tabungan.</ThemedText><ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>NAMA GOAL</ThemedText><TextInput accessibilityLabel="Nama Goal" placeholder="Mis. Dana Nikah" placeholderTextColor={theme.muted} value={name} onChangeText={setName} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} /><ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>TARGET NOMINAL</ThemedText><TextInput accessibilityLabel="Target Goal" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={target} onChangeText={setTarget} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} /><ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>WALLET GOAL</ThemedText><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.goalWallets}>{wallets.map((wallet) => <Pressable key={wallet.id} accessibilityRole="button" accessibilityLabel={`Wallet Goal ${wallet.name}`} onPress={() => setWalletId(wallet.id)} style={[styles.goalWallet, { borderColor: walletId === wallet.id ? theme.pine : theme.line, backgroundColor: walletId === wallet.id ? theme.mint : theme.card }]}><ThemedText type="smallBold">{wallet.name}</ThemedText><ThemedText type="small" themeColor="muted">{formatMoney(wallet.balance)}</ThemedText></Pressable>)}</ScrollView><ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>TANGGAL TARGET <ThemedText type="small" themeColor="muted">(opsional)</ThemedText></ThemedText><TextInput accessibilityLabel="Tanggal target Goal" placeholder="YYYY-MM-DD" placeholderTextColor={theme.muted} value={targetDate} onChangeText={setTargetDate} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} /><ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>KONTRIBUSI BULANAN</ThemedText><TextInput accessibilityLabel="Kontribusi bulanan Goal" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={monthly} onChangeText={setMonthly} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} /><Pressable accessibilityRole="button" accessibilityLabel="Simpan Goal" onPress={submit} style={[styles.saveGoal, { backgroundColor: theme.pine }]}><ThemedText type="smallBold" style={{ color: theme.heroText }}>{goal ? 'Simpan perubahan' : 'Simpan Goal'}</ThemedText></Pressable></View></Pressable></Modal>;
+  const submit = () => { const targetAmount = parseMoneyInput(target); if (!name.trim() || !walletId || !targetAmount || targetAmount < 1) return; void onSave({ name: name.trim(), targetAmount, targetDate: targetDate.trim() || null, walletId, monthlyContribution: parseMoneyInput(monthly) || 0 }); };
+  return (
+    <Modal transparent animationType="slide" visible onRequestClose={onClose}>
+      <Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={onClose}>
+        <KeyboardAvoidingView style={styles.sheetKeyboard} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
+          <View style={[styles.goalSheet, { backgroundColor: theme.card }]}>
+            <View style={styles.sheetHeader}>
+              <ThemedText type="sectionHeading">{goal ? 'Edit Goal' : 'Goal baru'}</ThemedText>
+              <Pressable accessibilityRole="button" accessibilityLabel="Tutup form Goal" onPress={onClose}><ThemedText type="subtitle" themeColor="muted">×</ThemedText></Pressable>
+            </View>
+            <ScrollView style={styles.sheetScroll} contentContainerStyle={styles.goalSheetContent} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
+              <ThemedText type="small" themeColor="muted">Progress Goal selalu mengikuti saldo Wallet tabungan.</ThemedText>
+              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>NAMA GOAL</ThemedText>
+              <TextInput accessibilityLabel="Nama Goal" placeholder="Mis. Dana Nikah" placeholderTextColor={theme.muted} value={name} onChangeText={setName} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} />
+              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>TARGET NOMINAL</ThemedText>
+              <TextInput accessibilityLabel="Target Goal" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={target} onChangeText={(value) => setTarget(formatMoneyInput(value))} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} />
+              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>WALLET GOAL</ThemedText>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.goalWallets}>{wallets.map((wallet) => <Pressable key={wallet.id} accessibilityRole="button" accessibilityLabel={`Wallet Goal ${wallet.name}`} onPress={() => setWalletId(wallet.id)} style={[styles.goalWallet, { borderColor: walletId === wallet.id ? theme.pine : theme.line, backgroundColor: walletId === wallet.id ? theme.mint : theme.card }]}><ThemedText type="smallBold">{wallet.name}</ThemedText><ThemedText type="small" themeColor="muted">{formatMoney(wallet.balance)}</ThemedText></Pressable>)}</ScrollView>
+              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>TANGGAL TARGET <ThemedText type="small" themeColor="muted">(opsional)</ThemedText></ThemedText>
+              <TextInput accessibilityLabel="Tanggal target Goal" placeholder="YYYY-MM-DD" placeholderTextColor={theme.muted} value={targetDate} onChangeText={setTargetDate} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} />
+              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>KONTRIBUSI BULANAN</ThemedText>
+              <TextInput accessibilityLabel="Kontribusi bulanan Goal" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={monthly} onChangeText={(value) => setMonthly(formatMoneyInput(value))} style={[styles.goalInput, { borderBottomColor: theme.line, color: theme.ink }]} />
+              <Pressable accessibilityRole="button" accessibilityLabel="Simpan Goal" onPress={submit} style={[styles.saveGoal, { backgroundColor: theme.pine }]}><ThemedText type="smallBold" style={{ color: theme.heroText }}>{goal ? 'Simpan perubahan' : 'Simpan Goal'}</ThemedText></Pressable>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Pressable>
+    </Modal>
+  );
 }
 
 function PlanItem({ item, category, state, action, color, theme, onAction, onEdit, onDelete }: { item: BudgetPlanItem; category?: Category; state?: PlanItemState; action: string; color: string; theme: ReturnType<typeof useTheme>; onAction: (item: BudgetPlanItem) => void; onEdit: () => void; onDelete?: (item: BudgetPlanItem) => void | Promise<void> }) {
@@ -193,8 +245,11 @@ const styles = StyleSheet.create({
   goalStatus: { fontSize: 10, lineHeight: 14 },
   emptyGoal: { paddingVertical: 16 },
   overlay: { flex: 1, justifyContent: 'flex-end' },
+  sheetKeyboard: { flex: 1, justifyContent: 'flex-end' },
+  sheetScroll: { flexGrow: 1 },
+  goalSheetContent: { gap: 8, paddingBottom: 4 },
   sheet: { borderTopLeftRadius: 27, borderTopRightRadius: 27, gap: 8, padding: 21 },
-  goalSheet: { borderTopLeftRadius: 27, borderTopRightRadius: 27, gap: 8, padding: 21 },
+  goalSheet: { borderTopLeftRadius: 27, borderTopRightRadius: 27, gap: 8, maxHeight: '90%', padding: 21 },
   sheetHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
   sheetOption: { borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: 15 },
   fieldLabel: { ...Typography.eyebrow, marginTop: 8 },

@@ -4,5 +4,5 @@ Model murah:
 
 Model sedang:
 
-- [x] Initial saldo dan koreksi saldo sudah memiliki jejak ledger sesuai ADR-0005: saldo awal tetap menjadi saldo awal Wallet, sedangkan perubahan saldo menjadi transaksi penyesuaian bertanda positif/negatif.
+- [x] Initial saldo dan koreksi saldo memiliki jejak ledger: saldo bertambah menjadi transaksi income, sedangkan saldo berkurang menjadi transaksi expense.
 - [ ] Polish UI UX keseluruhan

@@ -83,4 +83,15 @@ describe('TransactionForm', () => {
     expect(getByText('Tujuan Wallet Goal terkunci')).toBeTruthy();
     expect(getAllByText('Dana Nikah').length).toBeGreaterThan(0);
   });
+
+  it('menyimpan biaya admin opsional pada Transfer', async () => {
+    const onSave = jest.fn();
+    const { getByLabelText } = await render(<TransactionForm mode="create" initialType="transfer" wallets={mockData.wallets} onClose={jest.fn()} onSave={onSave} />);
+
+    await fireEvent.changeText(getByLabelText('Nominal transaksi'), '100000');
+    await fireEvent.changeText(getByLabelText('Biaya admin transfer'), '2500');
+    await fireEvent.press(getByLabelText('Simpan Transaksi'));
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ type: 'transfer', amount: 100000, adminFee: 2500 }));
+  });
 });

@@ -18,6 +18,7 @@ describe('mockData', () => {
     const transfer = mockData.transactions.find((transaction) => transaction.type === 'transfer');
     expect(transfer?.walletId).toBe('wallet-bca');
     expect(transfer?.toWalletId).toBe('wallet-dana-nikah');
+    expect(mockData.categories.some((category) => category.name === 'Saldo Awal')).toBe(true);
 
     const adjustment = mockData.transactions.find((transaction) => transaction.type === 'adjustment');
     expect(adjustment?.categoryId).toBe('category-penyesuaian');

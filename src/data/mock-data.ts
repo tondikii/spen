@@ -59,6 +59,7 @@ export const mockData = {
     { id: 'category-internet', name: 'Internet', type: 'expense', icon: '◈', archived: false, isAdjustment: false },
     { id: 'category-hiburan', name: 'Hiburan', type: 'expense', icon: '♪', archived: false, isAdjustment: false },
     { id: 'category-transfer', name: 'Transfer', type: 'transfer', icon: '⇄', archived: false, isAdjustment: false },
+    { id: 'category-saldo-awal', name: 'Saldo Awal', type: 'income', icon: '↺', archived: false, isAdjustment: true },
     { id: 'category-penyesuaian', name: 'Penyesuaian Saldo', type: 'expense', icon: '±', archived: false, isAdjustment: true },
   ],
   transactions: [
@@ -243,7 +244,7 @@ export const mockData = {
   ],
   settings: {
     currency: 'IDR',
-    themeMode: 'system',
+    themeMode: 'light',
   },
   budgetSnapshot: {
     totalIncome: 6500000,

@@ -11,6 +11,7 @@ export const DEFAULT_CATEGORIES = [
   { name: 'Internet', type: 'expense', icon: '◈', isAdjustment: 0 },
   { name: 'Hiburan', type: 'expense', icon: '♫', isAdjustment: 0 },
   { name: 'Transfer', type: 'transfer', icon: '⇄', isAdjustment: 0 },
+  { name: 'Saldo Awal', type: 'income', icon: '↺', isAdjustment: 1 },
   { name: 'Penyesuaian Saldo', type: 'expense', icon: '±', isAdjustment: 1 },
 ] as const;
 
@@ -36,7 +37,7 @@ export async function seedDefaultCategories(database: SQLiteDatabase) {
   const setting = await database.getFirstAsync<{ id: number }>('SELECT id FROM settings WHERE id = 1 LIMIT 1;');
   if (!setting) {
     await database.runAsync(
-      `INSERT INTO settings (id, currency, theme_mode, budget_start_day) VALUES (1, 'IDR', 'system', 1);`,
+      `INSERT INTO settings (id, currency, theme_mode, budget_start_day) VALUES (1, 'IDR', 'light', 1);`,
     );
   }
 }

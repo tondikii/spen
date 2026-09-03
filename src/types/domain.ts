@@ -35,9 +35,12 @@ export type Transaction = {
   toWalletId: string | null;
   categoryId: string | null;
   amount: number;
+  adminFee?: number;
   date: string;
   time: string;
   note: string;
+  isInitial?: boolean;
+  isAdjustment?: boolean;
 };
 
 export type TransactionDraft = Omit<Transaction, 'id'>;

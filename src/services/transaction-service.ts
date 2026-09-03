@@ -73,6 +73,9 @@ type DatabaseTransactionRow = {
   date: string;
   time: string;
   note: string | null;
+  admin_fee: number;
+  is_initial: number;
+  is_adjustment: number;
 };
 
 function databaseId(value: string | null) {
@@ -93,21 +96,28 @@ function fromDatabaseTransaction(row: DatabaseTransactionRow): Transaction {
     date: row.date,
     time: row.time,
     note: row.note ?? '',
+    adminFee: row.admin_fee ?? 0,
+    isInitial: Boolean(row.is_initial),
+    isAdjustment: Boolean(row.is_adjustment),
   };
 }
 
 export async function getDatabaseTransactions(database: SQLiteDatabase): Promise<Transaction[]> {
   const rows = await database.getAllAsync<DatabaseTransactionRow>(
-    `SELECT id, type, wallet_id, to_wallet_id, category_id, amount, date, time, note
-     FROM transactions ORDER BY date DESC, time DESC, id DESC;`,
+    `SELECT t.id, t.type, t.wallet_id, t.to_wallet_id, t.category_id, t.amount, t.date, t.time, t.note, t.admin_fee,
+            t.is_initial, COALESCE(c.is_adjustment, 0) AS is_adjustment
+     FROM transactions t LEFT JOIN categories c ON c.id = t.category_id
+     ORDER BY t.date DESC, t.time DESC, t.id DESC;`,
   );
   return rows.map(fromDatabaseTransaction);
 }
 
 export async function getDatabaseTransaction(database: SQLiteDatabase, transactionId: string): Promise<Transaction | null> {
   const row = await database.getFirstAsync<DatabaseTransactionRow>(
-    `SELECT id, type, wallet_id, to_wallet_id, category_id, amount, date, time, note
-     FROM transactions WHERE id = ? LIMIT 1;`,
+    `SELECT t.id, t.type, t.wallet_id, t.to_wallet_id, t.category_id, t.amount, t.date, t.time, t.note, t.admin_fee,
+            t.is_initial, COALESCE(c.is_adjustment, 0) AS is_adjustment
+     FROM transactions t LEFT JOIN categories c ON c.id = t.category_id
+     WHERE t.id = ? LIMIT 1;`,
     databaseId(transactionId),
   );
   return row ? fromDatabaseTransaction(row) : null;
@@ -143,6 +153,8 @@ function validateDraft(draft: TransactionDraft) {
   if (draft.type === 'transfer' && (!draft.toWalletId || draft.toWalletId === draft.walletId)) {
     throw new Error('Transfer membutuhkan dua Wallet yang berbeda');
   }
+  if (!Number.isSafeInteger(draft.adminFee ?? 0) || (draft.adminFee ?? 0) < 0) throw new Error('Biaya admin harus berupa angka bulat positif');
+  if (draft.type !== 'transfer' && (draft.adminFee ?? 0) !== 0) throw new Error('Biaya admin hanya berlaku untuk Transfer');
 }
 
 async function resolveCategoryId(database: SQLiteDatabase, draft: TransactionDraft) {
@@ -164,8 +176,8 @@ export async function saveDatabaseTransaction(database: SQLiteDatabase, draft: T
       await connection.runAsync('DELETE FROM transactions WHERE id = ?;', id);
     }
     const result = await connection.runAsync(
-      `INSERT INTO transactions (type, wallet_id, to_wallet_id, category_id, amount, date, time, note)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+      `INSERT INTO transactions (type, wallet_id, to_wallet_id, category_id, amount, date, time, note, admin_fee)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       draft.type,
       databaseId(draft.walletId),
       draft.type === 'transfer' ? databaseId(draft.toWalletId) : null,
@@ -174,6 +186,7 @@ export async function saveDatabaseTransaction(database: SQLiteDatabase, draft: T
       draft.date,
       draft.time,
       draft.note.trim() || null,
+      draft.type === 'transfer' ? draft.adminFee ?? 0 : 0,
     );
     return result.lastInsertRowId;
   });

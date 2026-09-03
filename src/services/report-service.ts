@@ -35,7 +35,7 @@ export async function getDatabaseReportView(database: SQLiteDatabase, rangeMonth
     database.getAllAsync<PeriodRow>('SELECT id, start_date, end_date, duration_months FROM budget_periods ORDER BY start_date DESC, id DESC LIMIT ?;', Math.max(1, Math.trunc(rangeMonths))),
   ]);
   const categoryMap = new Map(categories.map((category) => [category.id, category]));
-  const activeTransactions = transactions.filter((transaction) => transaction.date >= period.startDate && transaction.date <= period.endDate);
+  const activeTransactions = transactions.filter((transaction) => transaction.date >= period.startDate && transaction.date <= period.endDate && !transaction.isAdjustment);
   const expenses = [...new Map(activeTransactions.filter((transaction) => transaction.type === 'expense' && transaction.categoryId).map((transaction) => {
     const category = categoryMap.get(transaction.categoryId!);
     return [transaction.categoryId!, { categoryId: transaction.categoryId!, name: category?.name ?? 'Kategori', icon: category?.icon ?? '◇', amount: 0 }];
@@ -44,7 +44,7 @@ export async function getDatabaseReportView(database: SQLiteDatabase, rangeMonth
     if (transaction.type === 'income') totals.income += transaction.amount;
     if (transaction.type === 'expense') totals.expense += transaction.amount;
     if (transaction.type === 'transfer' && transaction.toWalletId) totals.transferIn += transaction.amount;
-    if (transaction.type === 'transfer' && transaction.walletId) totals.transferOut += transaction.amount;
+    if (transaction.type === 'transfer' && transaction.walletId) totals.transferOut += transaction.amount + (transaction.adminFee ?? 0);
     return totals;
   }, { income: 0, expense: 0, transferIn: 0, transferOut: 0 });
   const totals = totalsFor(period);
@@ -54,7 +54,7 @@ export async function getDatabaseReportView(database: SQLiteDatabase, rangeMonth
 }
 
 function activeTransactionsFor(transactions: Awaited<ReturnType<typeof getDatabaseTransactions>>, period: BudgetPeriod) {
-  return transactions.filter((transaction) => transaction.date >= period.startDate && transaction.date <= period.endDate);
+  return transactions.filter((transaction) => transaction.date >= period.startDate && transaction.date <= period.endDate && !transaction.isAdjustment);
 }
 
 export function getReportNetSavingLabel(netSaving: number) {

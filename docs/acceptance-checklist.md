@@ -32,7 +32,7 @@ Checklist ini memetakan 48 user story pada `docs/spec.md` ke implementasi yang a
 | 23 | ✅ | Pencatatan transaksi Expense berkategori. |
 | 24 | ✅ | Wallet dipilih eksplisit di form transaksi. |
 | 25 | ✅ | Tap transaksi membuka form edit yang sama; hapus memakai konfirmasi. |
-| 26 | ✅ | Saldo berasal dari saldo awal + ledger; koreksi menghasilkan transaksi adjustment. |
+| 26 | ✅ | Saldo awal menghasilkan transaksi income/expense kategori Saldo Awal, Pendapatan di Plan menghitung semua transaksi income, sedangkan koreksi saldo memakai kategori Penyesuaian Saldo. |
 | 26a | ✅ | Hero Rencana memakai SALDO TERSEDIA bersama dengan Home/Report dan memecah bebas/terikat Goal. |
 | 27 | ✅ | Wallet bertransaksi di-archive, bukan dihapus. |
 | 28 | ✅ | Warning over-budget tetap mengizinkan penyimpanan. |

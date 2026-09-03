@@ -1,80 +1,350 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {useState} from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
+import {SafeAreaView} from "react-native-safe-area-context";
 
-import { Fonts, Radius, Typography } from '@/constants/theme';
-import type { CurrencyCode } from '@/types/domain';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useTheme } from '@/hooks/use-theme';
+import {ThemedText} from "@/components/themed-text";
+import {ThemedView} from "@/components/themed-view";
+import {Fonts, Radius, Spacing, Typography} from "@/constants/theme";
+import {useTheme} from "@/hooks/use-theme";
+import {formatMoneyInput, parseMoneyInput} from "@/lib/money-input";
+import type {SetupWalletDraft} from "@/services/setup-service";
+import type {CurrencyCode} from "@/types/domain";
 
-export function SetupWizard({ onComplete }: { onComplete: (walletName: string, initialBalance: number, currency: CurrencyCode) => void }) {
+export function SetupWizard({
+  onComplete,
+}: {
+  onComplete: (wallets: SetupWalletDraft[], currency: CurrencyCode) => void;
+}) {
   const theme = useTheme();
   const [step, setStep] = useState(0);
-  const [walletName, setWalletName] = useState('');
-  const [balance, setBalance] = useState('');
-  const [currency, setCurrency] = useState<CurrencyCode>('IDR');
+  const [wallets, setWallets] = useState([{name: "", balance: ""}]);
+  const [currency, setCurrency] = useState<CurrencyCode>("IDR");
 
   const next = () => {
     if (step < 2) setStep((current) => current + 1);
-    else onComplete(walletName.trim() || 'Wallet utama', Number(balance) || 0, currency);
+    else
+      onComplete(
+        wallets.map((wallet, index) => ({
+          name:
+            wallet.name.trim() ||
+            (index === 0 ? "Wallet utama" : `Wallet ${index + 1}`),
+          initialBalance: parseMoneyInput(wallet.balance),
+        })),
+        currency,
+      );
   };
 
   return (
     <ThemedView style={styles.page}>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.top}>
-          <ThemedText type="code" themeColor="muted">SPEN</ThemedText>
-          <ThemedText type="code" themeColor="muted">{step + 1}/3</ThemedText>
-        </View>
-        <View style={styles.dots}>
-          {[0, 1, 2].map((dot) => <View key={dot} style={[styles.dot, { backgroundColor: dot <= step ? theme.pine : theme.line }]} />)}
-        </View>
-        {step === 0 && <View>
-          <ThemedText style={[styles.orb, { backgroundColor: theme.mint, color: theme.pine }]}>✦</ThemedText>
-          <ThemedText type="title" style={styles.title}>SPEN, RUANG UNTUK UANGMU</ThemedText>
-          <ThemedText type="small" themeColor="muted" style={styles.lead}>Rencanakan uangmu dengan lebih lega, satu langkah kecil setiap hari.</ThemedText>
-        </View>}
-        {step === 1 && <View>
-          <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>WALLET PERTAMA</ThemedText>
-          <ThemedText type="title" style={styles.title}>Uangmu tinggal di mana?</ThemedText>
-          <ThemedText type="small" themeColor="muted" style={styles.lead}>Bisa Tunai, BCA, atau wallet apa pun yang kamu pakai.</ThemedText>
-          <ThemedText type="code" themeColor="muted">NAMA WALLET</ThemedText>
-          <TextInput accessibilityLabel="Nama wallet pertama" placeholder="Mis. Tunai" placeholderTextColor={theme.muted} value={walletName} onChangeText={setWalletName} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink }]} />
-          <ThemedText type="code" themeColor="muted" style={styles.balanceLabel}>SALDO AWAL</ThemedText>
-          <TextInput accessibilityLabel="Saldo awal wallet pertama" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={balance} onChangeText={setBalance} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink }]} />
-        </View>}
-        {step === 2 && <View>
-          <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>PREFERENSI</ThemedText>
-          <ThemedText type="title" style={styles.title}>Pilih mata uang</ThemedText>
-          <ThemedText type="small" themeColor="muted" style={styles.lead}>Nilai tidak dikonversi, hanya cara tampilnya yang berubah.</ThemedText>
-          <View style={styles.currencyGrid}>
-            {(['IDR', 'USD', 'SGD', 'MYR'] as CurrencyCode[]).map((option) => <Pressable key={option} accessibilityRole="button" accessibilityLabel={`Pilih mata uang ${option}`} onPress={() => setCurrency(option)} style={[styles.currency, { borderColor: currency === option ? theme.pine : theme.line, backgroundColor: currency === option ? theme.mint : theme.card }]}>
-              <ThemedText type="smallBold" themeColor={currency === option ? 'pine' : 'ink'}>{option}</ThemedText>
-            </Pressable>)}
-          </View>
-        </View>}
-        <Pressable accessibilityRole="button" accessibilityLabel={step === 2 ? 'Masuk ke Spen' : 'Lanjut'} onPress={next} style={[styles.primary, { backgroundColor: theme.pine }]}>
-          <ThemedText type="smallBold" style={{ color: theme.heroText }}>{step === 0 ? 'Mulai perlahan' : step === 1 ? 'Lanjut' : 'Masuk ke Spen'} <ThemedText style={{ color: theme.heroText }}>→</ThemedText></ThemedText>
-        </Pressable>
-      </SafeAreaView>
+      <KeyboardAvoidingView
+        style={styles.safeArea}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView
+            contentContainerStyle={styles.screenContent}
+            keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets
+            keyboardDismissMode="interactive"
+          >
+            <View style={styles.top}>
+              <ThemedText type="code" themeColor="muted">
+                SPEN
+              </ThemedText>
+              <ThemedText type="code" themeColor="muted">
+                {step + 1}/3
+              </ThemedText>
+            </View>
+            <View style={styles.dots}>
+              {[0, 1, 2].map((dot) => (
+                <View
+                  key={dot}
+                  style={[
+                    styles.dot,
+                    {backgroundColor: dot <= step ? theme.pine : theme.line},
+                  ]}
+                />
+              ))}
+            </View>
+            {step === 0 && (
+              <View>
+                <ThemedText
+                  style={[
+                    styles.orb,
+                    {backgroundColor: theme.mint, color: theme.pine},
+                  ]}
+                >
+                  ✦
+                </ThemedText>
+                <ThemedText type="title" style={styles.title}>
+                  SPEN, RUANG UNTUK UANGMU
+                </ThemedText>
+                <ThemedText type="small" themeColor="muted" style={styles.lead}>
+                  Rencanakan uangmu dengan lebih lega, satu langkah kecil setiap
+                  hari.
+                </ThemedText>
+              </View>
+            )}
+            {step === 1 && (
+              <View style={styles.walletStep}>
+                <ThemedText
+                  type="code"
+                  themeColor="muted"
+                  style={styles.eyebrow}
+                >
+                  WALLET PERTAMA
+                </ThemedText>
+                <ThemedText type="title" style={styles.title}>
+                  Uangmu tinggal di mana?
+                </ThemedText>
+                <ThemedText type="small" themeColor="muted" style={styles.lead}>
+                  Bisa Tunai, BCA, atau wallet apa pun yang kamu pakai.
+                </ThemedText>
+                <ScrollView
+                  style={styles.walletList}
+                  contentContainerStyle={styles.walletListContent}
+                  keyboardShouldPersistTaps="handled"
+                  automaticallyAdjustKeyboardInsets
+                  keyboardDismissMode="interactive"
+                >
+                  {wallets.map((wallet, index) => (
+                    <View key={index} style={[styles.walletItem]}>
+                      {index > 0 && (
+                        <View style={styles.walletItemActions}>
+                          <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={`Hapus wallet ${index + 1}`}
+                            onPress={() =>
+                              setWallets((current) =>
+                                current.filter(
+                                  (_, itemIndex) => itemIndex !== index,
+                                ),
+                              )
+                            }
+                            hitSlop={8}
+                          >
+                            <ThemedText
+                              type="smallBold"
+                              style={{color: theme.expense}}
+                            >
+                              Hapus
+                            </ThemedText>
+                          </Pressable>
+                        </View>
+                      )}
+                      <ThemedText type="code" themeColor="muted">
+                        NAMA WALLET
+                      </ThemedText>
+                      <TextInput
+                        accessibilityLabel={
+                          index === 0
+                            ? "Nama wallet pertama"
+                            : `Nama wallet ${index + 1}`
+                        }
+                        placeholder="Mis. Tunai"
+                        placeholderTextColor={theme.muted}
+                        value={wallet.name}
+                        onChangeText={(name) =>
+                          setWallets((current) =>
+                            current.map((item, itemIndex) =>
+                              itemIndex === index ? {...item, name} : item,
+                            ),
+                          )
+                        }
+                        style={[
+                          styles.input,
+                          {borderBottomColor: theme.line, color: theme.ink},
+                        ]}
+                      />
+                      <ThemedText
+                        type="code"
+                        themeColor="muted"
+                        style={styles.balanceLabel}
+                      >
+                        SALDO AWAL
+                      </ThemedText>
+                      <TextInput
+                        accessibilityLabel={
+                          index === 0
+                            ? "Saldo awal wallet pertama"
+                            : `Saldo awal wallet ${index + 1}`
+                        }
+                        keyboardType="numeric"
+                        placeholder="0"
+                        placeholderTextColor={theme.muted}
+                        value={wallet.balance}
+                        onChangeText={(balance) =>
+                          setWallets((current) =>
+                            current.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? {...item, balance: formatMoneyInput(balance)}
+                                : item,
+                            ),
+                          )
+                        }
+                        style={[
+                          styles.input,
+                          {borderBottomColor: theme.line, color: theme.ink},
+                        ]}
+                      />
+                    </View>
+                  ))}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Tambah Wallet"
+                    onPress={() =>
+                      setWallets((current) => [
+                        ...current,
+                        {name: "", balance: ""},
+                      ])
+                    }
+                    style={[styles.addWallet, {borderBottomColor: theme.line}]}
+                  >
+                    <ThemedText type="smallBold" themeColor="pine">
+                      + Tambah Wallet
+                    </ThemedText>
+                  </Pressable>
+                </ScrollView>
+              </View>
+            )}
+            {step === 2 && (
+              <View>
+                <ThemedText
+                  type="code"
+                  themeColor="muted"
+                  style={styles.eyebrow}
+                >
+                  PREFERENSI
+                </ThemedText>
+                <ThemedText type="title" style={styles.title}>
+                  Pilih mata uang
+                </ThemedText>
+                <ThemedText type="small" themeColor="muted" style={styles.lead}>
+                  Nilai tidak dikonversi, hanya cara tampilnya yang berubah.
+                </ThemedText>
+                <View style={styles.currencyGrid}>
+                  {(["IDR", "USD", "SGD", "MYR"] as CurrencyCode[]).map(
+                    (option) => (
+                      <Pressable
+                        key={option}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Pilih mata uang ${option}`}
+                        onPress={() => setCurrency(option)}
+                        style={[
+                          styles.currency,
+                          {
+                            borderColor:
+                              currency === option ? theme.pine : theme.line,
+                            backgroundColor:
+                              currency === option ? theme.mint : theme.card,
+                          },
+                        ]}
+                      >
+                        <ThemedText
+                          type="smallBold"
+                          themeColor={currency === option ? "pine" : "ink"}
+                        >
+                          {option}
+                        </ThemedText>
+                      </Pressable>
+                    ),
+                  )}
+                </View>
+              </View>
+            )}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={step === 2 ? "Masuk ke Spen" : "Lanjut"}
+              onPress={next}
+              style={[styles.primary, {backgroundColor: theme.pine}]}
+            >
+              <ThemedText type="smallBold" style={{color: theme.heroText}}>
+                {step === 0
+                  ? "Mulai perlahan"
+                  : step === 1
+                    ? "Lanjut"
+                    : "Masuk ke Spen"}{" "}
+                <ThemedText style={{color: theme.heroText}}>→</ThemedText>
+              </ThemedText>
+            </Pressable>
+          </ScrollView>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  page: { alignSelf: 'center', flex: 1, maxWidth: 430, padding: 21, width: '100%' },
-  safeArea: { flex: 1 },
-  top: { flexDirection: 'row', justifyContent: 'space-between' },
-  dots: { flexDirection: 'row', gap: 5, marginBottom: 32, marginTop: 37 },
-  dot: { borderRadius: Radius.pill, height: 3, width: 29 },
-  orb: { alignItems: 'center', borderRadius: 30, fontFamily: Fonts.serif, fontSize: 39, height: 82, justifyContent: 'center', marginBottom: 29, paddingTop: 18, textAlign: 'center', width: 82 },
-  title: { fontSize: 37, lineHeight: 40, letterSpacing: -1.48 },
-  lead: { fontSize: 14, lineHeight: 22, marginBottom: 36, marginTop: 17, maxWidth: 290 },
-  eyebrow: { ...Typography.eyebrow, marginBottom: 7 },
-  input: { borderBottomWidth: 1, fontFamily: Fonts.sans, fontSize: 18, minHeight: 52, paddingHorizontal: 0 },
-  balanceLabel: { marginTop: 25 },
-  currencyGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 25, marginTop: 5 },
-  currency: { borderRadius: 17, borderWidth: 1, padding: 14, width: '47%' },
-  primary: { borderRadius: 15, marginTop: 'auto', padding: 15 },
+  page: {
+    alignSelf: "center",
+    flex: 1,
+    maxWidth: 430,
+    padding: 21,
+    width: "100%",
+  },
+  safeArea: {flex: 1},
+  screenContent: {flexGrow: 1, paddingBottom: Spacing.four},
+  top: {flexDirection: "row", justifyContent: "space-between"},
+  dots: {flexDirection: "row", gap: 5, marginBottom: 32, marginTop: 37},
+  dot: {borderRadius: Radius.pill, height: 3, width: 29},
+  orb: {
+    alignItems: "center",
+    borderRadius: 30,
+    fontFamily: Fonts.serif,
+    fontSize: 39,
+    height: 82,
+    justifyContent: "center",
+    marginBottom: 29,
+    paddingTop: 18,
+    textAlign: "center",
+    width: 82,
+  },
+  title: {fontSize: 37, lineHeight: 40, letterSpacing: -1.48},
+  lead: {
+    fontSize: 14,
+    lineHeight: 22,
+    marginBottom: 36,
+    marginTop: 17,
+    maxWidth: 290,
+  },
+  walletList: {maxHeight: 350},
+  walletListContent: {paddingBottom: Spacing.two},
+  walletStep: {flex: 1},
+  walletItem: {paddingBottom: 16, paddingTop: 12},
+  walletItemActions: {
+    alignItems: "flex-end",
+    marginBottom: 6,
+  },
+  addWallet: {
+    alignItems: "center",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 15,
+  },
+  eyebrow: {...Typography.eyebrow, marginBottom: 7},
+  input: {
+    borderBottomWidth: 1,
+    fontFamily: Fonts.sans,
+    fontSize: 18,
+    minHeight: 52,
+    paddingHorizontal: 0,
+  },
+  balanceLabel: {marginTop: 25},
+  currencyGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 25,
+    marginTop: 5,
+  },
+  currency: {borderRadius: 17, borderWidth: 1, padding: 14, width: "47%"},
+  primary: {borderRadius: 15, marginTop: "auto", padding: 15},
 });

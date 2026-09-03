@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import {
   Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,6 +18,7 @@ import { FinanceHeroCard } from '@/components/finance-hero-card';
 import { BottomTabInset, Fonts, Layout, MaxContentWidth, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import type { BudgetPeriod, Category, MockBudgetSnapshot, Transaction, Wallet, WalletTint } from '@/types/domain';
 import { formatMoney } from '@/lib/money';
+import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import { useTheme } from '@/hooks/use-theme';
 import { addMockWallet, archiveMockWallet, getHomeRecentTransactions, getHomeSnapshot, getHomeWallets, getTransactionPresentation, getWalletTotal, updateMockWallet } from '@/services/home-service';
 
@@ -139,23 +142,25 @@ function WalletForm(props: WalletFormProps) {
   const theme = useTheme();
   const wallet = props.mode === 'edit' ? props.wallet : undefined;
   const [name, setName] = useState(wallet?.name ?? '');
-  const [amount, setAmount] = useState(wallet ? String(wallet.balance) : '');
+  const [amount, setAmount] = useState(wallet ? formatMoneyInput(wallet.balance) : '');
   return (
     <Modal animationType="slide" visible onRequestClose={props.onClose}>
       <ThemedView style={styles.formPage}>
         <View style={[styles.formHeader, { borderBottomColor: theme.line }]}>
           <Pressable accessibilityRole="button" accessibilityLabel="Tutup form Wallet" onPress={props.onClose} style={styles.headerButton}><ThemedText type="subtitle" themeColor="pine">×</ThemedText></Pressable>
           <ThemedText type="sectionHeading">{props.mode === 'edit' ? 'Edit Wallet' : 'Wallet baru'}</ThemedText>
-          <Pressable accessibilityRole="button" accessibilityLabel="Simpan Wallet" onPress={() => props.onSave(name.trim() || 'Wallet baru', Number(amount) || 0)} style={styles.headerButton}><ThemedText type="smallBold" themeColor="pine">Simpan</ThemedText></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Simpan Wallet" onPress={() => props.onSave(name.trim() || 'Wallet baru', parseMoneyInput(amount))} style={styles.headerButton}><ThemedText type="smallBold" themeColor="pine">Simpan</ThemedText></Pressable>
         </View>
-        <View style={styles.formContent}>
+        <KeyboardAvoidingView style={styles.formBody} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
+        <ScrollView contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
           <ThemedText type="small" themeColor="muted" style={styles.formNote}>Wallet adalah tempat uangmu disimpan.</ThemedText>
           <ThemedText type="code" themeColor="muted" style={styles.formLabel}>NAMA WALLET</ThemedText>
           <TextInput accessibilityLabel="Nama Wallet" placeholder="Mis. Jago, Tunai, GoPay" placeholderTextColor={theme.muted} value={name} onChangeText={setName} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} />
           <ThemedText type="code" themeColor="muted" style={styles.formLabel}>{props.mode === 'edit' ? 'SALDO SAAT INI' : 'SALDO AWAL'}</ThemedText>
-            <TextInput accessibilityLabel={props.mode === 'edit' ? 'Saldo Wallet' : 'Saldo awal'} keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={amount} onChangeText={setAmount} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} />
+            <TextInput accessibilityLabel={props.mode === 'edit' ? 'Saldo Wallet' : 'Saldo awal'} keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={amount} onChangeText={(value) => setAmount(formatMoneyInput(value))} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} />
           {props.mode === 'edit' && <Pressable accessibilityRole="button" accessibilityLabel="Arsipkan Wallet" onPress={props.onArchive} style={[styles.archiveAction, { borderTopColor: theme.line }]}><ThemedText style={[styles.archiveIcon, { backgroundColor: theme.dangerBackground, color: theme.expense }]}>□</ThemedText><View style={styles.archiveCopy}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan Wallet</ThemedText><ThemedText type="small" themeColor="muted">Transaksi tetap tersimpan</ThemedText></View><ThemedText type="subtitle" themeColor="muted">›</ThemedText></Pressable>}
-        </View>
+        </ScrollView>
+        </KeyboardAvoidingView>
       </ThemedView>
     </Modal>
   );
@@ -263,6 +268,7 @@ const styles = StyleSheet.create({
   formPage: { flex: 1 },
   formHeader: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', height: 65, justifyContent: 'space-between', paddingHorizontal: 20 },
   headerButton: { alignItems: 'center', height: 44, justifyContent: 'center', minWidth: 56 },
+  formBody: { flex: 1 },
   formContent: { gap: Spacing.two, paddingHorizontal: 21, paddingVertical: 24 },
   formNote: { fontSize: 12, lineHeight: 18, marginBottom: Spacing.five },
   archiveAction: { alignItems: 'center', borderTopWidth: 1, flexDirection: 'row', gap: 12, marginTop: Spacing.five, paddingHorizontal: 3, paddingTop: Spacing.four },

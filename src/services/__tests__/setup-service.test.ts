@@ -42,23 +42,48 @@ describe('setup service', () => {
   it('reports an incomplete setup without wallets and persists the first wallet plus currency', async () => {
     await expect(getSetupState(database)).resolves.toEqual({ hasWallet: false, currency: 'IDR' });
 
-    await completeSetup(database, 'BCA', 2_000_000, 'USD');
+    await completeSetup(database, [{ name: 'BCA', initialBalance: 2_000_000 }], 'USD');
 
     await expect(getSetupState(database)).resolves.toEqual({ hasWallet: true, currency: 'USD' });
     await expect(getWallets(database)).resolves.toEqual([expect.objectContaining({ name: 'BCA', balance: 2_000_000 })]);
+    expect(await database.getFirstAsync<{ category_name: string }>(
+      `SELECT c.name AS category_name
+       FROM transactions t
+       JOIN categories c ON c.id = t.category_id
+       WHERE t.wallet_id = 1;`,
+    )).toEqual({ category_name: 'Saldo Awal' });
     expect(getSelectedCurrency()).toBe('USD');
   });
 
   it('does not create a second initial wallet when setup is submitted again', async () => {
-    await completeSetup(database, 'Tunai', 100, 'IDR');
-    await expect(completeSetup(database, 'BCA', 200, 'USD')).rejects.toThrow('Setup sudah selesai');
+    await completeSetup(database, [{ name: 'Tunai', initialBalance: 100 }], 'IDR');
+    await expect(completeSetup(database, [{ name: 'BCA', initialBalance: 200 }], 'USD')).rejects.toThrow('Setup sudah selesai');
     expect((await getWallets(database)).map((wallet) => wallet.name)).toEqual(['Tunai']);
   });
 
   it('persists a later currency selection without changing any amount', async () => {
-    await completeSetup(database, 'Tunai', 500, 'IDR');
+    await completeSetup(database, [{ name: 'Tunai', initialBalance: 500 }], 'IDR');
     await setDatabaseCurrency(database, 'SGD');
     await expect(getDatabaseSettings(database)).resolves.toMatchObject({ currency: 'SGD' });
-    expect(await database.getFirstAsync<{ initial_balance: number }>('SELECT initial_balance FROM wallets WHERE id = 1;')).toEqual({ initial_balance: 500 });
+    expect(await database.getFirstAsync<{ type: string; amount: number; is_initial: number }>('SELECT type, amount, is_initial FROM transactions WHERE wallet_id = 1;')).toEqual({ type: 'income', amount: 500, is_initial: 1 });
+  });
+
+  it('menyimpan semua Wallet onboarding beserta saldo awalnya secara atomik', async () => {
+    await completeSetup(database, [
+      { name: 'BCA', initialBalance: 2_000_000 },
+      { name: 'Tunai', initialBalance: 500_000 },
+    ], 'IDR');
+
+    await expect(getWallets(database)).resolves.toEqual([
+      expect.objectContaining({ name: 'BCA', balance: 2_000_000 }),
+      expect.objectContaining({ name: 'Tunai', balance: 500_000 }),
+    ]);
+    expect(await database.getAllAsync<{ category_name: string }>(
+      `SELECT c.name AS category_name
+       FROM transactions t
+       JOIN categories c ON c.id = t.category_id
+       WHERE t.is_initial = 1 ORDER BY t.id;`,
+    )).toEqual([{ category_name: 'Saldo Awal' }, { category_name: 'Saldo Awal' }]);
+    expect(await database.getFirstAsync<{ count: number }>('SELECT COUNT(*) AS count FROM transactions WHERE is_initial = 1;')).toEqual({ count: 2 });
   });
 });

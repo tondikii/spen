@@ -1,9 +1,10 @@
 import { useContext, useMemo, useState, type ReactNode } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 import { Fonts, Radius, Spacing, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
+import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import type { Category, Transaction, TransactionDraft, TransactionType, Wallet } from '@/types/domain';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -44,7 +45,8 @@ export function TransactionForm({ mode, transaction, initialType, initialCategor
   const [walletId, setWalletId] = useState(transaction?.walletId ?? initialWalletId ?? wallets[0]?.id ?? null);
   const [toWalletId, setToWalletId] = useState(transaction?.toWalletId ?? initialToWalletId ?? wallets[1]?.id ?? wallets[0]?.id ?? null);
   const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? initialCategoryId ?? null);
-  const [amount, setAmount] = useState(transaction ? String(transaction.amount) : initialAmount ? String(initialAmount) : '');
+  const [amount, setAmount] = useState(transaction ? formatMoneyInput(transaction.amount) : formatMoneyInput(initialAmount));
+  const [adminFee, setAdminFee] = useState(formatMoneyInput(transaction?.adminFee ?? ''));
   const [note, setNote] = useState(transaction?.note ?? '');
   const [categories, setCategories] = useState<Category[]>(categoriesProp ?? getActiveTransactionCategories());
   const [categoryEditorOpen, setCategoryEditorOpen] = useState(false);
@@ -57,7 +59,7 @@ export function TransactionForm({ mode, transaction, initialType, initialCategor
     () => getTransactionCategories(categories, selectedCategoryType),
     [categories, selectedCategoryType],
   );
-  const numericAmount = Number(amount.replace(/[^0-9]/g, '')) || 0;
+  const numericAmount = parseMoneyInput(amount);
   const allocationLimit = allocationLimitProp ?? getAllocationLimit(categoryId);
   const overBudget = type === 'expense' && allocationLimit > 0 && numericAmount > allocationLimit;
 
@@ -110,6 +112,7 @@ export function TransactionForm({ mode, transaction, initialType, initialCategor
       toWalletId: type === 'transfer' ? toWalletId : null,
       categoryId: type === 'transfer' ? 'category-transfer' : categoryId,
       amount: numericAmount,
+      adminFee: type === 'transfer' ? parseMoneyInput(adminFee) : 0,
       date: transaction?.date ?? '2026-09-02',
       time: transaction?.time ?? '12:00',
       note: note.trim(),
@@ -134,7 +137,8 @@ export function TransactionForm({ mode, transaction, initialType, initialCategor
         <ThemedText type="sectionHeading">{mode === 'edit' ? 'Edit Transaksi' : 'Tambah Transaksi'}</ThemedText>
         <Pressable accessibilityRole="button" accessibilityLabel={mode === 'edit' ? 'Simpan Perubahan' : 'Simpan Transaksi'} onPress={submit} style={styles.headerButton}><ThemedText type="smallBold" themeColor="pine">{mode === 'edit' ? 'Simpan Perubahan' : 'Simpan'}</ThemedText></Pressable>
       </View>
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 40 + insets.bottom }]} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView style={styles.body} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 40 + insets.bottom }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" automaticallyAdjustKeyboardInsets>
         <ThemedText type="small" themeColor="muted" style={styles.note}>Catat setiap gerak uangmu dengan tenang.</ThemedText>
         <View style={[styles.typeTabs, { borderBottomColor: theme.line }]}>
           {tabs.map((tab) => (
@@ -150,6 +154,8 @@ export function TransactionForm({ mode, transaction, initialType, initialCategor
           <Pressable accessibilityRole="button" accessibilityLabel="Tukar Wallet Transfer" onPress={() => { setWalletId(toWalletId); setToWalletId(walletId); }} style={styles.swap}><ThemedText type="subtitle" themeColor="gold">↕</ThemedText></Pressable>
           <FieldLabel>TRANSFER KE</FieldLabel>
           {lockedToWalletId ? <View style={[styles.lockedWallet, { borderColor: theme.line, backgroundColor: theme.mint }]}><ThemedText type="smallBold">{wallets.find((wallet) => wallet.id === lockedToWalletId)?.name ?? 'Wallet Goal'}</ThemedText><ThemedText type="small" themeColor="muted">Tujuan Wallet Goal terkunci</ThemedText></View> : <WalletPicker wallets={wallets} selected={toWalletId} onSelect={setToWalletId} exclude={walletId} />}
+          <FieldLabel>BIAYA ADMIN <ThemedText type="small" themeColor="muted">(opsional)</ThemedText></FieldLabel>
+          <TextInput accessibilityLabel="Biaya admin transfer" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={adminFee} onChangeText={(value) => setAdminFee(formatMoneyInput(value))} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink }]} />
         </> : <>
           <FieldLabel>WALLET</FieldLabel>
           <WalletPicker wallets={wallets} selected={walletId} onSelect={setWalletId} />
@@ -166,14 +172,15 @@ export function TransactionForm({ mode, transaction, initialType, initialCategor
           </View>}
         </>}
 
-        <FieldLabel>NOMINAL</FieldLabel>
-        <TextInput accessibilityLabel="Nominal transaksi" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={amount} onChangeText={setAmount} style={[styles.amountInput, { borderBottomColor: theme.line, color: theme.ink }]} />
+        <FieldLabel>{type === 'transfer' ? 'NOMINAL TRANSFER' : 'NOMINAL'}</FieldLabel>
+        <TextInput accessibilityLabel="Nominal transaksi" keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={amount} onChangeText={(value) => setAmount(formatMoneyInput(value))} style={[styles.amountInput, { borderBottomColor: theme.line, color: theme.ink }]} />
         {overBudget && <View style={[styles.warning, { backgroundColor: theme.dangerBackground }]}><ThemedText type="small" style={{ color: theme.expense }}>Perlahan ya — ini akan melebihi alokasi, tetapi tetap bisa dicatat.</ThemedText></View>}
         {possibleDuplicate && <View style={[styles.warning, { backgroundColor: theme.transferBackground }]}><ThemedText type="small" style={{ color: theme.gold }}>Transaksi ini mungkin dobel dengan catatan income hari ini.</ThemedText></View>}
         <FieldLabel>CATATAN <ThemedText type="small" themeColor="muted">(opsional)</ThemedText></FieldLabel>
         <TextInput accessibilityLabel="Catatan transaksi" placeholder="Mis. makan siang" placeholderTextColor={theme.muted} value={note} onChangeText={setNote} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink }]} />
         {mode === 'edit' && <Pressable accessibilityRole="button" accessibilityLabel="Hapus Transaksi" onPress={() => Alert.alert('Hapus transaksi?', 'Transaksi ini akan dihapus dari catatan.', [{ text: 'Batal', style: 'cancel' }, { text: 'Hapus', style: 'destructive', onPress: onDelete }])} style={styles.deleteAction}><ThemedText type="smallBold" style={{ color: theme.expense }}>Hapus Transaksi</ThemedText></Pressable>}
       </ScrollView>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }
@@ -189,6 +196,7 @@ function WalletPicker({ wallets, selected, onSelect, exclude }: { wallets: Walle
 
 const styles = StyleSheet.create({
   page: { flex: 1 },
+  body: { flex: 1 },
   header: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', height: 65, justifyContent: 'space-between', paddingHorizontal: 20 },
   headerButton: { alignItems: 'center', height: 44, justifyContent: 'center', minWidth: 64 },
   close: { fontSize: 28, lineHeight: 32 },

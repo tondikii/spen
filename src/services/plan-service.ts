@@ -179,7 +179,7 @@ export async function setBudgetPeriodStartDay(database: SQLiteDatabase, startDay
   let planId = 0;
   await database.withExclusiveTransactionAsync(async (transaction) => {
     const safeStartDay = Math.min(Math.max(Math.trunc(startDay), 1), 28);
-    await transaction.runAsync('INSERT OR IGNORE INTO settings (id, currency, theme_mode, budget_start_day) VALUES (1, \'IDR\', \'system\', ?);', safeStartDay);
+    await transaction.runAsync('INSERT OR IGNORE INTO settings (id, currency, theme_mode, budget_start_day) VALUES (1, \'IDR\', \'light\', ?);', safeStartDay);
     await transaction.runAsync('UPDATE settings SET budget_start_day = ? WHERE id = 1;', safeStartDay);
     const existing = await transaction.getFirstAsync<PeriodRow>('SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date = ? LIMIT 1;', bounds.startDate);
     periodId = existing?.id ?? (await transaction.runAsync(
@@ -208,7 +208,11 @@ export async function getDatabasePlanView(database: SQLiteDatabase, today = date
   const fixedExpenseItems = fixedRows.map((row) => toItem(row, 'fixedExpense')) as FixedExpenseItem[];
   const allocationItems = allocationRows.map((row) => toItem(row, 'allocation')) as AllocationItem[];
   const goals = goalRows.map(toGoal);
-  const periodTransactions = transactions.filter((transaction) => transaction.date >= period.startDate && transaction.date <= period.endDate);
+  const periodTransactions = transactions.filter((transaction) => (
+    transaction.date >= period.startDate
+    && transaction.date <= period.endDate
+    && (transaction.type === 'income' || !transaction.isAdjustment)
+  ));
   const realizedFor = (categoryId: string, type: 'income' | 'expense') => periodTransactions.reduce((sum, transaction) => sum + (transaction.type === type && transaction.categoryId === categoryId ? transaction.amount : 0), 0);
   const itemStates = (items: BudgetPlanItem[], type: 'income' | 'expense') => items.map((item) => {
     const realizedAmount = realizedFor(item.categoryId, type);
@@ -221,7 +225,7 @@ export async function getDatabasePlanView(database: SQLiteDatabase, today = date
   const totalIncome = periodTransactions.reduce((sum, transaction) => sum + (transaction.type === 'income' ? transaction.amount : 0), 0);
   const totalExpense = periodTransactions.reduce((sum, transaction) => sum + (transaction.type === 'expense' ? transaction.amount : 0), 0);
   const totalTransferIn = periodTransactions.reduce((sum, transaction) => sum + (transaction.type === 'transfer' && transaction.toWalletId ? transaction.amount : 0), 0);
-  const totalTransferOut = periodTransactions.reduce((sum, transaction) => sum + (transaction.type === 'transfer' && transaction.walletId ? transaction.amount : 0), 0);
+  const totalTransferOut = periodTransactions.reduce((sum, transaction) => sum + (transaction.type === 'transfer' && transaction.walletId ? transaction.amount + (transaction.adminFee ?? 0) : 0), 0);
   const goalBalances = new Map(goals.map((goal) => [goal.walletId, wallets.find((wallet) => wallet.id === goal.walletId)?.balance ?? 0]));
   const goalBalance = [...goalBalances.values()].reduce((sum, amount) => sum + amount, 0);
   const activeGoalContribution = goals.reduce((sum, goal) => (goalBalances.get(goal.walletId) ?? 0) >= goal.targetAmount ? sum : sum + goal.monthlyContribution, 0);

@@ -7,7 +7,7 @@ export const BACKUP_VERSION = 1;
 
 type WalletRow = { id: number; name: string; initial_balance: number; is_savings: number; archived: number };
 type CategoryRow = { id: number; name: string; type: string; is_adjustment: number; icon: string; archived: number };
-type TransactionRow = { id: number; type: string; wallet_id: number | null; to_wallet_id: number | null; category_id: number | null; amount: number; date: string; time: string; note: string | null };
+type TransactionRow = { id: number; type: string; wallet_id: number | null; to_wallet_id: number | null; category_id: number | null; amount: number; date: string; time: string; note: string | null; is_initial: number; admin_fee: number };
 type BudgetPeriodRow = { id: number; start_date: string; end_date: string; duration_months: number };
 type BudgetPlanRow = { id: number; budget_period_id: number };
 type PlanItemRow = { id: number; budget_plan_id: number; name: string; category_id: number; target_amount: number };
@@ -76,7 +76,7 @@ export async function exportDatabase(database: SQLiteDatabase): Promise<BackupPa
   const [wallets, categories, transactions, budgetPeriods, budgetPlans, incomeItems, fixedExpenseItems, allocationItems, goals, settings] = await Promise.all([
     database.getAllAsync<WalletRow>('SELECT id, name, initial_balance, is_savings, archived FROM wallets ORDER BY id;'),
     database.getAllAsync<CategoryRow>('SELECT id, name, type, is_adjustment, icon, archived FROM categories ORDER BY id;'),
-    database.getAllAsync<TransactionRow>('SELECT id, type, wallet_id, to_wallet_id, category_id, amount, date, time, note FROM transactions ORDER BY id;'),
+    database.getAllAsync<TransactionRow>('SELECT id, type, wallet_id, to_wallet_id, category_id, amount, date, time, note, is_initial, admin_fee FROM transactions ORDER BY id;'),
     database.getAllAsync<BudgetPeriodRow>('SELECT id, start_date, end_date, duration_months FROM budget_periods ORDER BY id;'),
     database.getAllAsync<BudgetPlanRow>('SELECT id, budget_period_id FROM budget_plans ORDER BY id;'),
     database.getAllAsync<PlanItemRow>('SELECT id, budget_plan_id, name, category_id, target_amount FROM income_items ORDER BY id;'),
@@ -99,7 +99,7 @@ async function insertRows(database: SQLiteDatabase, payload: BackupPayload) {
   for (const row of data.fixedExpenseItems) await database.runAsync('INSERT INTO fixed_expense_items (id, budget_plan_id, name, category_id, target_amount) VALUES (?, ?, ?, ?, ?);', row.id, row.budget_plan_id, row.name, row.category_id, row.target_amount);
   for (const row of data.allocationItems) await database.runAsync('INSERT INTO allocation_items (id, budget_plan_id, name, category_id, target_amount) VALUES (?, ?, ?, ?, ?);', row.id, row.budget_plan_id, row.name, row.category_id, row.target_amount);
   for (const row of data.goals) await database.runAsync('INSERT INTO goals (id, name, target_amount, target_date, wallet_id, monthly_contribution, archived) VALUES (?, ?, ?, ?, ?, ?, ?);', row.id, row.name, row.target_amount, row.target_date, row.wallet_id, row.monthly_contribution, row.archived);
-  for (const row of data.transactions) await database.runAsync('INSERT INTO transactions (id, type, wallet_id, to_wallet_id, category_id, amount, date, time, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);', row.id, row.type, row.wallet_id, row.to_wallet_id, row.category_id, row.amount, row.date, row.time, row.note);
+  for (const row of data.transactions) await database.runAsync('INSERT INTO transactions (id, type, wallet_id, to_wallet_id, category_id, amount, date, time, note, is_initial, admin_fee) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);', row.id, row.type, row.wallet_id, row.to_wallet_id, row.category_id, row.amount, row.date, row.time, row.note, row.is_initial ?? 0, row.admin_fee ?? 0);
 }
 
 export async function restoreDatabase(database: SQLiteDatabase, value: BackupPayload | string): Promise<void> {

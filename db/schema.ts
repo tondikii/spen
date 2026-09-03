@@ -29,6 +29,8 @@ export const transactions = sqliteTable('transactions', {
   date: text('date').notNull(),
   time: text('time').notNull().default(''),
   note: text('note'),
+  isInitial: integer('is_initial', { mode: 'boolean' }).notNull().default(false),
+  adminFee: integer('admin_fee').notNull().default(0),
 }, (table) => ({
   dateIndex: index('transactions_date_idx').on(table.date),
   walletIndex: index('transactions_wallet_idx').on(table.walletId),
@@ -96,6 +98,6 @@ export const goals = sqliteTable('goals', {
 export const settings = sqliteTable('settings', {
   id: integer('id').primaryKey(),
   currency: text('currency', { enum: ['IDR', 'USD', 'SGD', 'MYR', 'EUR', 'GBP', 'JPY', 'AUD', 'SAR', 'AED'] }).notNull().default('IDR'),
-  themeMode: text('theme_mode', { enum: ['system', 'light', 'dark'] }).notNull().default('system'),
+  themeMode: text('theme_mode', { enum: ['system', 'light', 'dark'] }).notNull().default('light'),
   budgetStartDay: integer('budget_start_day').notNull().default(1),
 });

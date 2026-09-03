@@ -12,6 +12,8 @@ type WalletRow = {
 };
 
 const TINTS: WalletTint[] = ['coral', 'pine', 'gold', 'goal'];
+const INITIAL_BALANCE_CATEGORY_NAME = 'Saldo Awal';
+const BALANCE_ADJUSTMENT_CATEGORY_NAME = 'Penyesuaian Saldo';
 
 function databaseId(walletId: string | number) {
   const value = typeof walletId === 'number' ? walletId : Number(walletId.replace(/^wallet-/, ''));
@@ -35,14 +37,18 @@ const walletBalanceSql = `
   SELECT
     w.id,
     w.name,
-    w.initial_balance,
+    w.initial_balance + COALESCE(SUM(CASE
+      WHEN t.is_initial = 1 AND t.type = 'income' AND t.wallet_id = w.id THEN t.amount
+      WHEN t.is_initial = 1 AND t.type = 'expense' AND t.wallet_id = w.id THEN -t.amount
+      ELSE 0
+    END), 0) AS initial_balance,
     w.is_savings,
     w.archived,
     w.initial_balance + COALESCE(SUM(CASE
       WHEN t.type = 'income' AND t.wallet_id = w.id THEN t.amount
       WHEN t.type = 'expense' AND t.wallet_id = w.id THEN -t.amount
       WHEN t.type = 'adjustment' AND t.wallet_id = w.id THEN t.amount
-      WHEN t.type = 'transfer' AND t.wallet_id = w.id THEN -t.amount
+      WHEN t.type = 'transfer' AND t.wallet_id = w.id THEN -(t.amount + t.admin_fee)
       WHEN t.type = 'transfer' AND t.to_wallet_id = w.id THEN t.amount
       ELSE 0
     END), 0) AS balance
@@ -63,6 +69,15 @@ async function withExclusiveWrite<T>(database: SQLiteDatabase, action: (connecti
     result = await action(database);
   }
   return result!;
+}
+
+async function getInternalCategoryId(database: SQLiteDatabase, categoryName: string) {
+  const category = await database.getFirstAsync<{ id: number }>(
+    `SELECT id FROM categories WHERE name = ? AND is_adjustment = 1 LIMIT 1;`,
+    categoryName,
+  );
+  if (!category) throw new Error(`Kategori ${categoryName} belum tersedia`);
+  return category.id;
 }
 
 export async function getWallets(database: SQLiteDatabase, includeArchived = false): Promise<Wallet[]> {
@@ -86,12 +101,28 @@ export async function createWallet(database: SQLiteDatabase, name: string, initi
   if (!cleanName) throw new Error('Nama Wallet wajib diisi');
   if (!Number.isSafeInteger(initialBalance)) throw new Error('Saldo awal harus berupa angka bulat');
 
-  const result = await withExclusiveWrite(database, async (connection) => connection.runAsync(
-    `INSERT INTO wallets (name, initial_balance, is_savings, archived) VALUES (?, ?, 0, 0);`,
-    cleanName,
-    initialBalance,
-  ));
-  const wallet = await getWallet(database, result.lastInsertRowId);
+  const walletId = await withExclusiveWrite(database, async (connection) => {
+    const result = await connection.runAsync(
+      `INSERT INTO wallets (name, initial_balance, is_savings, archived) VALUES (?, 0, 0, 0);`,
+      cleanName,
+    );
+    if (initialBalance === 0) return result.lastInsertRowId;
+    const categoryId = await getInternalCategoryId(connection, INITIAL_BALANCE_CATEGORY_NAME);
+    const now = new Date();
+    await connection.runAsync(
+      `INSERT INTO transactions (type, wallet_id, category_id, amount, date, time, note, is_initial)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 1);`,
+      initialBalance > 0 ? 'income' : 'expense',
+      result.lastInsertRowId,
+      categoryId,
+      Math.abs(initialBalance),
+      now.toISOString().slice(0, 10),
+      now.toTimeString().slice(0, 5),
+      'Saldo awal Wallet',
+    );
+    return result.lastInsertRowId;
+  });
+  const wallet = await getWallet(database, walletId);
   if (!wallet) throw new Error('Wallet gagal dibuat');
   return wallet;
 }
@@ -115,17 +146,15 @@ export async function updateWallet(
       if (!Number.isSafeInteger(targetBalance)) throw new Error('Saldo Wallet harus berupa angka bulat');
       const delta = targetBalance - current.balance;
       if (delta !== 0) {
-        const category = await connection.getFirstAsync<{ id: number }>(
-          `SELECT id FROM categories WHERE is_adjustment = 1 LIMIT 1;`,
-        );
-        if (!category) throw new Error('Kategori Penyesuaian Saldo belum tersedia');
+        const categoryId = await getInternalCategoryId(connection, BALANCE_ADJUSTMENT_CATEGORY_NAME);
         const now = new Date();
         await connection.runAsync(
-          `INSERT INTO transactions (type, wallet_id, category_id, amount, date, time, note)
-           VALUES ('adjustment', ?, ?, ?, ?, ?, ?);`,
+          `INSERT INTO transactions (type, wallet_id, category_id, amount, date, time, note, is_initial)
+           VALUES (?, ?, ?, ?, ?, ?, ?, 0);`,
+          delta > 0 ? 'income' : 'expense',
           id,
-          category.id,
-          delta,
+          categoryId,
+          Math.abs(delta),
           now.toISOString().slice(0, 10),
           now.toTimeString().slice(0, 5),
           'Koreksi saldo Wallet',

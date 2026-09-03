@@ -76,12 +76,22 @@ describe('database transaction service', () => {
     });
 
     expect((await getWallets(database)).map((wallet) => wallet.balance)).toEqual([1200, 100]);
-    expect((await getDatabaseTransactions(database)).map((transaction) => transaction.id)).toHaveLength(3);
+    expect((await getDatabaseTransactions(database)).map((transaction) => transaction.id)).toHaveLength(4);
     expect(hasSimilarIncome(await getDatabaseTransactions(database), {
       type: 'income', walletId, toWalletId: null, categoryId: incomeCategoryId,
       amount: 500, date: '2026-09-02', time: '11:00', note: 'Gaji kedua',
     })).toBe(true);
     expect(income.type).toBe('income');
+  });
+
+  it('mengurangi biaya admin dari Wallet sumber Transfer', async () => {
+    await saveDatabaseTransaction(database, {
+      type: 'transfer', walletId, toWalletId: secondWalletId, categoryId: null,
+      amount: 100, adminFee: 7, date: '2026-09-02', time: '10:00', note: 'Transfer dengan admin',
+    });
+
+    expect((await getWallets(database)).map((wallet) => wallet.balance)).toEqual([893, 100]);
+    expect((await getDatabaseTransactions(database)).find((transaction) => transaction.type === 'transfer')?.adminFee).toBe(7);
   });
 
   it('edits by replacing the old ledger row so wallet balances stay consistent', async () => {
@@ -94,7 +104,7 @@ describe('database transaction service', () => {
 
     expect(edited.id).not.toBe(transaction.id);
     expect((await getWallets(database))[0].balance).toBe(700);
-    expect((await getDatabaseTransactions(database)).map((item) => item.note)).toEqual(['Makan siang']);
+    expect((await getDatabaseTransactions(database)).map((item) => item.note)).toEqual(['Makan siang', 'Saldo awal Wallet']);
   });
 
   it('archives a used category instead of deleting its history', async () => {
@@ -105,6 +115,6 @@ describe('database transaction service', () => {
     await archiveDatabaseCategory(database, expenseCategoryId);
 
     expect((await getDatabaseTransactionCategories(database)).find((item) => item.id === expenseCategoryId)?.archived).toBe(true);
-    expect((await getDatabaseTransactions(database))).toHaveLength(1);
+    expect((await getDatabaseTransactions(database))).toHaveLength(2);
   });
 });

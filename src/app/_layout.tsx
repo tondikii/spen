@@ -38,7 +38,7 @@ function AppNavigation({ initialSetupComplete }: { initialSetupComplete: boolean
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {setupComplete ? <AppTabs /> : <SetupWizard onComplete={async (name, balance, currency) => { await completeSetup(sqlite, name, balance, currency); setSetupComplete(true); }} />}
+      {setupComplete ? <AppTabs /> : <SetupWizard onComplete={async (wallets, currency) => { await completeSetup(sqlite, wallets, currency); setSetupComplete(true); }} />}
     </ThemeProvider>
   );
 }
@@ -49,7 +49,7 @@ function DatabaseGate() {
   const { success, error } = useMigrations(database, migrations);
   const [seeded, setSeeded] = useState(false);
   const [setupComplete, setSetupComplete] = useState(false);
-  const [themeMode, setThemeMode] = useState<'system' | 'light' | 'dark'>('system');
+  const [themeMode, setThemeMode] = useState<'system' | 'light' | 'dark'>('light');
   const [databaseError, setDatabaseError] = useState('');
 
   useEffect(() => {

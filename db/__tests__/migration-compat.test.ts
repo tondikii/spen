@@ -10,7 +10,13 @@ describe('initial migration compatibility', () => {
       for (const statement of migration.split('--> statement-breakpoint')) sqlite.exec(statement);
     }
 
-    expect(sqlite.prepare('SELECT name, initial_balance FROM wallets LIMIT 1;').get()).toEqual({ name: 'Tunai', initial_balance: 500 });
+    expect(sqlite.prepare('SELECT name, initial_balance FROM wallets LIMIT 1;').get()).toEqual({ name: 'Tunai', initial_balance: 0 });
+    expect(sqlite.prepare(`
+      SELECT t.type, t.amount, t.is_initial, c.name AS category_name
+      FROM transactions t
+      JOIN categories c ON c.id = t.category_id
+      WHERE t.wallet_id = 1;
+    `).get()).toEqual({ type: 'income', amount: 500, is_initial: 1, category_name: 'Saldo Awal' });
     sqlite.close();
   });
 });

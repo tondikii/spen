@@ -5,15 +5,19 @@ Spen adalah aplikasi budget planner mobile berbahasa Indonesia dengan fitur AI (
 ## Language
 
 **Wallet**:
-Tempat uang pengguna disimpan, diberi nama bebas (misal "Tunai", "BCA", "GoPay"); tidak memiliki tipe. Aplikasi ini multi-wallet — pengguna dapat memiliki banyak Wallet, dan uang dapat dipindahkan antar Wallet. Wallet adalah tempat penyimpanan; tidak memiliki Budget plan sendiri. Saldo wallet = saldo awal + transaksi (tidak bisa diedit manual; koreksi lewat transaksi penyesuaian, dibuat otomatis saat saldo diubah langsung di UI). Wallet dapat diberi flag tabungan untuk dipasangkan ke Goal (wallet goal). Wallet yang sudah dipakai (punya transaksi) tidak bisa dihapus, hanya di-archive.
+Tempat uang pengguna disimpan, diberi nama bebas (misal "Tunai", "BCA", "GoPay"); tidak memiliki tipe. Aplikasi ini multi-wallet — pengguna dapat memiliki banyak Wallet, dan uang dapat dipindahkan antar Wallet. Wallet adalah tempat penyimpanan; tidak memiliki Budget plan sendiri. Setiap mutasi saldo Wallet, termasuk saldo awal saat creation, selalu menjadi transaksi ledger: saldo bertambah memakai tipe income dan saldo berkurang memakai tipe expense. Wallet dapat diberi flag tabungan untuk dipasangkan ke Goal (wallet goal). Wallet yang sudah dipakai (punya transaksi) tidak bisa dihapus, hanya di-archive.
 _Avoid_: account, akun, rekening
+
+**Saldo awal**:
+Transaksi ledger otomatis saat Wallet dibuat dengan saldo awal non-zero. Memakai kategori khusus "Saldo Awal" dan tipe income saat saldo bertambah, expense saat saldo berkurang. Berbeda dari koreksi saldo manual.
+_Avoid_: opening balance manual
 
 **Transfer**:
 Pemindahan uang antar Wallet. Netral terhadap total kekayaan pengguna; tidak muncul di pie chart report dan tidak mempengaruhi net saving, tapi tetap muncul di riwayat transaksi. Memakai satu kategori tunggal global.
 _Avoid_: transaction (umum), pindah dana
 
 **Transaksi penyesuaian**:
-Transaksi kategori khusus yang dibuat otomatis saat pengguna mengubah saldo wallet langsung di UI (balance correction), menjaga invariant saldo = saldo awal + transaksi. Muncul di riwayat transaksi; tidak mengisi progress item plan mana pun, tetapi mengurangi saldo wallet dan uang tersedia.
+Transaksi kategori khusus "Penyesuaian Saldo" yang dibuat otomatis saat saldo Wallet dikoreksi langsung di UI (balance correction), menjaga invariant saldo diturunkan dari ledger. Tipe transaksinya income saat saldo bertambah dan expense saat saldo berkurang. Muncul di riwayat transaksi; tidak mengisi progress item plan mana pun, tetapi mengubah saldo Wallet dan uang tersedia.
 _Avoid_: edit saldo tanpa jejak, balance correction manual
 
 **Budget period**:
@@ -25,7 +29,7 @@ Rencana bulanan global (satu per aplikasi) yang menyatukan item Pendapatan, fixe
 _Avoid_: budget (sebagai istilah rencana), per-wallet plan
 
 **Pendapatan**:
-Item Budget plan yang terikat satu kategori income; nominal = target pendapatan periode ini. Realisasi = total transaksi income kategori tersebut dalam periode aktif. Tombol "Catat" di item membuat transaksi income (pilih wallet), sehingga rencana dan saldo lahir dari catatan yang sama. Item pendapatan bisa lebih dari satu (gaji, freelance, dll).
+Item Budget plan yang terikat satu kategori income; nominal = target pendapatan periode ini. Realisasi item = total transaksi income kategori tersebut dalam periode aktif, sedangkan ringkasan Pendapatan Plan menghitung seluruh transaksi income dalam periode aktif. Tombol "Catat" di item membuat transaksi income (pilih wallet), sehingga rencana dan saldo lahir dari catatan yang sama. Item pendapatan bisa lebih dari satu (gaji, freelance, dll).
 _Avoid_: pemasukan, target pendapatan tunggal
 
 **Spare budget**:

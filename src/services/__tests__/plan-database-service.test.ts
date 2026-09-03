@@ -96,7 +96,7 @@ describe('database plan service', () => {
     const fixed = view.snapshot.planItems.find((item) => item.itemId.includes('fixed-expense'))!;
     const allocation = view.snapshot.planItems.find((item) => item.itemId.includes('allocation'))!;
 
-    expect(view.snapshot.totalIncome).toBe(1000);
+    expect(view.snapshot.totalIncome).toBe(2800);
     expect(view.snapshot.totalExpense).toBe(350);
     expect(fixed.realizedAmount).toBe(350);
     expect(fixed.paymentStatus).toEqual({ kind: 'Lunas' });
