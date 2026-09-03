@@ -3,9 +3,9 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import migrations from '../../../drizzle/migrations';
 import { configureDatabase } from '../../../db/database';
 import { seedDefaultCategories } from '../../../db/seed';
-import { createWallet } from '@/services/wallet-service';
+import { createWallet, updateWallet } from '@/services/wallet-service';
 import { getDatabaseTransactionCategories, saveDatabaseTransaction } from '@/services/transaction-service';
-import { applyDatabaseBudgetSuggestion, createDatabasePlanItem, deleteDatabasePlanItem, ensureActiveBudgetPlan, getDatabasePlanView, setBudgetPeriodStartDay, updateDatabasePlanItem } from '@/services/plan-service';
+import { applyDatabaseBudgetSuggestion, createDatabasePlanItem, deleteDatabasePlanItem, ensureActiveBudgetPlan, getDatabasePlanView, setBudgetPeriodStartDay, setDatabasePlanItemPaid, updateDatabasePlanItem } from '@/services/plan-service';
 
 type TempSQLite = {
   exec(source: string): void;
@@ -72,7 +72,7 @@ describe('database plan service', () => {
     expect((await getDatabasePlanView(database, '2026-09-10')).period.startDate).toBe('2026-09-01');
   });
 
-  it('derives realisation, payment status, over-budget, spare, and balance split from the ledger', async () => {
+  it('derives realisation, expense progress, spare, and balance split from the ledger', async () => {
     const active = await ensureActiveBudgetPlan(database, '2026-09-10');
     const wallet = await createWallet(database, 'BCA', 1000);
     const goalWallet = await createWallet(database, 'Dana Nikah', 800);
@@ -93,19 +93,95 @@ describe('database plan service', () => {
     await saveDatabaseTransaction(database, { type: 'expense', walletId: wallet.id, toWalletId: null, categoryId: expenseCategory, amount: 350, date: '2026-09-02', time: '09:00', note: 'Makan' });
 
     const view = await getDatabasePlanView(database, '2026-09-10');
-    const fixed = view.snapshot.planItems.find((item) => item.itemId.includes('fixed-expense'))!;
-    const allocation = view.snapshot.planItems.find((item) => item.itemId.includes('allocation'))!;
+    const expense = view.plan.expenseItems.find((item) => item.categoryId === expenseCategory)!;
+    const expenseState = view.snapshot.planItems.find((item) => item.itemId === expense.id)!;
 
     expect(view.snapshot.totalIncome).toBe(2800);
     expect(view.snapshot.totalExpense).toBe(350);
-    expect(fixed.realizedAmount).toBe(350);
-    expect(fixed.paymentStatus).toEqual({ kind: 'Lunas' });
-    expect(allocation.overBudget).toBe(true);
-    expect(view.snapshot.spareBudget).toBe(800);
+    expect(expenseState.realizedAmount).toBe(350);
+    expect(expenseState.progressPercent).toBe(175);
+    expect(expenseState.overBudget).toBe(true);
+    expect(view.snapshot.spareBudget).toBe(2600);
     expect(view.snapshot.availableBalance).toBe(2450);
     expect(view.snapshot.goalBalance).toBe(800);
     expect(view.snapshot.freeBalance).toBe(1650);
     expect(view.goals[0].walletId).toBe(goalWallet.id);
+  });
+
+  it('shows initial-balance income transactions in Pendapatan automatically', async () => {
+    const wallet = await createWallet(database, 'BCA', 1000);
+
+    const view = await getDatabasePlanView(database, '2026-09-10');
+
+    expect(view.plan.incomeItems).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'Saldo Awal', categoryId: expect.stringMatching(/^category-/) }),
+    ]));
+    expect(view.snapshot.planItems).toEqual(expect.arrayContaining([
+      expect.objectContaining({ realizedAmount: 1000 }),
+    ]));
+    expect(wallet.balance).toBe(1000);
+  });
+
+  it('puts balance adjustments into the matching Plan section', async () => {
+    const wallet = await createWallet(database, 'BCA', 1000);
+    await updateWallet(database, wallet.id, 'BCA', 500);
+
+    const view = await getDatabasePlanView(database, '2026-09-10');
+
+    expect(view.plan.incomeItems).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'Saldo Awal' }),
+    ]));
+    expect(view.plan.expenseItems).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'Penyesuaian Saldo' }),
+    ]));
+    expect(view.snapshot.planItems).toEqual(expect.arrayContaining([
+      expect.objectContaining({ realizedAmount: 1000, progressPercent: 0 }),
+      expect.objectContaining({ realizedAmount: 500, progressPercent: 100 }),
+    ]));
+  });
+
+  it('uses category as the unique identity of a plan item', async () => {
+    await ensureActiveBudgetPlan(database, '2026-09-10');
+    const expense = (await getDatabaseTransactionCategories(database)).find((item) => item.name === 'Makan')!;
+
+    await createDatabasePlanItem(database, { type: 'expense', categoryId: expense.id, targetAmount: 300 });
+    const item = (await getDatabasePlanView(database, '2026-09-10')).plan.expenseItems[0];
+
+    expect(item).toMatchObject({ name: 'Makan', categoryId: expense.id, targetAmount: 300 });
+    await expect(createDatabasePlanItem(database, { type: 'expense', categoryId: expense.id, targetAmount: 500 })).rejects.toThrow(/sudah ada/);
+  });
+
+  it('starts an unplanned expense at 100 percent and recalculates after its target is raised', async () => {
+    const wallet = await createWallet(database, 'BCA', 0);
+    const transport = (await getDatabaseTransactionCategories(database)).find((item) => item.name === 'Transport')!;
+    await saveDatabaseTransaction(database, { type: 'expense', walletId: wallet.id, toWalletId: null, categoryId: transport.id, amount: 20, date: '2026-09-03', time: '10:00', note: 'Ojek' });
+
+    let view = await getDatabasePlanView(database, '2026-09-10');
+    const automatic = view.plan.expenseItems.find((item) => item.categoryId === transport.id)!;
+    expect(automatic).toMatchObject({ isAutomatic: true, targetAmount: 20 });
+    expect(view.snapshot.planItems.find((state) => state.itemId === automatic.id)?.progressPercent).toBe(100);
+
+    await createDatabasePlanItem(database, { type: 'expense', categoryId: transport.id, targetAmount: 400 });
+    view = await getDatabasePlanView(database, '2026-09-10');
+    const planned = view.plan.expenseItems.find((item) => item.categoryId === transport.id)!;
+    expect(view.snapshot.planItems.find((state) => state.itemId === planned.id)?.progressPercent).toBe(5);
+
+    await saveDatabaseTransaction(database, { type: 'expense', walletId: wallet.id, toWalletId: null, categoryId: transport.id, amount: 20, date: '2026-09-04', time: '10:00', note: 'Ojek' });
+    view = await getDatabasePlanView(database, '2026-09-10');
+    expect(view.snapshot.planItems.find((state) => state.itemId === planned.id)?.progressPercent).toBe(10);
+  });
+
+  it('creates one expense transaction when the payment toggle is enabled', async () => {
+    const wallet = await createWallet(database, 'BCA', 1000);
+    const category = (await getDatabaseTransactionCategories(database)).find((item) => item.name === 'Internet')!;
+    await createDatabasePlanItem(database, { type: 'expense', categoryId: category.id, targetAmount: 200 });
+    const item = (await getDatabasePlanView(database, '2026-09-10')).plan.expenseItems.find((candidate) => candidate.categoryId === category.id)!;
+
+    await setDatabasePlanItemPaid(database, item, true, wallet.id, '2026-09-03');
+    await setDatabasePlanItemPaid(database, item, true, wallet.id, '2026-09-03');
+    const transactions = await database.getAllAsync<{ amount: number; note: string }>(`SELECT amount, note FROM transactions WHERE category_id = ? AND note = ?;`, Number(category.id.replace('category-', '')), `Pembayaran Plan: ${item.name}`);
+
+    expect(transactions).toEqual([{ amount: 200, note: 'Pembayaran Plan: Internet' }]);
   });
 
   it('includes transfer directions in net saving without changing total wealth', async () => {
@@ -130,11 +206,11 @@ describe('database plan service', () => {
     await createDatabasePlanItem(database, { type: 'allocation', name: 'Makan fleksibel', categoryId: expense.id, targetAmount: 300 });
     let view = await getDatabasePlanView(database, '2026-09-10');
     const item = view.plan.allocationItems[0];
-    expect(item).toMatchObject({ name: 'Makan fleksibel', targetAmount: 300, categoryId: expense.id });
+    expect(item).toMatchObject({ name: 'Makan', targetAmount: 300, categoryId: expense.id });
 
     await updateDatabasePlanItem(database, item, { type: 'allocation', name: 'Makan harian', categoryId: expense.id, targetAmount: 500 });
     view = await getDatabasePlanView(database, '2026-09-10');
-    expect(view.plan.allocationItems[0]).toMatchObject({ name: 'Makan harian', targetAmount: 500 });
+    expect(view.plan.allocationItems[0]).toMatchObject({ name: 'Makan', targetAmount: 500 });
     expect(active.planId).toBe(Number(view.plan.id.replace('plan-', '')));
   });
 

@@ -17,31 +17,30 @@ Pemindahan uang antar Wallet. Netral terhadap total kekayaan pengguna; tidak mun
 _Avoid_: transaction (umum), pindah dana
 
 **Transaksi penyesuaian**:
-Transaksi kategori khusus "Penyesuaian Saldo" yang dibuat otomatis saat saldo Wallet dikoreksi langsung di UI (balance correction), menjaga invariant saldo diturunkan dari ledger. Tipe transaksinya income saat saldo bertambah dan expense saat saldo berkurang. Muncul di riwayat transaksi; tidak mengisi progress item plan mana pun, tetapi mengubah saldo Wallet dan uang tersedia.
+Transaksi kategori khusus "Penyesuaian Saldo" yang dibuat otomatis saat saldo Wallet dikoreksi langsung di UI (balance correction), menjaga invariant saldo diturunkan dari ledger. Tipe transaksinya income saat saldo bertambah dan expense saat saldo berkurang. Muncul di riwayat dan otomatis masuk ke Pendapatan/Pengeluaran Plan sesuai tipenya.
 _Avoid_: edit saldo tanpa jejak, balance correction manual
 
 **Budget period**:
-Rentang waktu berdurasi satu bulan tempat pendapatan, fixed expense, dan goal dinilai. Default dimulai tanggal 1; tanggal mulai dapat disesuaikan mengikuti tanggal gajian. Berlaku global untuk satu Budget plan.
+Rentang waktu berdurasi satu bulan tempat pendapatan, pengeluaran, dan goal dinilai. Default dimulai tanggal 1; tanggal mulai dapat disesuaikan mengikuti tanggal gajian. Berlaku global untuk satu Budget plan.
 _Avoid_: month, bulan kalender
 
 **Budget plan**:
-Rencana bulanan global (satu per aplikasi) yang menyatukan item Pendapatan, fixed expense, kontribusi goal, dan alokasi menjadi alokasi tabungan. Tidak terikat per wallet; wallet hanya tempat uang disimpan. Satu Budget plan aktif per Budget period. Setiap angka uang di plan hanyalah target (rencana, ditulis manual) atau turunan transaksi (realita) — tidak ada angka ketiga; angka realita selalu konsisten dengan saldo wallet karena keduanya dihitung dari tabel transaksi yang sama.
+Rencana bulanan global (satu per aplikasi) yang menyatukan item Pendapatan, Pengeluaran, dan kontribusi goal. Tidak terikat per wallet; wallet hanya tempat uang disimpan. Satu Budget plan aktif per Budget period. Setiap angka uang di plan hanyalah target (rencana, ditulis manual) atau turunan transaksi (realita) — tidak ada angka ketiga; angka realita selalu konsisten dengan saldo wallet karena keduanya dihitung dari tabel transaksi yang sama.
 _Avoid_: budget (sebagai istilah rencana), per-wallet plan
 
 **Pendapatan**:
-Item Budget plan yang terikat satu kategori income; nominal = target pendapatan periode ini. Realisasi item = total transaksi income kategori tersebut dalam periode aktif, sedangkan ringkasan Pendapatan Plan menghitung seluruh transaksi income dalam periode aktif. Tombol "Catat" di item membuat transaksi income (pilih wallet), sehingga rencana dan saldo lahir dari catatan yang sama. Item pendapatan bisa lebih dari satu (gaji, freelance, dll).
+Item Budget plan yang terikat satu kategori income. Nominal yang ditampilkan selalu total transaksi income kategori tersebut dalam periode aktif; Pendapatan tidak memiliki progress target. Seluruh transaksi income, termasuk Saldo Awal dan Penyesuaian Saldo, muncul otomatis berdasarkan kategori.
 _Avoid_: pemasukan, target pendapatan tunggal
 
 **Spare budget**:
-Sisa pendapatan setelah fixed expense dan kontribusi goal dalam satu Budget plan. Menjadi dasar saran AI dan fallback deterministik.
+Sisa pendapatan setelah target Pengeluaran dan kontribusi goal dalam satu Budget plan. Menjadi dasar saran AI dan fallback deterministik.
 _Avoid_: sisa uang, disposable income
 
-**Fixed expense**:
-Pengeluaran berulang yang direncanakan, terikat pada satu kategori expense, berperilaku seperti alokasi: progress terisi dari transaksi expense kategori tersebut. Tidak ada transaksi otomatis; pembayaran lewat transaksi biasa atau tombol "Bayar" di layar Rencana yang membuat transaksi (bisa sebagian).
+**Pengeluaran (item Plan)**:
+Target pengeluaran yang terikat pada satu kategori expense; progress = total transaksi expense kategori tersebut ÷ target dalam Budget period. Tombol "Bayar" membuka form transaksi expense dengan sisa target sebagai nominal awal, yang bisa diganti untuk pembayaran sebagian atau penuh. Expense kategori baru otomatis menjadi item Pengeluaran dengan target awal sama dengan realisasi (100%); Edit dapat menaikkan target dan menghitung ulang progress.
 _Avoid_: recurring expense, biaya bulanan, auto-payment
 
-**Alokasi**:
-Budget spending fleksibel (Makan, Transport, Hiburan) yang terikat pada satu kategori expense; perilaku sama dengan Fixed expense — progress terisi dari transaksi kategori. Bisa dihapus/arsip.
+Fixed expense dan Alokasi adalah istilah legacy. Keduanya dimigrasikan dan ditampilkan sebagai Pengeluaran tanpa membedakan tipe.
 _Avoid_: budget item, spending plan
 
 **Goal**:
@@ -84,12 +83,15 @@ _Avoid_: overspend
 Nama untuk Net saving negatif dalam satu Budget period; ditampilkan merah di report dan ringkasan. Bukan error — status informatif.
 _Avoid_: minus, rugi
 
-**Status bayar (Fixed expense)**:
-Status pembayaran item Fixed expense dalam periode aktif, diturunkan dari transaksi expense kategori tersebut: "Lunas ✓" (realisasi ≥ nominal), "x/y dibayar" (belum lunas), "Belum dibayar" (belum ada transaksi). Dasar tombol "Bayar".
+**Progress Pengeluaran**:
+Realisasi item Pengeluaran dalam periode aktif dibagi targetnya; dapat melebihi target dan ditandai "Melebihi Budget". Pendapatan tidak menggunakan progress.
+
+**Pembayaran Pengeluaran**:
+Item Pengeluaran memiliki toggle "Sudah dibayar". Saat diaktifkan, aplikasi langsung membuat satu transaksi expense sebesar target item menggunakan Wallet aktif dengan saldo terbesar; saat belum diaktifkan, tidak ada transaksi pembayaran otomatis. Tanggal transaksi memakai tanggal saat toggle dilakukan.
 _Avoid_: paid/unpaid, status transaksi
 
 **Realisasi (item plan)**:
-Nilai turunan transaksi pada item Budget plan (pendapatan: total transaksi income kategori; fixed expense/alokasi: total transaksi expense kategori) dalam periode aktif. Kebalikan dari target (angka manual); tidak pernah disimpan sebagai angka ketiga (lihat ADR-0004).
+Nilai turunan transaksi pada item Budget plan (Pendapatan: total transaksi income kategori; Pengeluaran: total transaksi expense kategori) dalam periode aktif. Kebalikan dari target (angka manual); tidak pernah disimpan sebagai angka ketiga (lihat ADR-0004).
 _Avoid_: actual, realisasi manual
 
 **Kategori transfer (global)**:

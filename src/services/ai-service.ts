@@ -75,17 +75,17 @@ function isSuggestion(value: unknown): value is BudgetSuggestion {
 
 function fallbackSuggestions(input: BudgetAIInput): BudgetSuggestion[] {
   if (input.spareBudget > 0) {
-    return [{ action: 'allocate_spare', title: 'Sisihkan sebagian spare budget', description: 'Sisihkan setengah spare budget sebagai ruang aman untuk kebutuhan tak terduga.', amount: Math.floor(input.spareBudget / 2) }];
+    return [{ action: 'allocate_spare', title: 'Sisihkan setengah spare budget', description: 'Jadikan dana darurat untuk kebutuhan tak terduga.', amount: Math.floor(input.spareBudget / 2) }];
   }
   const largest = input.topExpenses?.[0];
-  if (largest) return [{ action: 'review_expense', title: `Tinjau pengeluaran ${largest.name}`, description: `Pengeluaran ${largest.name} menjadi bagian terbesar. Cek kembali transaksi dan alokasinya.`, categoryName: largest.name }];
-  return [{ action: 'review_expense', title: 'Rapikan Budget plan', description: 'Catat pendapatan dan fixed expense agar saran berikutnya lebih tepat.' }];
+  if (largest) return [{ action: 'review_expense', title: `Tinjau pengeluaran ${largest.name}`, description: `Pengeluaran ${largest.name} paling besar. Cek transaksi dan alokasinya.`, categoryName: largest.name }];
+  return [{ action: 'review_expense', title: 'Rapikan Budget plan', description: 'Catat pendapatan dan pengeluaran agar saran berikutnya lebih tepat.' }];
 }
 
 function fallbackInsight(input: BudgetAIInput): string {
   const largest = input.topExpenses?.[0];
-  const expenseText = largest ? `Pengeluaran terbesar ada di kategori ${largest.name} sebesar ${largest.amount.toLocaleString('id-ID')}.` : 'Belum ada kategori pengeluaran yang dominan.';
-  const savingText = input.netSaving >= 0 ? 'Net saving masih positif, jadi kamu punya ruang untuk menjaga alokasi tetap nyaman.' : 'Net saving sedang negatif; coba tinjau fixed expense dan pengeluaran terbesar secara perlahan.';
+  const expenseText = largest ? `Pengeluaran terbesar: kategori ${largest.name} sebesar ${largest.amount.toLocaleString('id-ID')}.` : 'Belum ada kategori pengeluaran yang dominan.';
+  const savingText = input.netSaving >= 0 ? 'Net saving masih positif — masih ada ruang untuk menambah alokasi.' : 'Net saving sedang negatif — cek pengeluaran terbesar dan alokasinya.';
   return `${expenseText} ${savingText}`;
 }
 
@@ -104,7 +104,7 @@ export class AIService {
     const fallback = { source: 'fallback' as const, suggestions: fallbackSuggestions(input) };
     if (!this.apiKey) return fallback;
     try {
-      const response = await this.fetchImpl(this.baseUrl, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'openai/gpt-oss-20b', temperature: 0.2, messages: [{ role: 'system', content: 'Kamu adalah asisten Budget plan Spen. Jawab ringkas dalam Bahasa Indonesia dan jangan mengubah data pengguna.' }, { role: 'user', content: JSON.stringify(input) }], response_format: { type: 'json_schema', json_schema: { name: 'budget_suggestions', strict: true, schema: suggestionSchema } } }) });
+      const response = await this.fetchImpl(this.baseUrl, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'openai/gpt-oss-20b', temperature: 0.2, messages: [{ role: 'system', content: 'Kamu asisten Budget plan Spen. Jawab ringkas dan tenang dalam Bahasa Indonesia, langsung ke saran. Jangan mengubah data pengguna.' }, { role: 'user', content: JSON.stringify(input) }], response_format: { type: 'json_schema', json_schema: { name: 'budget_suggestions', strict: true, schema: suggestionSchema } } }) });
       if (!response.ok) return fallback;
       const parsed = JSON.parse(extractContent(await response.json() as ChatResponse)) as { suggestions?: unknown };
       if (!Array.isArray(parsed.suggestions) || !parsed.suggestions.every(isSuggestion)) return fallback;
@@ -118,7 +118,7 @@ export class AIService {
     const fallback = { source: 'fallback' as const, text: fallbackInsight(input) };
     if (!this.apiKey) return fallback;
     try {
-      const response = await this.fetchImpl(this.baseUrl, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'openai/gpt-oss-120b', temperature: 0.4, messages: [{ role: 'system', content: 'Kamu adalah analis keuangan Spen. Tulis insight ringkas, actionable, tenang, dan selalu dalam Bahasa Indonesia.' }, { role: 'user', content: JSON.stringify(input) }] }) });
+      const response = await this.fetchImpl(this.baseUrl, { method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'openai/gpt-oss-120b', temperature: 0.4, messages: [{ role: 'system', content: 'Kamu analis keuangan Spen. Tulis insight ringkas, jelas, dan tenang dalam Bahasa Indonesia, langsung ke fakta dan arahnya, tanpa menghakimi.' }, { role: 'user', content: JSON.stringify(input) }] }) });
       if (!response.ok) return fallback;
       const text = extractContent(await response.json() as ChatResponse).trim();
       return text ? { source: 'ai', text } : fallback;

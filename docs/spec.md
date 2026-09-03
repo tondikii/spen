@@ -6,7 +6,7 @@ Pengguna kesulitan merencanakan dan mengelola keuangan bulanan secara terstruktu
 
 ## Solution
 
-Spen adalah aplikasi mobile budget planner berbahasa Indonesia dengan AI, data lokal di perangkat. Pengguna mengelola beberapa Wallet (tempat uang), menyusun satu Budget plan global per periode (pendapatan, fixed expense, goal), mencatat transaksi harian (income/expense/transfer), dan melihat report (pie chart expense per kategori, line chart net saving per periode) dengan AI insight. Semua data lokal, tanpa akun server. AI (Groq) dipicu manual, read-only (tidak menulis data); user yang mengeksekusi saran via tombol "Terapkan", dengan fallback deterministik.
+Spen adalah aplikasi mobile budget planner berbahasa Indonesia dengan AI, data lokal di perangkat. Pengguna mengelola beberapa Wallet (tempat uang), menyusun satu Budget plan global per periode (Pendapatan, Pengeluaran, Goal), mencatat transaksi harian (income/expense/transfer), dan melihat report (pie chart expense per kategori, line chart net saving per periode) dengan AI insight. Semua data lokal, tanpa akun server. AI (Groq) dipicu manual, read-only (tidak menulis data); user yang mengeksekusi saran via tombol "Terapkan", dengan fallback deterministik.
 
 ## User Stories
 
@@ -83,8 +83,7 @@ Spen adalah aplikasi mobile budget planner berbahasa Indonesia dengan AI, data l
 - **Budget plan**: global, satu per periode; berisi item Pendapatan, fixed expense, kontribusi goal, dan alokasi.
 - **Pendapatan (item plan)**: id, nama (misal "Gaji", "Freelance"), kategori income, nominal (target periode ini). **Realisasi item = total transaksi income kategori tersebut dalam periode aktif**; ringkasan Pendapatan Plan menghitung seluruh transaksi income dalam periode aktif. Tombol "Catat" membuat transaksi income (pilih wallet). Item pendapatan bisa lebih dari satu; masing-masing terikat satu kategori income. **Hapus item pendapatan = hapus juga transaksi income yang dibuat darinya** (undo+redo saldo), sehingga tidak ada realisasi yang menggantung.
 - **Fixed expense**: id, nama, kategori expense, jumlah, **berperilaku seperti alokasi** — progress terisi dari transaksi expense kategori tersebut. **Tidak ada transaksi otomatis**; pembayaran lewat transaksi biasa atau tombol "Bayar" di layar Rencana yang membuat transaksi (bisa sebagian).
-- **Goal**: id, nama, target jumlah, tanggal target (opsional), **wallet tabungan (wallet goal, flag tabungan)**, archived. Opsional; jangka waktu opsional (tanpa jangka waktu, kontribusi 0, tidak mempengaruhi spare). **Menabung = transaksi transfer ke wallet goal** (saldo goal naik, saldo wallet asal turun); **progress = saldo wallet goal** (bisa diisi lewat saldo awal wallet goal). **Penarikan darurat = transaksi keluar dari wallet goal** (progress turun, dengan konfirmasi — tidak diblokir). Saat saldo wallet goal ≥ target, ditandai "Tercapai" dan berhenti dihitung dalam spare.
-- **Transaction**: id, tipe (income/expense/transfer), wallet (untuk income/expense), kategori, jumlah, tanggal, catatan. **Edit transaksi = undo + redo** (kurangi wallet lama, tambah wallet baru) agar saldo konsisten. **Saldo awal wallet = transaksi ledger otomatis** dengan kategori khusus "Saldo Awal". **Koreksi saldo = transaksi penyesuaian** (kategori khusus "Penyesuaian Saldo", dibuat otomatis saat user mengubah saldo wallet langsung di UI); tidak mengisi progress item plan mana pun, tetapi mengurangi saldo wallet dan saldo tersedia.
+- **Transaction**: id, tipe (income/expense/transfer), wallet (untuk income/expense), kategori, jumlah, tanggal, catatan. **Edit transaksi = undo + redo** (kurangi wallet lama, tambah wallet baru) agar saldo konsisten. **Saldo awal wallet = transaksi ledger otomatis** dengan kategori khusus "Saldo Awal". **Koreksi saldo = transaksi penyesuaian** (kategori khusus "Penyesuaian Saldo", dibuat otomatis saat user mengubah saldo wallet langsung di UI); otomatis masuk ke Pendapatan atau Pengeluaran Plan sesuai tipe transaksinya dan ikut dihitung dalam Laporan pada Budget period tanggal transaksinya.
 - **Spare budget**: pendapatan − fixed expense − kontribusi goal (goal tercapai tidak dihitung). Dasar AI suggestion & fallback deterministik.
 - **Invariant plan = dompet**: setiap angka uang di plan adalah target (rencana, ditulis manual) ATAU turunan transaksi (realita) — tidak ada angka ketiga. Saldo wallet, realisasi pendapatan, progress expense, saldo tersedia, dan spare dihitung dari tabel transaksi yang sama, sehingga plan dan dompet selalu konsisten (sinkron by construction, bukan dijaga manual).
 - **Over-budget**: transaksi boleh melebihi alokasi plan (progress > 100%, ditandai merah + label "Melebihi Budget"); saat input transaksi yang membuat over-budget, tampilkan peringatan lembut (tetap diizinkan).
@@ -128,6 +127,10 @@ Spen adalah aplikasi mobile budget planner berbahasa Indonesia dengan AI, data l
 
 ## Testing Decisions
 
+### Perubahan model Plan
+
+Plan menyatukan seluruh transaksi income ke Pendapatan dan seluruh transaksi expense ke Pengeluaran berdasarkan kategori dan periode aktif. Fixed expense dan Alokasi tidak lagi menjadi section atau tipe Plan terpisah; keduanya dimigrasikan menjadi item Pengeluaran.
+
 - **Prinsip**: hanya test perilaku eksternal (behavior), bukan detail implementasi. Fokus pada apa yang user lihat/alami, bukan internal function.
 - **Seam yang diuji**: satu lapisan service domain (`db/` + `services/`) — satu-satunya seam, di sini semua logika bisnis diuji.
 - **Modul yang diuji**:
@@ -138,6 +141,12 @@ Spen adalah aplikasi mobile budget planner berbahasa Indonesia dengan AI, data l
   - Agregasi report (pie per kategori, line net saving per periode, drill-down)
   - Fallback deterministik AI (offline → hitungan lokal)
 - **Prior art**: belum ada test di repo ini (fresh Expo starter). Ini test pertama; pola yang dipakai: unit test murni untuk logika perhitungan + integration test untuk service yang menyentuh DB lokal (in-memory/temp DB via expo-sqlite test setup).
+
+## Aturan Plan terbaru
+
+Plan hanya memiliki Pendapatan dan Pengeluaran; Fixed expense dan Alokasi adalah istilah legacy yang sudah digabung menjadi Pengeluaran. Pendapatan mengelompokkan seluruh transaksi income dalam periode aktif berdasarkan kategori, termasuk transaksi Saldo Awal dan Penyesuaian Saldo, serta tidak menampilkan progress. Pengeluaran mengelompokkan seluruh transaksi expense berdasarkan kategori. Target Pengeluaran dapat diubah; progress dihitung dari total pembayaran dibagi target. Tombol "Bayar" membuka form expense dengan sisa target sebagai nominal awal dan nominal tersebut boleh diganti untuk pembayaran sebagian atau penuh. Expense kategori baru otomatis tampil dengan target awal sama dengan realisasi (100%); saat target dinaikkan, progress dihitung ulang.
+
+Klarifikasi interaksi terbaru: Pendapatan tetap dapat ditambahkan dari Plan tetapi tidak memiliki target nominal; nominalnya selalu berasal dari transaksi yang diterima. Pengeluaran menggunakan toggle "Sudah dibayar". Toggle aktif membuat transaksi expense sebesar target menggunakan Wallet aktif dengan saldo terbesar tanpa membuka form transaksi; toggle nonaktif tidak membuat transaksi. Tanggal transaksi mengikuti tanggal toggle.
 
 ## Out of Scope
 

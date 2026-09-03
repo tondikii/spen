@@ -23,9 +23,9 @@ export function getTransactionCategories(categories: Category[], type: Transacti
 export function getAllocationLimit(categoryId: string | null) {
   const item = mockData.budgetSnapshot.planItems.find((planItem) => {
     const plan = mockData.budgetPlans[0];
-    return [...plan.allocationItems, ...plan.fixedExpenseItems].some((candidate) => candidate.id === planItem.itemId && candidate.categoryId === categoryId);
+    return plan.expenseItems.some((candidate) => candidate.id === planItem.itemId && candidate.categoryId === categoryId);
   });
-  return item ? [...mockData.budgetPlans[0].allocationItems, ...mockData.budgetPlans[0].fixedExpenseItems].find((candidate) => candidate.id === item.itemId)?.targetAmount ?? 0 : 0;
+  return item ? mockData.budgetPlans[0].expenseItems.find((candidate) => candidate.id === item.itemId)?.targetAmount ?? 0 : 0;
 }
 
 export function archiveMockCategory(categories: Category[], categoryId: string) {

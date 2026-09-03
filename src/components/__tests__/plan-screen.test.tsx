@@ -10,10 +10,10 @@ describe('PlanScreen', () => {
     expect(getByText('SALDO TERSEDIA')).toBeTruthy();
     expect(getByText('Spare budget')).toBeTruthy();
     expect(getByText('Pendapatan')).toBeTruthy();
-    expect(getByText('Fixed expense')).toBeTruthy();
+    expect(getByText('Pengeluaran')).toBeTruthy();
     expect(getByText('Goal')).toBeTruthy();
-    expect(getByText('Alokasi')).toBeTruthy();
-    expect(getByText('Melebihi Budget')).toBeTruthy();
+    expect(() => getByText('Fixed expense')).toThrow();
+    expect(() => getByText('Alokasi')).toThrow();
     expect(getByText('Tercapai')).toBeTruthy();
   });
 
@@ -23,29 +23,29 @@ describe('PlanScreen', () => {
     await fireEvent.press(getByLabelText('Ubah Budget period'));
     await fireEvent.press(getByLabelText('Mulai tanggal 5'));
     await waitFor(() => expect(getByText('5–30 Sep⌄')).toBeTruthy());
-    await fireEvent.press(getByLabelText('AI Suggestion'));
+    await fireEvent.press(getByLabelText('Saran AI'));
     await waitFor(() => expect(getByText('Membaca pola keuanganmu…')).toBeTruthy());
     await waitFor(() => expect(getAllByText('Terapkan').length).toBeGreaterThan(0));
     await fireEvent.press(getAllByText('Terapkan')[0]);
     expect(getByText('✓ Diterapkan')).toBeTruthy();
   });
 
-  it('membuka form transaksi dari aksi item plan', async () => {
+  it('menampilkan Pendapatan sebagai realisasi tanpa progress', async () => {
     const onItemAction = jest.fn();
-    const { getByLabelText } = await render(<PlanScreen onItemAction={onItemAction} />);
+    const { getByText, queryByLabelText } = await render(<PlanScreen onItemAction={onItemAction} />);
 
-    await fireEvent.press(getByLabelText('Catat Gaji'));
-
-    expect(onItemAction).toHaveBeenCalledWith(expect.objectContaining({ type: 'income', name: 'Gaji' }), 6500000);
+    expect(getByText('Dari transaksi')).toBeTruthy();
+    expect(queryByLabelText('Catat Gaji')).toBeNull();
+    expect(onItemAction).not.toHaveBeenCalled();
   });
 
-  it('mengirim sisa nominal saat membayar fixed expense sebagian', async () => {
-    const onItemAction = jest.fn();
-    const { getByLabelText } = await render(<PlanScreen onItemAction={onItemAction} />);
+  it('mengubah toggle pembayaran Pengeluaran tanpa membuka form transaksi', async () => {
+    const onItemPayment = jest.fn();
+    const { getByLabelText } = await render(<PlanScreen onItemPayment={onItemPayment} />);
 
-    await fireEvent.press(getByLabelText('Bayar Internet'));
+    await fireEvent.press(getByLabelText('Tandai sudah dibayar Internet'));
 
-    expect(onItemAction).toHaveBeenCalledWith(expect.objectContaining({ type: 'fixedExpense', name: 'Internet' }), 175000);
+    expect(onItemPayment).toHaveBeenCalledWith(expect.objectContaining({ type: 'expense', name: 'Internet' }), true);
   });
 
   it('menawarkan edit dan hapus untuk setiap item plan', async () => {

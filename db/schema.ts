@@ -101,3 +101,16 @@ export const settings = sqliteTable('settings', {
   themeMode: text('theme_mode', { enum: ['system', 'light', 'dark'] }).notNull().default('light'),
   budgetStartDay: integer('budget_start_day').notNull().default(1),
 });
+
+// Satu-satunya jenis item pengeluaran di Budget plan. Tabel lama dipertahankan
+// untuk kompatibilitas migrasi, tetapi tidak lagi dipakai oleh service baru.
+export const expenseItems = sqliteTable('expense_items', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  budgetPlanId: integer('budget_plan_id').notNull().references(() => budgetPlans.id),
+  name: text('name').notNull(),
+  categoryId: integer('category_id').notNull().references(() => categories.id),
+  targetAmount: integer('target_amount').notNull(),
+  isPaid: integer('is_paid', { mode: 'boolean' }).notNull().default(false),
+}, (table) => ({
+  planIndex: index('expense_items_plan_idx').on(table.budgetPlanId),
+}));

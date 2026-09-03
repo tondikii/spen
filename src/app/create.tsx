@@ -1,6 +1,5 @@
-import { router } from 'expo-router';
-import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import { TransactionForm } from '@/components/transaction-form';
@@ -10,6 +9,7 @@ import { archiveDatabaseCategory, deleteDatabaseTransaction, getDatabaseTransact
 import { getDatabasePlanView } from '@/services/plan-service';
 import { getWallets } from '@/services/wallet-service';
 import type { Category, Transaction, TransactionType, Wallet } from '@/types/domain';
+import { retryDatabaseRead } from '@/services/database-read-retry';
 
 export default function CreateTransactionScreen() {
   const { transactionId, goalId, type, categoryId, amount, walletId, toWalletId, lockedToWalletId } = useLocalSearchParams<{ transactionId?: string; goalId?: string; type?: TransactionType; categoryId?: string; amount?: string; walletId?: string; toWalletId?: string; lockedToWalletId?: string }>();
@@ -18,24 +18,27 @@ export default function CreateTransactionScreen() {
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     let cancelled = false;
-    void Promise.all([getWallets(database), getDatabaseTransactionCategories(database), getDatabaseTransactions(database), getDatabasePlanView(database)]).then(([wallets, categories, transactions, planView]) => {
+    setData(null);
+    setError('');
+    void retryDatabaseRead(() => Promise.all([getWallets(database), getDatabaseTransactionCategories(database), getDatabaseTransactions(database), getDatabasePlanView(database)])).then(([wallets, categories, transactions, planView]) => {
       if (!cancelled) {
         const selectedCategory = categoryId;
         const allocationLimit = selectedCategory
-          ? [...planView.plan.fixedExpenseItems, ...planView.plan.allocationItems]
+          ? planView.plan.expenseItems
             .filter((item) => item.categoryId === selectedCategory)
             .reduce((sum, item) => sum + item.targetAmount, 0)
           : 0;
         setData({ wallets, categories, transactions, allocationLimit });
+        setError('');
       }
-      setError('');
     }).catch((cause) => { if (!cancelled) setError(cause instanceof Error ? cause.message : 'Form transaksi tidak dapat dimuat.'); });
     return () => {
       cancelled = true;
+      setData(null);
     };
-  }, [categoryId, database, retry]);
+  }, [categoryId, database, retry]));
 
   if (error) return <DataState kind="error" title="Transaksi belum siap" description={error} onRetry={() => { setError(''); setData(null); setRetry((value) => value + 1); }} />;
   if (!data) return <DataState kind="loading" title="Memuat transaksi" description="Menyiapkan Wallet dan kategori." />;

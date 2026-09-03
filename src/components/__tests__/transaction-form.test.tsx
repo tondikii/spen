@@ -65,6 +65,7 @@ describe('TransactionForm', () => {
     await fireEvent.changeText(getByLabelText('Nama kategori baru'), 'Kesehatan');
     await fireEvent.press(getByLabelText('Simpan kategori'));
     await fireEvent.press(getByLabelText('Kelola kategori'));
+    await fireEvent(getByLabelText('Kategori Kesehatan'), 'longPress');
     await fireEvent.press(getByLabelText('Arsipkan kategori Kesehatan'));
 
     expect(queryByLabelText('Kategori Kesehatan')).toBeNull();

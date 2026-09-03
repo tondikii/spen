@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Spen",
+    "slug": "spen",
+    "scheme": "spen",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/spen/logo.png",
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/spen/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#F6F5F0",
+          "dark": {
+            "image": "./assets/spen/splash-icon.png",
+            "backgroundColor": "#12231F"
+          }
+        }
+      ]
+    ],
+    "splash": {
+      "image": "./assets/spen/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F6F5F0"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/spen/adaptive-icon.png",
+        "backgroundColor": "#F6F5F0"
+      }
+    }
+  }
+}

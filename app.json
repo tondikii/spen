@@ -1,36 +1,43 @@
 {
   "expo": {
-    "name": "spen",
+    "name": "Spen",
     "slug": "spen",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/spen/logo.svg",
     "scheme": "spen",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/spen/logo.svg"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#F6F5F0",
+        "foregroundImage": "./assets/spen/adaptive-icon.svg"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/spen/logo.svg"
+    },
+    "splash": {
+      "image": "./assets/spen/splash.svg",
+      "resizeMode": "contain",
+      "backgroundColor": "#F6F5F0"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#F6F5F0",
+          "image": "./assets/spen/splash.svg",
+          "resizeMode": "contain",
+          "dark": {
+            "backgroundColor": "#12231F",
+            "image": "./assets/spen/splash.svg"
+          }
         }
       ],
       "expo-sqlite",

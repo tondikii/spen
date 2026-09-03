@@ -8,6 +8,7 @@ import { DataState } from '@/components/screen-skeleton';
 import { archiveWallet, createWallet, getWallets, updateWallet } from '@/services/wallet-service';
 import { getDatabaseTransactionCategories, getDatabaseTransactions } from '@/services/transaction-service';
 import { getDatabasePlanView } from '@/services/plan-service';
+import { retryDatabaseRead } from '@/services/database-read-retry';
 
 export default function HomeRoute() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function HomeRoute() {
 
   const loadData = useCallback(async () => {
     try {
-      const [wallets, categories, transactions, plan] = await Promise.all([getWallets(database), getDatabaseTransactionCategories(database), getDatabaseTransactions(database), getDatabasePlanView(database)]);
+      const [wallets, categories, transactions, plan] = await retryDatabaseRead(() => Promise.all([getWallets(database), getDatabaseTransactionCategories(database), getDatabaseTransactions(database), getDatabasePlanView(database)]));
       setData({ wallets, categories, transactions, plan }); setError('');
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Data Beranda tidak dapat dimuat.'); }
   }, [database]);

@@ -9,7 +9,7 @@ describe('ReportScreen', () => {
   it('menampilkan ringkasan, breakdown expense, dan net saving', async () => {
     const { getAllByText, getByText, queryByLabelText } = await render(<ReportScreen />);
 
-    expect(getByText('Report')).toBeTruthy();
+    expect(getByText('Laporan')).toBeTruthy();
     expect(getAllByText('Pengeluaran').length).toBeGreaterThan(0);
     expect(getByText('Makan')).toBeTruthy();
     expect(getAllByText('Net saving').length).toBeGreaterThan(0);
@@ -21,15 +21,14 @@ describe('ReportScreen', () => {
 
     const { getByText } = await render(<ReportScreen reportView={view} />);
 
-    expect(getByText('Belum ada saving trend')).toBeTruthy();
-    expect(getByText('Belum ada data net saving untuk rentang ini.')).toBeTruthy();
+    expect(getByText('Belum ada data net saving')).toBeTruthy();
   });
 
   it('menampilkan loading lalu insight Bahasa Indonesia', async () => {
     const { getByLabelText, getByText } = await render(<ReportScreen />);
 
-    await fireEvent.press(getByLabelText('AI Insight'));
-    await waitFor(() => expect(getByText('Menghubungkan titik-titik…')).toBeTruthy());
+    await fireEvent.press(getByLabelText('Tanya AI'));
+    await waitFor(() => expect(getByText('Membaca pola keuanganmu…')).toBeTruthy());
     await waitFor(() => expect(getByText('Insight bulan ini')).toBeTruthy());
     expect(getByText('Mengerti')).toBeTruthy();
   });

@@ -6,12 +6,13 @@ import { getDatabaseTransactionCategories, getDatabaseTransactions } from '@/ser
 import { getWallets } from '@/services/wallet-service';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 import { DataState } from '@/components/screen-skeleton';
+import { retryDatabaseRead } from '@/services/database-read-retry';
 
 export default function DailyRoute() {
   const database = useSQLiteContext();
   const [data, setData] = useState<{ transactions: Transaction[]; categories: Category[]; wallets: Wallet[] } | null>(null);
   const [error, setError] = useState('');
-  const load = useCallback(async () => { try { const [transactions, categories, wallets] = await Promise.all([getDatabaseTransactions(database), getDatabaseTransactionCategories(database), getWallets(database)]); setData({ transactions, categories, wallets }); setError(''); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Transaksi harian tidak dapat dimuat.'); } }, [database]);
+  const load = useCallback(async () => { try { const [transactions, categories, wallets] = await retryDatabaseRead(() => Promise.all([getDatabaseTransactions(database), getDatabaseTransactionCategories(database), getWallets(database)])); setData({ transactions, categories, wallets }); setError(''); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Transaksi harian tidak dapat dimuat.'); } }, [database]);
   useFocusEffect(useCallback(() => { void load(); }, [load]));
   if (error) return <DataState kind="error" title="Transaksi belum siap" description={error} onRetry={() => { void load(); }} />;
   if (!data) return <DataState kind="loading" title="Memuat transaksi" description="Mengambil catatan hari ini." />;

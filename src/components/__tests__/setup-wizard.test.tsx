@@ -7,9 +7,9 @@ describe('SetupWizard', () => {
     const onComplete = jest.fn();
     const { getByLabelText, getByText, queryByText } = await render(<SetupWizard onComplete={onComplete} />);
 
-    expect(getByText('SPEN, RUANG UNTUK UANGMU')).toBeTruthy();
-    await fireEvent.press(getByLabelText('Lanjut'));
-    expect(getByText('WALLET PERTAMA')).toBeTruthy();
+    expect(getByText('Buat rencana untuk uangmu.')).toBeTruthy();
+    await fireEvent.press(getByLabelText('Mulai'));
+    expect(getByText('Buat Wallet')).toBeTruthy();
     await fireEvent.press(getByLabelText('Lanjut'));
     expect(getByText('Pilih mata uang')).toBeTruthy();
     expect(queryByText(/periode/i)).toBeNull();
@@ -20,21 +20,23 @@ describe('SetupWizard', () => {
     const onComplete = jest.fn();
     const { getByLabelText } = await render(<SetupWizard onComplete={onComplete} />);
 
-    await fireEvent.press(getByLabelText('Lanjut'));
+    await fireEvent.press(getByLabelText('Mulai'));
     await fireEvent.changeText(getByLabelText('Nama wallet pertama'), 'BCA');
     await fireEvent.changeText(getByLabelText('Saldo awal wallet pertama'), '2000000');
     await fireEvent.press(getByLabelText('Lanjut'));
     await fireEvent.press(getByLabelText('Pilih mata uang USD'));
     await fireEvent.press(getByLabelText('Masuk ke Spen'));
 
-    await waitFor(() => expect(onComplete).toHaveBeenCalledWith([{ name: 'BCA', initialBalance: 2000000 }], 'USD'));
+    await waitFor(() =>
+      expect(onComplete).toHaveBeenCalledWith([{name: 'BCA', initialBalance: 2000000}], 'USD'),
+    );
   });
 
   it('memungkinkan menambahkan beberapa Wallet sebelum menyelesaikan onboarding', async () => {
     const onComplete = jest.fn();
     const { getByLabelText } = await render(<SetupWizard onComplete={onComplete} />);
 
-    await fireEvent.press(getByLabelText('Lanjut'));
+    await fireEvent.press(getByLabelText('Mulai'));
     await fireEvent.changeText(getByLabelText('Nama wallet pertama'), 'BCA');
     await fireEvent.changeText(getByLabelText('Saldo awal wallet pertama'), '2000000');
     await fireEvent.press(getByLabelText('Tambah Wallet'));
@@ -43,9 +45,26 @@ describe('SetupWizard', () => {
     await fireEvent.press(getByLabelText('Lanjut'));
     await fireEvent.press(getByLabelText('Masuk ke Spen'));
 
-    await waitFor(() => expect(onComplete).toHaveBeenCalledWith([
-      { name: 'BCA', initialBalance: 2000000 },
-      { name: 'Tunai', initialBalance: 500000 },
-    ], 'IDR'));
+    await waitFor(() =>
+      expect(onComplete).toHaveBeenCalledWith(
+        [
+          {name: 'BCA', initialBalance: 2000000},
+          {name: 'Tunai', initialBalance: 500000},
+        ],
+        'IDR',
+      ),
+    );
+  });
+
+  it('bisa berpindah langkah lewat indikator', async () => {
+    const onComplete = jest.fn();
+    const { getByLabelText, getByText } = await render(<SetupWizard onComplete={onComplete} />);
+
+    await fireEvent.press(getByLabelText('Mulai'));
+    await fireEvent.press(getByLabelText('Buka langkah 3'));
+    expect(getByText('Pilih mata uang')).toBeTruthy();
+
+    await fireEvent.press(getByLabelText('Buka langkah 1'));
+    expect(getByText('Buat rencana untuk uangmu.')).toBeTruthy();
   });
 });

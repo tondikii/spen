@@ -6,7 +6,7 @@ import { seedDefaultCategories } from '../../../db/seed';
 import { ensureActiveBudgetPlan } from '@/services/plan-service';
 import { getDatabaseReportView } from '@/services/report-service';
 import { getDatabaseTransactionCategories, saveDatabaseTransaction } from '@/services/transaction-service';
-import { createWallet } from '@/services/wallet-service';
+import { createWallet, updateWallet } from '@/services/wallet-service';
 
 type TempSQLite = { exec(source: string): void; prepare(source: string): { get(...params: unknown[]): Record<string, unknown> | undefined; all(...params: unknown[]): Record<string, unknown>[]; run(...params: unknown[]): { changes: number; lastInsertRowid: number } }; close(): void };
 
@@ -62,5 +62,19 @@ describe('database report service', () => {
     expect(view.netSavingByPeriod[0].netSaving).toBe(0);
     expect(view.netSavingByPeriod[1].period.startDate).toBe('2026-10-01');
     expect(view.netSavingByPeriod[1].netSaving).toBe(600);
+  });
+
+  it('includes opening balance and balance corrections in the matching report totals', async () => {
+    await ensureActiveBudgetPlan(database, '2026-09-10');
+    const wallet = await createWallet(database, 'BCA', 1000);
+
+    await updateWallet(database, wallet.id, 'BCA', 500);
+
+    const view = await getDatabaseReportView(database, 3, '2026-09-10');
+
+    expect(view.snapshot).toMatchObject({ totalIncome: 1000, totalExpense: 500, netSaving: 500 });
+    expect(view.expenses).toEqual(expect.arrayContaining([
+      expect.objectContaining({ name: 'Penyesuaian Saldo', amount: 500 }),
+    ]));
   });
 });

@@ -11,11 +11,12 @@ export type ReportPeriodPoint = { period: BudgetPeriod; netSaving: number };
 export type ReportView = { snapshot: MockBudgetSnapshot; expenses: ReportExpense[]; period: BudgetPeriod; netSavingByPeriod: ReportPeriodPoint[] };
 
 export function getReportView() {
-  const expenses = mockData.categories.filter((category) => category.type === 'expense' && !category.isAdjustment).map((category) => ({
+  const categoryMap = new Map(mockData.categories.map((category) => [category.id, category]));
+  const expenses = mockData.categories.filter((category) => category.type === 'expense').map((category) => ({
     categoryId: category.id,
     name: category.name,
     icon: category.icon,
-    amount: mockData.transactions.filter((transaction) => transaction.categoryId === category.id).reduce((sum, transaction) => sum + transaction.amount, 0),
+    amount: mockData.transactions.filter((transaction) => reportTransactionType(transaction, categoryMap) === 'expense' && transaction.categoryId === category.id).reduce((sum, transaction) => sum + transaction.amount, 0),
   })).filter((item) => item.amount > 0).sort((a, b) => b.amount - a.amount);
   return { snapshot: mockData.budgetSnapshot, expenses, period: mockData.budgetPeriods[0], netSavingByPeriod: mockData.budgetPeriods.map((period) => ({ period, netSaving: mockData.budgetSnapshot.netSaving })) } satisfies ReportView;
 }
@@ -35,14 +36,15 @@ export async function getDatabaseReportView(database: SQLiteDatabase, rangeMonth
     database.getAllAsync<PeriodRow>('SELECT id, start_date, end_date, duration_months FROM budget_periods ORDER BY start_date DESC, id DESC LIMIT ?;', Math.max(1, Math.trunc(rangeMonths))),
   ]);
   const categoryMap = new Map(categories.map((category) => [category.id, category]));
-  const activeTransactions = transactions.filter((transaction) => transaction.date >= period.startDate && transaction.date <= period.endDate && !transaction.isAdjustment);
-  const expenses = [...new Map(activeTransactions.filter((transaction) => transaction.type === 'expense' && transaction.categoryId).map((transaction) => {
+  const activeTransactions = transactions.filter((transaction) => transaction.date >= period.startDate && transaction.date <= period.endDate);
+  const expenses = [...new Map(activeTransactions.filter((transaction) => reportTransactionType(transaction, categoryMap) === 'expense' && transaction.categoryId).map((transaction) => {
     const category = categoryMap.get(transaction.categoryId!);
     return [transaction.categoryId!, { categoryId: transaction.categoryId!, name: category?.name ?? 'Kategori', icon: category?.icon ?? '◇', amount: 0 }];
-  })).values()].map((expense) => ({ ...expense, amount: activeTransactions.filter((transaction) => transaction.type === 'expense' && transaction.categoryId === expense.categoryId).reduce((sum, transaction) => sum + transaction.amount, 0) })).filter((expense) => expense.amount > 0).sort((a, b) => b.amount - a.amount);
+  })).values()].map((expense) => ({ ...expense, amount: activeTransactions.filter((transaction) => reportTransactionType(transaction, categoryMap) === 'expense' && transaction.categoryId === expense.categoryId).reduce((sum, transaction) => sum + transaction.amount, 0) })).filter((expense) => expense.amount > 0).sort((a, b) => b.amount - a.amount);
   const totalsFor = (range: BudgetPeriod) => activeTransactionsFor(transactions, range).reduce((totals, transaction) => {
-    if (transaction.type === 'income') totals.income += transaction.amount;
-    if (transaction.type === 'expense') totals.expense += transaction.amount;
+    const type = reportTransactionType(transaction, categoryMap);
+    if (type === 'income') totals.income += transaction.amount;
+    if (type === 'expense') totals.expense += transaction.amount;
     if (transaction.type === 'transfer' && transaction.toWalletId) totals.transferIn += transaction.amount;
     if (transaction.type === 'transfer' && transaction.walletId) totals.transferOut += transaction.amount + (transaction.adminFee ?? 0);
     return totals;
@@ -54,7 +56,12 @@ export async function getDatabaseReportView(database: SQLiteDatabase, rangeMonth
 }
 
 function activeTransactionsFor(transactions: Awaited<ReturnType<typeof getDatabaseTransactions>>, period: BudgetPeriod) {
-  return transactions.filter((transaction) => transaction.date >= period.startDate && transaction.date <= period.endDate && !transaction.isAdjustment);
+  return transactions.filter((transaction) => transaction.date >= period.startDate && transaction.date <= period.endDate);
+}
+
+function reportTransactionType(transaction: Awaited<ReturnType<typeof getDatabaseTransactions>>[number], categoryMap: Map<string, { type: string }>) {
+  if (transaction.type === 'adjustment') return categoryMap.get(transaction.categoryId ?? '')?.type === 'income' ? 'income' : 'expense';
+  return transaction.type;
 }
 
 export function getReportNetSavingLabel(netSaving: number) {

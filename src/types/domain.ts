@@ -1,7 +1,7 @@
 export type TransactionType = 'income' | 'expense' | 'transfer' | 'adjustment';
 export type CategoryType = 'income' | 'expense' | 'transfer';
 export type WalletTint = 'pine' | 'coral' | 'gold' | 'goal';
-export type PlanItemType = 'income' | 'fixedExpense' | 'allocation';
+export type PlanItemType = 'income' | 'expense' | 'fixedExpense' | 'allocation';
 export type ThemeMode = 'system' | 'light' | 'dark';
 export type CurrencyCode = 'IDR' | 'USD' | 'SGD' | 'MYR' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'SAR' | 'AED';
 export type PaymentStatus =
@@ -58,25 +58,25 @@ export type IncomeItem = {
   name: string;
   categoryId: string;
   targetAmount: number;
+  isAutomatic?: boolean;
 };
 
-export type FixedExpenseItem = {
+export type ExpenseItem = {
   id: string;
-  type: 'fixedExpense';
+  type: 'expense';
   name: string;
   categoryId: string;
   targetAmount: number;
+  isAutomatic?: boolean;
+  isPaid?: boolean;
 };
 
-export type AllocationItem = {
-  id: string;
-  type: 'allocation';
-  name: string;
-  categoryId: string;
-  targetAmount: number;
-};
+/** @deprecated Legacy names kept only so old backup/test callers can migrate. */
+export type FixedExpenseItem = Omit<ExpenseItem, 'type'> & { type: 'fixedExpense' };
+/** @deprecated Legacy names kept only so old backup/test callers can migrate. */
+export type AllocationItem = Omit<ExpenseItem, 'type'> & { type: 'allocation' };
 
-export type BudgetPlanItem = IncomeItem | FixedExpenseItem | AllocationItem;
+export type BudgetPlanItem = IncomeItem | ExpenseItem | FixedExpenseItem | AllocationItem;
 
 export type Goal = {
   id: string;
@@ -99,6 +99,8 @@ export type BudgetPlan = {
   id: string;
   budgetPeriodId: string;
   incomeItems: IncomeItem[];
+  expenseItems: ExpenseItem[];
+  /** @deprecated Read-only compatibility aliases; new UI never renders these sections. */
   fixedExpenseItems: FixedExpenseItem[];
   allocationItems: AllocationItem[];
   goalIds: string[];

@@ -11,6 +11,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAppTheme } from '@/components/theme-provider';
 import { useTheme } from '@/hooks/use-theme';
+import { SpenLogo } from '@/components/brand-assets';
 
 export default function SettingsScreen({ database }: { database?: SQLiteDatabase } = {}) {
   const theme = useTheme();
@@ -54,14 +55,14 @@ export default function SettingsScreen({ database }: { database?: SQLiteDatabase
   };
 
   return <ThemedView style={styles.page}><SafeAreaView style={styles.safeArea}><ScrollView contentContainerStyle={styles.content}>
-    <View style={styles.header}><ThemedText type="code" themeColor="muted" style={styles.eyebrow}>PENGATURAN</ThemedText><ThemedText type="title">Settings</ThemedText></View>
+    <View style={styles.header}><ThemedText type="code" themeColor="muted" style={styles.eyebrow}>PENGATURAN</ThemedText><ThemedText type="title">Pengaturan</ThemedText></View>
     <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>TAMPILAN</ThemedText>
     <ThemedView style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}><SettingRow icon="☼" title="Tema gelap" detail="Sesuaikan suasana aplikasimu"><Pressable accessibilityRole="switch" accessibilityLabel="Tema gelap" onPress={() => setMode(dark ? 'light' : 'dark')} style={[styles.toggle, { backgroundColor: dark ? theme.pine : theme.line }]}><View style={[styles.toggleKnob, dark && { transform: [{ translateX: 15 }] }]} /></Pressable></SettingRow></ThemedView>
-    <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>PENGATURAN</ThemedText>
+    <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>PREFERENSI</ThemedText>
     <ThemedView style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}><SettingRow icon="¤" title="Mata uang" detail="Dipakai untuk semua Wallet"><Pressable accessibilityRole="button" accessibilityLabel="Pilih mata uang" onPress={() => setCurrencyOpen((open) => !open)}><ThemedText type="smallBold" themeColor="pine">{currency}⌄</ThemedText></Pressable></SettingRow>{currencyOpen && <View style={[styles.currencyGrid, { borderTopColor: theme.line }]}>{currencyOptions.map((option) => <Pressable key={option} accessibilityRole="button" accessibilityLabel={`Pilih mata uang ${option}`} onPress={() => { void chooseCurrency(option); }} style={[styles.currency, { borderColor: currency === option ? theme.pine : theme.line, backgroundColor: currency === option ? theme.mint : theme.card }]}><ThemedText type="smallBold" themeColor={currency === option ? 'pine' : 'ink'}>{option}</ThemedText></Pressable>)}</View>}</ThemedView>
     <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>DATA</ThemedText>
-    <ThemedView style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}><ActionRow icon="↓" title="Backup data" detail={busy ? 'Menyiapkan file…' : 'Simpan salinan JSON'} onPress={() => { void runBackup(); }} /><ActionRow icon="↑" title="Restore data" detail={busy ? 'Memproses file…' : 'Timpa dari file backup'} onPress={() => { void runRestore(); }} /></ThemedView>
-    <View style={styles.footer}><ThemedText style={[styles.brand, { backgroundColor: theme.pine, color: theme.heroText }]}>S</ThemedText><ThemedText type="smallBold" themeColor="muted">Spen</ThemedText><ThemedText type="small" themeColor="muted">Versi 1.0</ThemedText></View>
+    <ThemedView style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}><ActionRow icon="↓" title="Backup data" detail={busy ? 'Menyiapkan file…' : 'Simpan salinan data'} onPress={() => { void runBackup(); }} /><ActionRow icon="↑" title="Restore data" detail={busy ? 'Memproses file…' : 'Timpa dari file backup'} onPress={() => { void runRestore(); }} /></ThemedView>
+    <View style={styles.footer}><SpenLogo size={42} /><ThemedText type="smallBold" themeColor="muted">Spen</ThemedText><ThemedText type="small" themeColor="muted">Versi 1.0</ThemedText></View>
   </ScrollView>{toast && <View style={[styles.toast, { backgroundColor: theme.ink }]}><ThemedText type="small" style={{ color: theme.background }}>✓ {toast}</ThemedText></View>}</SafeAreaView></ThemedView>;
 }
 
@@ -78,12 +79,12 @@ function ActionRow({ icon, title, detail, onPress }: { icon: string; title: stri
 const styles = StyleSheet.create({
   page: { flex: 1 },
   safeArea: { flex: 1 },
-  content: { alignSelf: 'center', maxWidth: 430, paddingHorizontal: 21, paddingTop: 28, paddingBottom: BottomTabInset + 24, width: '100%' },
-  header: { marginBottom: 28, marginTop: 7 },
-  eyebrow: { ...Typography.eyebrow },
-  groupLabel: { marginBottom: 8, marginTop: 21 },
+  content: { alignSelf: 'center', maxWidth: 430, paddingBottom: BottomTabInset + 24, paddingHorizontal: 21, paddingTop: 24, width: '100%' },
+  header: { marginBottom: 26, marginTop: 4 },
+  eyebrow: { ...Typography.eyebrow, marginBottom: 4 },
+  groupLabel: { marginBottom: 8, marginTop: 18 },
   group: { borderRadius: 19, borderWidth: 1, overflow: 'hidden' },
-  row: { alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 11, minHeight: 57, padding: 13 },
+  row: { alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 12, minHeight: 64, paddingHorizontal: 14, paddingVertical: 12 },
   icon: { alignItems: 'center', borderRadius: 10, fontFamily: Fonts.mono, fontSize: 12, height: 31, justifyContent: 'center', textAlign: 'center', width: 31 },
   copy: { flex: 1 },
   rowTitle: { fontSize: 12, lineHeight: 16 },
@@ -94,6 +95,5 @@ const styles = StyleSheet.create({
   currencyGrid: { borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', flexWrap: 'wrap', gap: 8, padding: 13 },
   currency: { borderRadius: 10, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 8 },
   footer: { alignItems: 'center', gap: 4, marginTop: 53 },
-  brand: { borderRadius: 10, fontFamily: Fonts.serif, fontSize: 17, height: 29, lineHeight: 29, textAlign: 'center', width: 29 },
   toast: { alignSelf: 'center', borderRadius: 12, bottom: 12, paddingHorizontal: 14, paddingVertical: 11, position: 'absolute' },
 });

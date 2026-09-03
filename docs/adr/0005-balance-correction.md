@@ -4,4 +4,4 @@ Kita mengizinkan pengguna membuat Wallet dengan saldo awal dan mengubah saldo wa
 
 Alternatif yang dipertimbangkan: kolom `saldo` yang bisa diedit langsung. Kita tolak karena melanggar invariant yang sudah direkam dan membuat saldo bisa divergen dari riwayat.
 
-Konsekuensi: transaksi saldo awal dan penyesuaian muncul di riwayat, tidak mengisi progress item plan mana pun (kategori internal dikecualikan dari agregasi plan/report), tetapi mengubah saldo wallet dan **saldo tersedia** (lihat CONTEXT.md). Angka target di plan tidak terpengaruh — realita (saldo) yang menyesuaikan, rencana tetap. Saldo awal juga tidak dihitung sebagai realisasi pendapatan periode.
+Konsekuensi: transaksi saldo awal dan penyesuaian muncul di riwayat serta masuk ke Pendapatan atau Pengeluaran Plan sesuai tipe transaksi dan periode aktif. Saldo awal/penyesuaian tetap memakai kategori internal agar identitasnya jelas. Penyesuaian mengubah saldo wallet dan **saldo tersedia** (lihat CONTEXT.md); realisasi Plan mengikuti ledger yang sama.

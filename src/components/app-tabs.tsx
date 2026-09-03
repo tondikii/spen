@@ -14,8 +14,8 @@ type TabItem = {
 const tabs: TabItem[] = [
   { name: 'index', label: 'Beranda', icon: '⌂' },
   { name: 'plan', label: 'Rencana', icon: '▤' },
-  { name: 'report', label: 'Report', icon: '◔' },
-  { name: 'settings', label: 'Settings', icon: '☼' },
+  { name: 'report', label: 'Laporan', icon: '◔' },
+  { name: 'settings', label: 'Pengaturan', icon: '☼' },
 ];
 
 export default function AppTabs() {
@@ -118,7 +118,6 @@ const styles = StyleSheet.create({
   },
   addButton: {
     alignItems: 'center',
-    backgroundColor: '#235B50',
     borderRadius: 20,
     borderWidth: 4,
     height: 58,

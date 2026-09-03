@@ -112,29 +112,29 @@ function ReportScreenContent({
             <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
               BUDGET PERIOD
             </ThemedText>
-            <ThemedText type="title">Report</ThemedText>
+            <ThemedText type="title">Laporan</ThemedText>
             <Pressable accessibilityRole="button" accessibilityLabel="Ubah Budget period"><ThemedText type="small" themeColor="muted">{formatPeriodAccurate(period)}⌄</ThemedText></Pressable>
           </View>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="AI Insight"
+            accessibilityLabel="Tanya AI"
             onPress={() => { setLoading(true); setInsightOpen(true); }}
             style={[styles.aiButton, { borderColor: theme.line, backgroundColor: theme.mint }]}
           >
-            <ThemedText type="smallBold" themeColor="pine" style={styles.aiButtonText}>✦ AI Insight</ThemedText>
+            <ThemedText type="smallBold" themeColor="pine" style={styles.aiButtonText}>✦ Tanya AI</ThemedText>
           </Pressable>
         </View>
         <FinanceHeroCard label={getReportNetSavingLabel(snapshot.netSaving).toUpperCase()} amount={snapshot.netSaving} amountColor={snapshot.netSaving < 0 ? theme.expense : undefined} footer={[{ label: "Pendapatan", value: formatMoney(snapshot.totalIncome) }, { label: "Pengeluaran", value: formatMoney(snapshot.totalExpense) }]} style={styles.summary} />
         <ChartCard title="Pengeluaran" trailing={formatMonth(period.endDate)} theme={theme}>
-          {expenses.length === 0 ? <View style={styles.empty}><ThemedText style={styles.emptyGlyph}>◌</ThemedText><ThemedText type="smallBold">Belum ada pengeluaran</ThemedText><ThemedText type="small" themeColor="muted">Belum ada catatan expense di Budget period ini.</ThemedText></View> : <View style={styles.pieArea}>
+          {expenses.length === 0 ? <View style={styles.empty}><ThemedText style={styles.emptyGlyph}>◌</ThemedText><ThemedText type="smallBold">Belum ada pengeluaran</ThemedText></View> : <View style={styles.pieArea}>
             <Donut expenses={expenses} total={snapshot.totalExpense} theme={theme} />
             <View style={styles.pieLabel}><ThemedText type="smallBold" style={styles.pieAmount}>{formatMoney(snapshot.totalExpense)}</ThemedText><ThemedText type="small" themeColor="muted">total keluar</ThemedText></View>
           </View>}
           <View style={styles.legend}>{expenses.map((item, index) => <Pressable key={item.categoryId} accessibilityRole="button" accessibilityLabel={`Lihat kategori ${item.name}`} onPress={() => openCategory(item)} style={[styles.legendRow, { borderTopColor: theme.line }]}><View style={[styles.dot, { backgroundColor: chartColors(theme)[index % chartColors(theme).length] }]} /><ThemedText type="small" style={styles.legendName}>{item.name}</ThemedText><ThemedText type="smallBold" themeColor="muted">{percentage(item.amount, snapshot.totalExpense)}%</ThemedText></Pressable>)}</View>
         </ChartCard>
-        <Pressable accessibilityRole="button" accessibilityLabel="Pilih rentang Report" onPress={() => setRangeOpen(true)} style={styles.rangeButton}><ThemedText type="smallBold" themeColor="pine">Rentang: {range} bulan</ThemedText></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Pilih rentang Laporan" onPress={() => setRangeOpen(true)} style={styles.rangeButton}><ThemedText type="smallBold" themeColor="pine">Rentang: {range} bulan</ThemedText></Pressable>
         <ChartCard title="Net saving" trailing={`${range} bulan⌄`} theme={theme}>
-          {chartPoints.length === 0 ? <View style={styles.empty}><ThemedText style={styles.emptyGlyph}>◌</ThemedText><ThemedText type="smallBold">Belum ada saving trend</ThemedText><ThemedText type="small" themeColor="muted">Belum ada data net saving untuk rentang ini.</ThemedText></View> : <><View style={[styles.chart, { borderBottomColor: theme.line }]}><Svg width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="none"><Path d={linePath(chartPoints)} fill="none" stroke={theme.pine} strokeWidth="3" /><Path d={`${linePath(chartPoints)} L318 120 L2 120Z`} fill={theme.pine} opacity="0.1" /></Svg></View><View style={styles.months}>{chartPoints.map((point) => <ThemedText key={point.period.id} type="small" themeColor="muted">{formatMonthShort(point.period.startDate)}</ThemedText>)}</View></>}
+          {chartPoints.length === 0 ? <View style={styles.empty}><ThemedText style={styles.emptyGlyph}>◌</ThemedText><ThemedText type="smallBold">Belum ada data net saving</ThemedText></View> : <><View style={[styles.chart, { borderBottomColor: theme.line }]}><Svg width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="none"><Path d={linePath(chartPoints)} fill="none" stroke={theme.pine} strokeWidth="3" /><Path d={`${linePath(chartPoints)} L318 120 L2 120Z`} fill={theme.pine} opacity="0.1" /></Svg></View><View style={styles.months}>{chartPoints.map((point) => <ThemedText key={point.period.id} type="small" themeColor="muted">{formatMonthShort(point.period.startDate)}</ThemedText>)}</View></>}
         </ChartCard>
       </ScrollView>
       <Modal
@@ -153,29 +153,19 @@ function ReportScreenContent({
                 <ThemedText
                   style={[styles.loadingGlyph, { color: theme.pine }]}
                 >
-                  âœ¦
+                  ✦
                 </ThemedText>
                 <ThemedText type="smallBold">
-                  Menghubungkan titik-titik…
+                  Membaca pola keuanganmu…
                 </ThemedText>
                 <ThemedText type="small" themeColor="muted">
-                  Membaca pola keuanganmu.
+                  Sebentar ya.
                 </ThemedText>
               </View>
             ) : (
               <>
                 <ThemedText type="sectionHeading">Insight bulan ini</ThemedText>
                 {insightError ? <ThemedText style={{ color: theme.expense }}>{insightError}</ThemedText> : <ThemedText style={styles.insightText}>{insightText}</ThemedText>}
-                <View
-                  style={[styles.takeaway, { backgroundColor: theme.mint }]}
-                >
-                  <ThemedText type="smallBold" themeColor="pine">
-                    Langkah kecil
-                  </ThemedText>
-                  <ThemedText type="small" themeColor="pine">
-                    Gunakan insight ini sebagai bahan pertimbangan.
-                  </ThemedText>
-                </View>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Mengerti"
@@ -194,7 +184,7 @@ function ReportScreenContent({
           </View>
         </Pressable>
       </Modal>
-      <Modal transparent animationType="slide" visible={rangeOpen} onRequestClose={() => setRangeOpen(false)}><Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={() => setRangeOpen(false)}><View style={[styles.sheet, { backgroundColor: theme.card }]}><ThemedText type="sectionHeading">Rentang Report</ThemedText>{[3, 6, 12].map((months) => <Pressable key={months} accessibilityRole="button" accessibilityLabel={`Report ${months} bulan`} onPress={() => updateRange(months)} style={[styles.sheetOption, { borderTopColor: theme.line }]}><ThemedText type="smallBold" themeColor={range === months ? 'pine' : 'ink'}>{months} bulan</ThemedText></Pressable>)}</View></Pressable></Modal>
+      <Modal transparent animationType="slide" visible={rangeOpen} onRequestClose={() => setRangeOpen(false)}><Pressable style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={() => setRangeOpen(false)}><View style={[styles.sheet, { backgroundColor: theme.card }]}><ThemedText type="sectionHeading">Rentang Laporan</ThemedText>{[3, 6, 12].map((months) => <Pressable key={months} accessibilityRole="button" accessibilityLabel={`Laporan ${months} bulan`} onPress={() => updateRange(months)} style={[styles.sheetOption, { borderTopColor: theme.line }]}><ThemedText type="smallBold" themeColor={range === months ? 'pine' : 'ink'}>{months} bulan</ThemedText></Pressable>)}</View></Pressable></Modal>
     </ThemedView>
   );
 }
@@ -281,19 +271,19 @@ function ChartCard({
 const styles = StyleSheet.create({
   page: { flex: 1 },
   safeArea: { flex: 1 },
-  content: { alignSelf: "center", maxWidth: 430, paddingHorizontal: 21, paddingTop: 28, paddingBottom: BottomTabInset + 24, width: "100%" },
+  content: { alignSelf: "center", maxWidth: 430, paddingBottom: BottomTabInset + 24, paddingHorizontal: 21, paddingTop: 24, width: "100%" },
   header: {
     alignItems: "flex-start",
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 24,
+    marginBottom: 20,
   },
   eyebrow: { ...Typography.eyebrow },
   aiButton: { borderRadius: Radius.pill, borderWidth: 1, marginTop: 14, paddingHorizontal: 12, paddingVertical: 10 },
   aiButtonText: { fontSize: 11, lineHeight: 14 },
   summary: { marginBottom: 24 },
   metric: { flex: 1, gap: 5, minHeight: 58 },
-  card: { borderRadius: 22, borderWidth: 1, marginBottom: 14, padding: 17 },
+  card: { borderRadius: 22, borderWidth: 1, marginBottom: 16, padding: 18 },
   cardHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
   pieArea: { alignItems: "center", height: 183, justifyContent: "center", marginTop: 8 },
   empty: { alignItems: "center", gap: 7, paddingVertical: 38 },
@@ -305,10 +295,10 @@ const styles = StyleSheet.create({
   legendRow: {
     alignItems: "center",
     flexDirection: "row",
-    borderTopColor: "#E3E4DD",
+    borderTopColor: "transparent",
     borderTopWidth: 1,
     gap: 7,
-    paddingVertical: 7,
+    paddingVertical: 10,
   },
   dot: { borderRadius: 4, height: 8, width: 8 },
   legendName: { flex: 1, fontSize: 11 },
@@ -331,6 +321,5 @@ const styles = StyleSheet.create({
   loading: { alignItems: "center", paddingVertical: 45 },
   loadingGlyph: { fontSize: 29, marginBottom: 12 },
   insightText: { fontSize: 13, lineHeight: 21, marginTop: 17 },
-  takeaway: { borderRadius: 14, gap: 5, marginVertical: 17, padding: 13 },
   closeInsight: { alignItems: "center", borderRadius: 13, padding: 13 },
 });

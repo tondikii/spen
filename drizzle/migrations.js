@@ -6,6 +6,8 @@ import m0002 from './20260901193906_nostalgic_dragon_lord/migration.sql';
 import m0003 from './20260902031456_windy_starbolt/migration.sql';
 import m0004 from './20260902165744_flawless_puppet_master/migration.sql';
 import m0005 from './20260902165825_remarkable_thor/migration.sql';
+import m0006 from './20260903120000_unified_expenses/migration.sql';
+import m0007 from './20260903140000_expense_payment_toggle/migration.sql';
 
 export default {
   journal: {
@@ -16,6 +18,8 @@ export default {
       { idx: 3, version: '7', when: 20260902031456, tag: 'windy_starbolt', breakpoints: true },
       { idx: 4, version: '7', when: 20260902165744, tag: 'flawless_puppet_master', breakpoints: true },
       { idx: 5, version: '7', when: 20260902165825, tag: 'remarkable_thor', breakpoints: true },
+      { idx: 6, version: '7', when: 20260903120000, tag: 'unified_expenses', breakpoints: true },
+      { idx: 7, version: '7', when: 20260903140000, tag: 'expense_payment_toggle', breakpoints: true },
     ],
   },
   migrations: {
@@ -25,5 +29,7 @@ export default {
     '20260902031456_windy_starbolt': m0003,
     '20260902165744_flawless_puppet_master': m0004,
     '20260902165825_remarkable_thor': m0005,
+    '20260903120000_unified_expenses': m0006,
+    '20260903140000_expense_payment_toggle': m0007,
   },
 };

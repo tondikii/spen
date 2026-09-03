@@ -2,6 +2,10 @@
 
 Dokumen ini adalah **kontrak visual** Spen: prinsip, bahasa visual, dan aturan komponen yang harus diikuti semua layar (React Native build). Nilai teknis (token) ada di `docs/design/design-tokens.md`; dokumen ini menjelaskan **bagaimana** memakainya. Domain glossary: `CONTEXT.md`.
 
+## Aturan Plan terbaru
+
+UI Plan hanya menampilkan Pendapatan, Pengeluaran, dan Goal. Pendapatan menampilkan nominal realisasi tanpa progress bar; Pengeluaran menampilkan progress pembayaran terhadap target dan aksi "Bayar" dengan nominal awal berupa sisa target yang tetap dapat diedit.
+
 ---
 
 ## 1. Prinsip Visual
