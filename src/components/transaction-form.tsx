@@ -16,6 +16,7 @@ import {
   CATEGORY_ICON_CHOICES,
   CategoryIcon,
 } from "@/components/category-icon";
+import { CurrencyMark } from "@/components/currency-mark";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Fonts, Radius, Spacing, Typography } from "@/constants/theme";
@@ -371,18 +372,15 @@ export function TransactionForm({
                   (opsional)
                 </ThemedText>
               </FieldLabel>
-              <TextInput
+              <View style={styles.moneyInputRow}><CurrencyMark /><TextInput
                 accessibilityLabel="Biaya admin transfer"
                 keyboardType="numeric"
                 placeholder="0"
                 placeholderTextColor={theme.muted}
                 value={adminFee}
                 onChangeText={(value) => setAdminFee(formatMoneyInput(value))}
-                style={[
-                  styles.input,
-                  { borderBottomColor: theme.line, color: theme.ink },
-                ]}
-              />
+                style={[styles.input, styles.moneyInput, { borderBottomColor: theme.line, color: theme.ink }]}
+              /></View>
             </>
           ) : (
             <>
@@ -560,18 +558,15 @@ export function TransactionForm({
           <FieldLabel>
             {type === "transfer" ? "NOMINAL TRANSFER" : "NOMINAL"}
           </FieldLabel>
-          <TextInput
+          <View style={styles.moneyInputRow}><CurrencyMark /><TextInput
             accessibilityLabel="Nominal transaksi"
             keyboardType="numeric"
             placeholder="0"
             placeholderTextColor={theme.muted}
             value={amount}
             onChangeText={(value) => setAmount(formatMoneyInput(value))}
-            style={[
-              styles.amountInput,
-              { borderBottomColor: theme.line, color: theme.ink },
-            ]}
-          />
+            style={[styles.amountInput, styles.moneyInput, { borderBottomColor: theme.line, color: theme.ink }]}
+          /></View>
           {overBudget && (
             <View
               style={[
@@ -902,5 +897,7 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingHorizontal: 0,
   },
+  moneyInputRow: { alignItems: "center", flexDirection: "row", gap: Spacing.two },
+  moneyInput: { flex: 1 },
   deleteAction: { alignItems: "center", paddingVertical: Spacing.four },
 });

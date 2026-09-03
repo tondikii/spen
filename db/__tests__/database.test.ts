@@ -42,6 +42,7 @@ describe('database foundation', () => {
       'budget_periods',
       'budget_plans',
       'categories',
+      'expense_items',
       'fixed_expense_items',
       'goals',
       'income_items',

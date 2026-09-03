@@ -20,7 +20,7 @@ describe('HomeScreen', () => {
 
     await waitFor(() => expect(getByText('Edit Wallet')).toBeTruthy());
     expect(getByLabelText('Nama Wallet').props.value).toBe('Tunai');
-    expect(getByLabelText('Saldo Wallet').props.value).toBe('350000');
+    expect(getByLabelText('Saldo Wallet').props.value).toBe('350.000');
     expect(getByText('Arsipkan Wallet')).toBeTruthy();
   });
 
@@ -44,7 +44,7 @@ describe('HomeScreen', () => {
     await waitFor(() => expect(getByText('Edit Wallet')).toBeTruthy());
 
     expect(getByLabelText('Nama Wallet').props.value).toBe('Tunai');
-    expect(getByLabelText('Saldo Wallet').props.value).toBe('350000');
+    expect(getByLabelText('Saldo Wallet').props.value).toBe('350.000');
     await fireEvent.changeText(getByLabelText('Nama Wallet'), 'Tunai Baru');
     await fireEvent.changeText(getByLabelText('Saldo Wallet'), '400000');
     await fireEvent.press(getByLabelText('Simpan Wallet'));

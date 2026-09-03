@@ -132,7 +132,7 @@ function ReportScreenContent({
           </View>}
           <View style={styles.legend}>{expenses.map((item, index) => <Pressable key={item.categoryId} accessibilityRole="button" accessibilityLabel={`Lihat kategori ${item.name}`} onPress={() => openCategory(item)} style={[styles.legendRow, { borderTopColor: theme.line }]}><View style={[styles.dot, { backgroundColor: chartColors(theme)[index % chartColors(theme).length] }]} /><ThemedText type="small" style={styles.legendName}>{item.name}</ThemedText><ThemedText type="smallBold" themeColor="muted">{percentage(item.amount, snapshot.totalExpense)}%</ThemedText></Pressable>)}</View>
         </ChartCard>
-        <Pressable accessibilityRole="button" accessibilityLabel="Pilih rentang Laporan" onPress={() => setRangeOpen(true)} style={styles.rangeButton}><ThemedText type="smallBold" themeColor="pine">Rentang: {range} bulan</ThemedText></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Pilih rentang Laporan" onPress={() => setRangeOpen(true)} style={[styles.rangeButton, { borderColor: theme.line }]}><ThemedText type="smallBold" themeColor="pine">Rentang: {range} bulan⌄</ThemedText></Pressable>
         <ChartCard title="Net saving" trailing={`${range} bulan⌄`} theme={theme}>
           {chartPoints.length === 0 ? <View style={styles.empty}><ThemedText style={styles.emptyGlyph}>◌</ThemedText><ThemedText type="smallBold">Belum ada data net saving</ThemedText></View> : <><View style={[styles.chart, { borderBottomColor: theme.line }]}><Svg width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="none"><Path d={linePath(chartPoints)} fill="none" stroke={theme.pine} strokeWidth="3" /><Path d={`${linePath(chartPoints)} L318 120 L2 120Z`} fill={theme.pine} opacity="0.1" /></Svg></View><View style={styles.months}>{chartPoints.map((point) => <ThemedText key={point.period.id} type="small" themeColor="muted">{formatMonthShort(point.period.startDate)}</ThemedText>)}</View></>}
         </ChartCard>
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     marginTop: 10,
   },
-  rangeButton: { alignSelf: "flex-end", marginBottom: 10 },
+  rangeButton: { alignItems: "center", alignSelf: "flex-end", borderRadius: 10, borderWidth: 1, flexDirection: "row", marginBottom: 10, paddingHorizontal: 10, paddingVertical: 7 },
   chart: { alignItems: "flex-end", borderBottomWidth: 1, height: 130, justifyContent: "flex-end", marginTop: 8 },
   months: {
     flexDirection: "row",

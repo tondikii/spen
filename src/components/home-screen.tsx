@@ -22,6 +22,7 @@ import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import { useTheme } from '@/hooks/use-theme';
 import { addMockWallet, archiveMockWallet, getHomeRecentTransactions, getHomeSnapshot, getHomeWallets, getTransactionPresentation, getWalletTotal, updateMockWallet } from '@/services/home-service';
 import { CategoryIcon } from '@/components/category-icon';
+import { CurrencyMark } from '@/components/currency-mark';
 
 const tintSequence: WalletTint[] = ['pine', 'coral', 'gold', 'goal'];
 
@@ -158,7 +159,7 @@ function WalletForm(props: WalletFormProps) {
           <ThemedText type="code" themeColor="muted" style={styles.formLabel}>NAMA WALLET</ThemedText>
           <TextInput accessibilityLabel="Nama Wallet" placeholder="Mis. Jago, Tunai, GoPay" placeholderTextColor={theme.muted} value={name} onChangeText={setName} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} />
           <ThemedText type="code" themeColor="muted" style={styles.formLabel}>{props.mode === 'edit' ? 'SALDO SAAT INI' : 'SALDO AWAL'}</ThemedText>
-            <TextInput accessibilityLabel={props.mode === 'edit' ? 'Saldo Wallet' : 'Saldo awal'} keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={amount} onChangeText={(value) => setAmount(formatMoneyInput(value))} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} />
+            <View style={styles.moneyInputRow}><CurrencyMark /><TextInput accessibilityLabel={props.mode === 'edit' ? 'Saldo Wallet' : 'Saldo awal'} keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={amount} onChangeText={(value) => setAmount(formatMoneyInput(value))} style={[styles.input, styles.moneyInput, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} /></View>
           {props.mode === 'edit' && <Pressable accessibilityRole="button" accessibilityLabel="Arsipkan Wallet" onPress={props.onArchive} style={[styles.archiveAction, { borderTopColor: theme.line }]}><ThemedText style={[styles.archiveIcon, { backgroundColor: theme.dangerBackground, color: theme.expense }]}>□</ThemedText><View style={styles.archiveCopy}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan Wallet</ThemedText><ThemedText type="small" themeColor="muted">Transaksi tetap tersimpan</ThemedText></View><ThemedText type="subtitle" themeColor="muted">›</ThemedText></Pressable>}
         </ScrollView>
         </KeyboardAvoidingView>
@@ -277,6 +278,8 @@ const styles = StyleSheet.create({
   archiveCopy: { flex: 1 },
   formLabel: { ...Typography.eyebrow, marginTop: Spacing.two },
   input: { borderBottomWidth: 1, fontFamily: Fonts.sans, fontSize: 16, minHeight: 52, paddingHorizontal: Spacing.two },
+  moneyInputRow: { alignItems: 'center', flexDirection: 'row', gap: Spacing.two },
+  moneyInput: { flex: 1 },
   transactionName: { fontSize: 12, lineHeight: 16 },
   transactionDetail: { fontSize: 10, lineHeight: 14, marginTop: Spacing.half },
   transactionAmountText: { fontSize: 12, lineHeight: 16 },

@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { CURRENCY_SYMBOLS, CurrencyMark } from "@/components/currency-mark";
 import { Fonts, Radius, Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { formatMoneyInput, parseMoneyInput } from "@/lib/money-input";
@@ -242,7 +243,7 @@ export function SetupWizard({
                       >
                         SALDO AWAL
                       </ThemedText>
-                      <TextInput
+                      <View style={styles.moneyInputRow}><CurrencyMark /><TextInput
                         accessibilityLabel={
                           index === 0
                             ? "Saldo awal wallet pertama"
@@ -266,9 +267,10 @@ export function SetupWizard({
                         }
                         style={[
                           styles.input,
+                          styles.moneyInput,
                           { borderBottomColor: theme.line, color: theme.ink },
                         ]}
-                      />
+                      /></View>
                     </View>
                   ))}
                   <Pressable
@@ -329,6 +331,9 @@ export function SetupWizard({
                           },
                         ]}
                       >
+                        <ThemedText style={styles.currencySymbol} themeColor={currency === option ? "pine" : "muted"}>
+                          {CURRENCY_SYMBOLS[option]}
+                        </ThemedText>
                         <ThemedText
                           type="smallBold"
                           themeColor={currency === option ? "pine" : "ink"}
@@ -423,6 +428,8 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingHorizontal: 0,
   },
+  moneyInputRow: { alignItems: "center", flexDirection: "row", gap: Spacing.two },
+  moneyInput: { flex: 1 },
   balanceLabel: { marginTop: 25 },
   currencyGrid: {
     flexDirection: "row",
@@ -431,6 +438,7 @@ const styles = StyleSheet.create({
     marginBottom: 25,
     marginTop: 5,
   },
-  currency: { borderRadius: 17, borderWidth: 1, padding: 14, width: "47%" },
+  currency: { alignItems: "center", borderRadius: 17, borderWidth: 1, gap: 5, padding: 14, width: "47%" },
+  currencySymbol: { fontFamily: Fonts.mono, fontSize: 16 },
   primary: { borderRadius: 15, marginTop: "auto", padding: 15 },
 });

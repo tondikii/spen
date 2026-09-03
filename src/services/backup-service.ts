@@ -67,7 +67,7 @@ export function parseBackupPayload(value: string | unknown): BackupPayload {
     throw new Error(`Versi backup tidak didukung. Gunakan backup Spen versi ${BACKUP_VERSION}.`);
   }
   const data = parsed.data;
-  const keys = ['wallets', 'categories', 'transactions', 'budgetPeriods', 'budgetPlans', 'incomeItems', 'fixedExpenseItems', 'allocationItems', 'goals', 'settings'];
+  const keys = ['wallets', 'categories', 'transactions', 'budgetPeriods', 'budgetPlans', 'incomeItems', 'fixedExpenseItems', 'allocationItems', 'expenseItems', 'goals', 'settings'];
   if (!keys.every((key) => isArrayOfRecords(data[key]))) {
     throw new Error('Struktur file backup tidak lengkap atau rusak');
   }

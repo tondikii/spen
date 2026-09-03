@@ -104,7 +104,7 @@ describe('database transaction service', () => {
 
     expect(edited.id).not.toBe(transaction.id);
     expect((await getWallets(database))[0].balance).toBe(700);
-    expect((await getDatabaseTransactions(database)).map((item) => item.note)).toEqual(['Makan siang', 'Saldo awal Wallet']);
+    expect((await getDatabaseTransactions(database)).map((item) => item.note)).toEqual(['Saldo awal Wallet', 'Makan siang']);
   });
 
   it('archives a used category instead of deleting its history', async () => {

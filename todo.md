@@ -1,9 +1,16 @@
-Model murah:
+**Coding Agent**:
 
-- [x] buat separator di Plan sama kaya seprator transaction list
-- [ ] buat bisa on boarding bisa back dengan cara slide screen atau klik indicator stepnya
+- [x] Konsistenkan tiap input
+- [x] Tambahkan logo currency ke setiap input uang
+- [x] Currency Picker harus menampilkan logonya juga
+- [x] UI dropdown ganti periode, ganti mata uang, dan dropdown sejenis lainnya dibuat lebih intuitif karena sekarang masih belum cukup terlihat seperti bisa interaktif, belum terlihat seperti dropdown.
+- [x] FAQ
+- [x] Aduan masalah
+- [x] Versi build di settings buat sesuai dengan versi aplikasi
+- [x] Syarat & Ketentuan - temporary dummy the url
+- [x] Kebijakan Privasi - temporary dummy the url
 
-Model sedang:
+**Me**:
 
-- [x] Initial saldo dan koreksi saldo memiliki jejak ledger: saldo bertambah menjadi transaksi income, sedangkan saldo berkurang menjadi transaksi expense.
-- [ ] Polish UI UX keseluruhan
+- [ ] Test E2E wallet, transaksi, plan, report.
+- [ ] Test Backup, Restore.

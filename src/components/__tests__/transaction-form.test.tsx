@@ -31,7 +31,7 @@ describe('TransactionForm', () => {
     const { getByLabelText, getByText } = await render(<TransactionForm mode="edit" transaction={transaction} onClose={jest.fn()} onSave={onSave} onDelete={onDelete} />);
 
     expect(getByText('Edit Transaksi')).toBeTruthy();
-    expect(getByLabelText('Nominal transaksi').props.value).toBe('45000');
+    expect(getByLabelText('Nominal transaksi').props.value).toBe('45.000');
     expect(getByLabelText('Catatan transaksi').props.value).toBe('Kopi dan sarapan');
     expect(getByText('Hapus Transaksi')).toBeTruthy();
   });
@@ -74,7 +74,7 @@ describe('TransactionForm', () => {
   it('menerima preset dari aksi plan untuk membuka form transaksi siap catat', async () => {
     const { getByLabelText } = await render(<TransactionForm mode="create" initialType="expense" initialCategoryId="category-makan" initialAmount={175000} onClose={jest.fn()} onSave={jest.fn()} />);
 
-    expect(getByLabelText('Nominal transaksi').props.value).toBe('175000');
+    expect(getByLabelText('Nominal transaksi').props.value).toBe('175.000');
     expect(getByLabelText('Kategori Makan')).toBeTruthy();
   });
 
