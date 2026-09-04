@@ -13,7 +13,7 @@ export default function AppRuntime() {
 
   if (pathname === termsDocument.path || pathname === privacyDocument.path) {
     const document = pathname === termsDocument.path ? termsDocument : privacyDocument;
-    return <AppThemeProvider><PublicDocumentScreen document={document} onBack={() => router.back()} /></AppThemeProvider>;
+    return <AppThemeProvider><PublicDocumentScreen document={document} onBack={() => router.replace('/' as never)} /></AppThemeProvider>;
   }
 
   return <AppThemeProvider><ThemedView style={styles.page}><View style={styles.content}>

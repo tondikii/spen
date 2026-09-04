@@ -4,5 +4,5 @@ import { useRouter } from 'expo-router';
 
 export default function PrivacyRoute() {
   const router = useRouter();
-  return <PublicDocumentScreen document={privacyDocument} onBack={() => router.back()} />;
+  return <PublicDocumentScreen document={privacyDocument} onBack={() => router.replace('/' as never)} />;
 }

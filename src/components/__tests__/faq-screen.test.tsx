@@ -13,13 +13,13 @@ describe('FaqScreen', () => {
     );
 
     expect(getByText('FAQ')).toBeTruthy();
-    expect(faqEntries).toHaveLength(9);
-    expect(getByText('Apakah data dan input AI dikirim ke internet?')).toBeTruthy();
-    expect(queryByText('Data keuangan tersimpan lokal. Saat kamu memicu AI, ringkasan angka serta nama Wallet, kategori, dan Goal yang diperlukan dikirim ke Groq untuk diproses.')).toBeNull();
+    expect(faqEntries).toHaveLength(4);
+    expect(getByText('Apa yang terjadi saat memakai AI?')).toBeTruthy();
+    expect(queryByText('Data utama tersimpan lokal. Saat kamu memicu AI, ringkasan angka serta nama Wallet, kategori, dan Goal yang diperlukan dikirim ke Groq. AI hanya memberi saran atau insight; saat layanan tidak tersedia, Spen memakai fallback lokal.')).toBeNull();
 
-    await fireEvent.press(getByLabelText('Apakah data dan input AI dikirim ke internet?'));
+    await fireEvent.press(getByLabelText('Apa yang terjadi saat memakai AI?'));
 
-    expect(getByText('Data keuangan tersimpan lokal. Saat kamu memicu AI, ringkasan angka serta nama Wallet, kategori, dan Goal yang diperlukan dikirim ke Groq untuk diproses.')).toBeTruthy();
+    expect(getByText('Data utama tersimpan lokal. Saat kamu memicu AI, ringkasan angka serta nama Wallet, kategori, dan Goal yang diperlukan dikirim ke Groq. AI hanya memberi saran atau insight; saat layanan tidak tersedia, Spen memakai fallback lokal.')).toBeTruthy();
   });
 
   it('membuka beberapa jawaban tanpa menutup jawaban lain dan dapat menutupnya kembali', async () => {
@@ -28,10 +28,10 @@ describe('FaqScreen', () => {
         <FaqScreen onBack={() => undefined} />
       </AppThemeProvider>,
     );
-    const firstQuestion = 'Apakah data dan input AI dikirim ke internet?';
-    const firstAnswer = 'Data keuangan tersimpan lokal. Saat kamu memicu AI, ringkasan angka serta nama Wallet, kategori, dan Goal yang diperlukan dikirim ke Groq untuk diproses.';
-    const secondQuestion = 'Apakah AI mengubah data atau tetap bekerja tanpa internet?';
-    const secondAnswer = 'AI hanya memberi saran atau insight. Data berubah setelah kamu melakukan tindakan seperti Terapkan atau menyimpan Transaksi. Saat layanan AI tidak tersedia, saran Budget plan dan insight report memakai fallback lokal.';
+    const firstQuestion = 'Apa yang terjadi saat memakai AI?';
+    const firstAnswer = 'Data utama tersimpan lokal. Saat kamu memicu AI, ringkasan angka serta nama Wallet, kategori, dan Goal yang diperlukan dikirim ke Groq. AI hanya memberi saran atau insight; saat layanan tidak tersedia, Spen memakai fallback lokal.';
+    const secondQuestion = 'Apa yang terjadi saat backup dan restore?';
+    const secondAnswer = 'Backup dilakukan manual sebagai file JSON. Restore menghapus lalu mengganti seluruh data lokal setelah kamu mengonfirmasinya.';
 
     await fireEvent.press(getByLabelText(firstQuestion));
     await fireEvent.press(getByLabelText(secondQuestion));

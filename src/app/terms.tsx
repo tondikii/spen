@@ -4,5 +4,5 @@ import { useRouter } from 'expo-router';
 
 export default function TermsRoute() {
   const router = useRouter();
-  return <PublicDocumentScreen document={termsDocument} onBack={() => router.back()} />;
+  return <PublicDocumentScreen document={termsDocument} onBack={() => router.replace('/' as never)} />;
 }

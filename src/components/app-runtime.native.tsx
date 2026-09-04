@@ -78,7 +78,7 @@ function PublicDocumentRoute() {
   const pathname = usePathname();
   const router = useRouter();
   const document = pathname === termsDocument.path ? termsDocument : privacyDocument;
-  return <AppThemeProvider><PublicDocumentScreen document={document} onBack={() => router.back()} /></AppThemeProvider>;
+  return <AppThemeProvider><PublicDocumentScreen document={document} onBack={() => router.replace('/' as never)} /></AppThemeProvider>;
 }
 
 export default function AppRuntime() {
