@@ -106,6 +106,13 @@ export default function AppTabs() {
           tabBarStyle: { display: 'none' },
         }}
       />
+      <Tabs.Screen
+        name="faq"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' },
+        }}
+      />
     </Tabs>
   );
 }

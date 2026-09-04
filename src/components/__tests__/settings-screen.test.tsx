@@ -26,6 +26,19 @@ describe('SettingsScreen', () => {
     await waitFor(() => expect(getByText('USD⌄')).toBeTruthy());
   });
 
+  it('meneruskan aksi FAQ ke navigasi screen baru', async () => {
+    const onFaqPress = jest.fn();
+    const { getByLabelText } = await render(
+      <AppThemeProvider>
+        <SettingsScreen onFaqPress={onFaqPress} />
+      </AppThemeProvider>,
+    );
+
+    await fireEvent.press(getByLabelText('FAQ'));
+
+    expect(onFaqPress).toHaveBeenCalledTimes(1);
+  });
+
   it('membuka dokumen legal di origin web yang dikonfigurasi', async () => {
     const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
     const { getByLabelText } = await render(<AppThemeProvider><SettingsScreen /></AppThemeProvider>);
