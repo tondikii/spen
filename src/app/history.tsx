@@ -1,12 +1,10 @@
 import HistoryScreen from '@/components/history-screen';
-import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import {
   getDatabaseTransactionCategories,
   getDatabaseTransactions,
 } from '@/services/transaction-service';
 import { getWallets } from '@/services/wallet-service';
-import type { Category, Transaction, Wallet } from '@/types/domain';
 import { DataState } from '@/components/screen-skeleton';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';

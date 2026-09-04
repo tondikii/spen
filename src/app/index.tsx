@@ -1,8 +1,7 @@
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useCallback } from 'react';
 
 import HomeScreen from '@/components/home-screen';
-import type { Category, Transaction, Wallet } from '@/types/domain';
 import { DataState } from '@/components/screen-skeleton';
 import {
   archiveWallet,
@@ -16,43 +15,27 @@ import {
   getDatabaseTransactions,
 } from '@/services/transaction-service';
 import { getDatabasePlanView } from '@/services/plan-service';
-import { retryDatabaseRead } from '@/services/database-read-retry';
 import useAppDatabase from '@/hooks/use-app-database';
+import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function HomeRoute() {
   const router = useRouter();
   const database = useAppDatabase();
-  const [data, setData] = useState<{
-    wallets: Wallet[];
-    categories: Category[];
-    transactions: Transaction[];
-    plan: Awaited<ReturnType<typeof getDatabasePlanView>>;
-  } | null>(null);
-  const [error, setError] = useState('');
-
-  const loadData = useCallback(async () => {
-    try {
-      const [wallets, categories, transactions, plan] = await retryDatabaseRead(() =>
-        Promise.all([
-          getWallets(database, true),
-          getDatabaseTransactionCategories(database),
-          getDatabaseTransactions(database),
-          getDatabasePlanView(database),
-        ]),
-      );
-      setData({ wallets, categories, transactions, plan });
-      setError('');
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Data Beranda tidak dapat dimuat.');
-    }
-  }, [database]);
-
-  useFocusEffect(
-    useCallback(() => {
-      void loadData();
-    }, [loadData]),
+  const read = useCallback(
+    () =>
+      Promise.all([
+        getWallets(database, true),
+        getDatabaseTransactionCategories(database),
+        getDatabaseTransactions(database),
+        getDatabasePlanView(database),
+      ]),
+    [database],
   );
-
+  const { data: loaded, error, retry } = useFocusedRead(read, 'Data Beranda tidak dapat dimuat.');
+  const data = loaded
+    ? { wallets: loaded[0], categories: loaded[1], transactions: loaded[2], plan: loaded[3] }
+    : null;
+  const loadData = async () => retry();
   const refreshData = async () => loadData();
 
   if (error)

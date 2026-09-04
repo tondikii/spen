@@ -4,6 +4,21 @@ import { retryDatabaseRead } from '@/services/database-read-retry';
 
 type FocusedReadState<T> = { data: T | null; error: string; retry: () => void };
 
+export async function settleFocusedRead<T>(
+  read: Promise<T>,
+  isCurrent: () => boolean,
+  onData: (data: T) => void,
+  onError: (error: Error) => void,
+) {
+  try {
+    const data = await read;
+    if (isCurrent()) onData(data);
+  } catch (cause) {
+    if (isCurrent())
+      onError(cause instanceof Error ? cause : new Error('Data tidak dapat dimuat.'));
+  }
+}
+
 export async function readFocused<T>(read: () => Promise<T>, fallback: string): Promise<T> {
   try {
     return await retryDatabaseRead(read);
@@ -28,17 +43,17 @@ export function useFocusedRead<T>(
       let cancelled = false;
       setData(null);
       setError('');
-      void load()
-        .then((next) => {
-          if (!cancelled) setData(next);
-        })
-        .catch((cause: Error) => {
-          if (!cancelled) setError(cause.message);
-        });
+      void settleFocusedRead(
+        load(),
+        () => !cancelled,
+        setData,
+        (cause) => setError(cause.message),
+      );
       return () => {
         cancelled = true;
       };
     }, [attempt, load, resourceKey]),
   );
-  return { data, error, retry: () => setAttempt((value) => value + 1) };
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+  return { data, error, retry };
 }

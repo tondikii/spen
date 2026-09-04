@@ -1,6 +1,6 @@
 import PlanScreen from '@/components/plan-screen';
-import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { router } from 'expo-router';
+import { useCallback } from 'react';
 import {
   applyDatabaseBudgetSuggestion,
   createDatabasePlanItem,
@@ -23,35 +23,19 @@ import {
   type GoalDraft,
 } from '@/services/goal-service';
 import { DataState } from '@/components/screen-skeleton';
-import { retryDatabaseRead } from '@/services/database-read-retry';
 import useAppDatabase from '@/hooks/use-app-database';
+import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function PlanRoute() {
   const database = useAppDatabase();
-  const [planView, setPlanView] = useState<Awaited<ReturnType<typeof getDatabasePlanView>> | null>(
-    null,
+  const read = useCallback(
+    () => Promise.all([getDatabasePlanView(database), getDatabaseTransactionCategories(database)]),
+    [database],
   );
-  const [categories, setCategories] = useState<
-    Awaited<ReturnType<typeof getDatabaseTransactionCategories>>
-  >([]);
-  const [error, setError] = useState('');
-  const load = useCallback(async () => {
-    try {
-      const [nextPlan, nextCategories] = await retryDatabaseRead(() =>
-        Promise.all([getDatabasePlanView(database), getDatabaseTransactionCategories(database)]),
-      );
-      setPlanView(nextPlan);
-      setCategories(nextCategories);
-      setError('');
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Budget plan tidak dapat dimuat.');
-    }
-  }, [database]);
-  useFocusEffect(
-    useCallback(() => {
-      void load();
-    }, [load]),
-  );
+  const { data, error, retry } = useFocusedRead(read, 'Budget plan tidak dapat dimuat.');
+  const load = async () => retry();
+  const planView = data?.[0] ?? null;
+  const categories = data?.[1] ?? [];
 
   if (error)
     return (

@@ -1,5 +1,5 @@
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useCallback } from 'react';
 
 import { TransactionForm } from '@/components/transaction-form';
 import { DataState } from '@/components/screen-skeleton';
@@ -14,9 +14,9 @@ import {
 } from '@/services/transaction-service';
 import { getDatabasePlanView } from '@/services/plan-service';
 import { getWallets } from '@/services/wallet-service';
-import type { Category, Transaction, TransactionType, Wallet } from '@/types/domain';
-import { retryDatabaseRead } from '@/services/database-read-retry';
+import type { TransactionType } from '@/types/domain';
 import useAppDatabase from '@/hooks/use-app-database';
+import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function CreateTransactionScreen() {
   const {
@@ -39,50 +39,43 @@ export default function CreateTransactionScreen() {
     lockedToWalletId?: string;
   }>();
   const database = useAppDatabase();
-  const [data, setData] = useState<{
-    wallets: Wallet[];
-    categories: Category[];
-    transactions: Transaction[];
-    allocationLimit: number;
-  } | null>(null);
-  const [error, setError] = useState('');
-  const [retry, setRetry] = useState(0);
-
-  useFocusEffect(
-    useCallback(() => {
-      let cancelled = false;
-      setData(null);
-      setError('');
-      void retryDatabaseRead(() =>
-        Promise.all([
-          getWallets(database),
-          getDatabaseTransactionCategories(database),
-          getDatabaseTransactions(database),
-          getDatabasePlanView(database),
-        ]),
-      )
-        .then(([wallets, categories, transactions, planView]) => {
-          if (!cancelled) {
-            const selectedCategory = categoryId;
-            const allocationLimit = selectedCategory
-              ? planView.plan.expenseItems
-                  .filter((item) => item.categoryId === selectedCategory)
-                  .reduce((sum, item) => sum + item.targetAmount, 0)
-              : 0;
-            setData({ wallets, categories, transactions, allocationLimit });
-            setError('');
-          }
-        })
-        .catch((cause) => {
-          if (!cancelled)
-            setError(cause instanceof Error ? cause.message : 'Form transaksi tidak dapat dimuat.');
-        });
-      return () => {
-        cancelled = true;
-        setData(null);
-      };
-    }, [categoryId, database, retry]),
+  const read = useCallback(
+    () =>
+      Promise.all([
+        getWallets(database),
+        getDatabaseTransactionCategories(database),
+        getDatabaseTransactions(database),
+        getDatabasePlanView(database),
+      ]),
+    [database],
   );
+  const resourceKey = JSON.stringify({
+    transactionId,
+    goalId,
+    type,
+    categoryId,
+    amount,
+    walletId,
+    toWalletId,
+    lockedToWalletId,
+  });
+  const {
+    data: loaded,
+    error,
+    retry,
+  } = useFocusedRead(read, 'Form transaksi tidak dapat dimuat.', resourceKey);
+  const data = loaded
+    ? {
+        wallets: loaded[0],
+        categories: loaded[1],
+        transactions: loaded[2],
+        allocationLimit: categoryId
+          ? loaded[3].plan.expenseItems
+              .filter((item) => item.categoryId === categoryId)
+              .reduce((sum, item) => sum + item.targetAmount, 0)
+          : 0,
+      }
+    : null;
 
   if (error)
     return (
@@ -91,9 +84,7 @@ export default function CreateTransactionScreen() {
         title="Transaksi belum siap"
         description={error}
         onRetry={() => {
-          setError('');
-          setData(null);
-          setRetry((value) => value + 1);
+          retry();
         }}
       />
     );

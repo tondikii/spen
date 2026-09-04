@@ -1,33 +1,20 @@
 import ReportScreen from '@/components/report-screen';
-import { router, useFocusEffect } from 'expo-router';
+import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { getDatabaseReportView } from '@/services/report-service';
 import { DataState } from '@/components/screen-skeleton';
-import { retryDatabaseRead } from '@/services/database-read-retry';
 import useAppDatabase from '@/hooks/use-app-database';
+import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function ReportRoute() {
   const database = useAppDatabase();
-  const [reportView, setReportView] = useState<Awaited<
-    ReturnType<typeof getDatabaseReportView>
-  > | null>(null);
-  const [error, setError] = useState('');
-  const load = useCallback(
-    async (months = 3) => {
-      try {
-        setReportView(await retryDatabaseRead(() => getDatabaseReportView(database, months)));
-        setError('');
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : 'Laporan tidak dapat dimuat.');
-      }
-    },
-    [database],
-  );
-  useFocusEffect(
-    useCallback(() => {
-      void load();
-    }, [load]),
-  );
+  const [months, setMonths] = useState(3);
+  const read = useCallback(() => getDatabaseReportView(database, months), [database, months]);
+  const {
+    data: reportView,
+    error,
+    retry,
+  } = useFocusedRead(read, 'Laporan tidak dapat dimuat.', String(months));
 
   if (error)
     return (
@@ -36,7 +23,7 @@ export default function ReportRoute() {
         title="Laporan belum siap"
         description={error}
         onRetry={() => {
-          void load();
+          retry();
         }}
       />
     );
@@ -51,7 +38,9 @@ export default function ReportRoute() {
   return (
     <ReportScreen
       reportView={reportView}
-      onRangeChange={load}
+      onRangeChange={(nextMonths) => {
+        setMonths(nextMonths);
+      }}
       onCategoryPress={(expense, period) =>
         router.push({
           pathname: '/history',
