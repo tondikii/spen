@@ -5,11 +5,11 @@ import {
   applyDatabaseBudgetSuggestion,
   createDatabasePlanItem,
   deleteDatabasePlanItem,
-  getDatabasePlanView,
   setBudgetPeriodStartDay,
   setDatabasePlanItemPaid,
   updateDatabasePlanItem,
 } from '@/services/plan-service';
+import { getBudgetGoalOverview } from '@/services/budget-goal-service';
 import type { BudgetSuggestion } from '@/services/ai-service';
 import {
   getDatabaseTransactionCategories,
@@ -28,10 +28,7 @@ import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function PlanRoute() {
   const database = useAppDatabase();
-  const read = useCallback(
-    () => Promise.all([getDatabasePlanView(database), getDatabaseTransactionCategories(database)]),
-    [database],
-  );
+  const read = useCallback(() => getBudgetGoalOverview(database), [database]);
   const { data, error, retry } = useFocusedRead(read, 'Budget plan tidak dapat dimuat.');
   const load = async () => retry();
   const planView = data?.[0] ?? null;
