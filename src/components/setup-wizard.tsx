@@ -83,10 +83,14 @@ export function SetupWizard({
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.screenContent}>
             <View style={styles.top}>
-              <ThemedText type="code" themeColor="muted">
+              <ThemedText type="code" themeColor="muted" accessibilityLabel="Nama aplikasi Spen">
                 SPEN
               </ThemedText>
-              <ThemedText type="code" themeColor="muted">
+              <ThemedText
+                type="code"
+                themeColor="muted"
+                accessibilityLabel={`Langkah ${step + 1} dari ${totalSteps}`}
+              >
                 {step + 1}/{totalSteps}
               </ThemedText>
             </View>
@@ -297,6 +301,8 @@ export function SetupWizard({
               accessible
               accessibilityRole="button"
               accessibilityLabel={step === 0 ? 'Mulai' : step === 2 ? 'Masuk ke Spen' : 'Lanjut'}
+              accessibilityHint="Membuka langkah berikutnya"
+              accessibilityState={{ busy: false }}
               onPress={next}
               style={[styles.primary, { backgroundColor: theme.pine }]}
             >

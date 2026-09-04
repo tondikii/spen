@@ -48,6 +48,7 @@ export default function AppTabs() {
           name={tab.name}
           options={{
             title: tab.label,
+            tabBarAccessibilityLabel: tab.label,
             tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>{tab.icon}</Text>,
           }}
         />
@@ -56,6 +57,7 @@ export default function AppTabs() {
         name="create"
         options={{
           title: '',
+          tabBarAccessibilityLabel: 'Tambah transaksi',
           tabBarStyle: { display: 'none' },
           tabBarButton: () => (
             <Pressable
@@ -79,6 +81,7 @@ export default function AppTabs() {
           name={tab.name}
           options={{
             title: tab.label,
+            tabBarAccessibilityLabel: tab.label,
             tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>{tab.icon}</Text>,
           }}
         />
