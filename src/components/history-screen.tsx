@@ -189,6 +189,7 @@ function HistoryScreenContent({
                 key={option.key}
                 accessibilityRole="button"
                 accessibilityLabel={`Pilih filter ${option.label}`}
+                accessibilityState={{ selected: filter === option.key && !categoryId && !walletId }}
                 onPress={() => chooseFilter(option.key)}
                 style={[styles.filterOption, { borderTopColor: theme.line }]}
               >
@@ -215,6 +216,7 @@ function HistoryScreenContent({
                 key={category.id}
                 accessibilityRole="button"
                 accessibilityLabel={`Pilih filter kategori ${category.name}`}
+                accessibilityState={{ selected: categoryId === category.id }}
                 onPress={() => {
                   setCategoryId(category.id);
                   setWalletId(undefined);
@@ -243,6 +245,7 @@ function HistoryScreenContent({
                 key={wallet.id}
                 accessibilityRole="button"
                 accessibilityLabel={`Pilih filter Wallet ${wallet.name}`}
+                accessibilityState={{ selected: walletId === wallet.id }}
                 onPress={() => chooseWallet(wallet.id)}
                 style={[styles.filterOption, { borderTopColor: theme.line }]}
               >

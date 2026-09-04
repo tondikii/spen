@@ -268,8 +268,10 @@ export function TransactionForm({
             {tabs.map((tab) => (
               <Pressable
                 key={tab.type}
-                accessibilityRole="button"
+                accessibilityRole="tab"
                 accessibilityLabel={`Tipe ${tab.label}`}
+                accessibilityState={{ selected: type === tab.type }}
+                accessibilityHint="Memilih jenis transaksi"
                 onPress={() => changeType(tab.type)}
                 style={[
                   styles.typeTab,
@@ -531,14 +533,20 @@ export function TransactionForm({
             />
           </View>
           {overBudget && (
-            <View style={[styles.warning, { backgroundColor: theme.dangerBackground }]}>
+            <View
+              accessibilityLiveRegion="polite"
+              style={[styles.warning, { backgroundColor: theme.dangerBackground }]}
+            >
               <ThemedText type="small" style={{ color: theme.expense }}>
                 Perlahan ya — ini akan melebihi alokasi, tetapi tetap bisa dicatat.
               </ThemedText>
             </View>
           )}
           {possibleDuplicate && (
-            <View style={[styles.warning, { backgroundColor: theme.transferBackground }]}>
+            <View
+              accessibilityLiveRegion="polite"
+              style={[styles.warning, { backgroundColor: theme.transferBackground }]}
+            >
               <ThemedText type="small" style={{ color: theme.gold }}>
                 Transaksi ini mungkin dobel dengan catatan pendapatan hari ini.
               </ThemedText>
