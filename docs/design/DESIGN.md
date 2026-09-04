@@ -23,15 +23,15 @@ UI Plan hanya menampilkan Pendapatan, Pengeluaran, dan Goal. Pendapatan menampil
 
 ### Peran
 
-| Peran | Token | Penggunaan |
-|---|---|---|
-| Brand/aksi | `pine` | Tombol primary, tab aktif, FAB +, progress, teks penting, border fokus |
-| Positif | `income` | Nominal masuk, ikon kategori income |
-| Negatif | `expense` | Nominal keluar, ikon kategori expense, over-budget, defisit, tombol arsip |
-| Netral | `gold` | Transfer, ikon kategori transfer, aksen goal |
-| Teks | `ink` / `muted` | Utama / sekunder (label, caption, placeholder) |
-| Surface | `paper` / `card` / `mint` | Background app / kartu / aksen lembut (ikon, chip terpilih) |
-| Garis | `line` | Border, divider |
+| Peran      | Token                     | Penggunaan                                                                |
+| ---------- | ------------------------- | ------------------------------------------------------------------------- |
+| Brand/aksi | `pine`                    | Tombol primary, tab aktif, FAB +, progress, teks penting, border fokus    |
+| Positif    | `income`                  | Nominal masuk, ikon kategori income                                       |
+| Negatif    | `expense`                 | Nominal keluar, ikon kategori expense, over-budget, defisit, tombol arsip |
+| Netral     | `gold`                    | Transfer, ikon kategori transfer, aksen goal                              |
+| Teks       | `ink` / `muted`           | Utama / sekunder (label, caption, placeholder)                            |
+| Surface    | `paper` / `card` / `mint` | Background app / kartu / aksen lembut (ikon, chip terpilih)               |
+| Garis      | `line`                    | Border, divider                                                           |
 
 ### Aturan pakai
 
@@ -51,17 +51,17 @@ Balance card (Beranda) dan available hero (Rencana) memakai surface gelap `pine-
 
 Tiga font dengan peran jelas (lihat token untuk ukuran/berat):
 
-| Font | Peran |
-|---|---|
-| **Nunito Sans** | Seluruh UI: label, tombol, body, input |
-| **Fraunces** | Judul (h1/h2) dan **angka besar** (saldo, spare budget, nominal hero) — serif hangat yang menenangkan |
-| **DM Mono** | **Angka kecil & label teknis**: nominal item, stat, eyebrow label, tanggal periode — monospace menegaskan "ini data" |
+| Font            | Peran                                                                                                                |
+| --------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Nunito Sans** | Seluruh UI: label, tombol, body, input                                                                               |
+| **Fraunces**    | Judul (h1/h2) dan **angka besar** (saldo, spare budget, nominal hero) — serif hangat yang menenangkan                |
+| **DM Mono**     | **Angka kecil & label teknis**: nominal item, stat, eyebrow label, tanggal periode — monospace menegaskan "ini data" |
 
 Aturan:
 
 - **Angka besar selalu Fraunces** (`-0.04em`), angka kecil selalu DM Mono (`-0.06em` s.d. `-0.08em`).
 - **Eyebrow label** (kecil, uppercase, spasi lebar, muted): `SPEN, RUANG UNTUK UANGMU`, `SPARE BUDGET`, `SALDO TERSEDIA` — dipakai sebagai label seksi yang elegan.
-- Judul dengan aksen em (`<em>`): kata kunci diberi warna `pine` dan italic, mis. "Rencana yang lebih *lega*."
+- Judul dengan aksen em (`<em>`): kata kunci diberi warna `pine` dan italic, mis. "Rencana yang lebih _lega_."
 - Angka uang: format `id-ID`, tanpa desimal (`Rp 6.500.000`), tanda `+`/`−` untuk masuk/keluar, `↔` untuk transfer.
 
 ---
@@ -134,15 +134,15 @@ Aturan:
 
 ## 5. States
 
-| State | Visual |
-|---|---|
-| **Loading AI** | Sheet dengan glyph `✦` berdenyut (pulse 1s), judul "Membaca pola keuanganmu…" / "Menghubungkan titik-titik…" + subtext muted |
-| **Empty** | Ikon besar lembut + judul + deskripsi + CTA primary (lihat komponen) |
-| **Over-budget** | Progress merah + label "Melebihi Budget" (danger); soft warning saat input transaksi |
-| **Defisit** | Net saving negatif: angka merah + kata "Defisit" |
-| **Goal tercapai** | Tanda "Tercapai" hijau; progress penuh; goal berhenti dihitung di spare |
-| **Error / toast** | Toast kecil bottom (di atas tab bar): background `--text`, teks `--bg`, radius `12px`, ikon `✓`, tombol `×` |
-| **Status bayar (fixed expense)** | "Lunas ✓" (hijau), "x/y dibayar", "Belum dibayar" (muted) |
+| State                            | Visual                                                                                                                       |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Loading AI**                   | Sheet dengan glyph `✦` berdenyut (pulse 1s), judul "Membaca pola keuanganmu…" / "Menghubungkan titik-titik…" + subtext muted |
+| **Empty**                        | Ikon besar lembut + judul + deskripsi + CTA primary (lihat komponen)                                                         |
+| **Over-budget**                  | Progress merah + label "Melebihi Budget" (danger); soft warning saat input transaksi                                         |
+| **Defisit**                      | Net saving negatif: angka merah + kata "Defisit"                                                                             |
+| **Goal tercapai**                | Tanda "Tercapai" hijau; progress penuh; goal berhenti dihitung di spare                                                      |
+| **Error / toast**                | Toast kecil bottom (di atas tab bar): background `--text`, teks `--bg`, radius `12px`, ikon `✓`, tombol `×`                  |
+| **Status bayar (fixed expense)** | "Lunas ✓" (hijau), "x/y dibayar", "Belum dibayar" (muted)                                                                    |
 
 ---
 
@@ -169,4 +169,3 @@ Aturan:
 - Token nilai: `docs/design/design-tokens.md`
 - Produk & UX: `docs/design-brief.md`
 - Domain: `CONTEXT.md`
-- Prototype acuan: `design-figma-make/` (sumber kebenaran visual saat ini)
