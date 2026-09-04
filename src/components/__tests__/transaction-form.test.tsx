@@ -67,6 +67,7 @@ describe('TransactionForm', () => {
     await fireEvent.press(getByLabelText('Kelola kategori'));
     await fireEvent(getByLabelText('Kategori Kesehatan'), 'longPress');
     await fireEvent.press(getByLabelText('Arsipkan kategori Kesehatan'));
+    await fireEvent.press(getByLabelText('Arsipkan'));
 
     expect(queryByLabelText('Kategori Kesehatan')).toBeNull();
   });

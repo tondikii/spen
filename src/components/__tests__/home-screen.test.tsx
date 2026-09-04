@@ -58,6 +58,7 @@ describe('HomeScreen', () => {
 
     await fireEvent.press(getByLabelText('Buka Wallet Tunai'));
     await fireEvent.press(getByLabelText('Arsipkan Wallet'));
+    await fireEvent.press(getByLabelText('Arsipkan'));
 
     await waitFor(() => expect(queryByText('Buka Wallet Tunai')).toBeNull());
   });

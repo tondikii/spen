@@ -1,5 +1,4 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
-import { Alert } from 'react-native';
 
 import PlanScreen from '@/components/plan-screen';
 
@@ -50,15 +49,12 @@ describe('PlanScreen', () => {
 
   it('menawarkan edit dan hapus untuk setiap item plan', async () => {
     const onPlanItemDelete = jest.fn();
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
-      buttons?.find((button) => button.text === 'Hapus')?.onPress?.();
-    });
     const { getByLabelText } = await render(<PlanScreen onPlanItemDelete={onPlanItemDelete} />);
 
     await fireEvent.press(getByLabelText('Hapus Gaji'));
+    await fireEvent.press(getByLabelText('Hapus'));
 
     expect(onPlanItemDelete).toHaveBeenCalledWith(expect.objectContaining({ id: 'income-item-gaji', name: 'Gaji' }));
-    alertSpy.mockRestore();
   });
 
   it('membuka form Goal baru dan mengirim draft yang diisi pengguna', async () => {

@@ -39,3 +39,7 @@ export function updateMockWallet(wallets: Wallet[], walletId: string, name: stri
 export function archiveMockWallet(wallets: Wallet[], walletId: string) {
   return wallets.filter((wallet) => wallet.id !== walletId);
 }
+
+export function restoreMockWallet(wallets: Wallet[], walletId: string) {
+  return wallets.map((wallet) => wallet.id === walletId ? { ...wallet, archived: false } : wallet);
+}

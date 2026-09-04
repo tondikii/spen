@@ -2,12 +2,13 @@ import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { useState, type ReactNode } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SpenLogo } from '@/components/brand-assets';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { ConfirmationModal } from '@/components/confirmation-modal';
 import { useAppTheme } from '@/components/theme-provider';
 import { BottomTabInset, Fonts, Radius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -25,6 +26,7 @@ export default function SettingsScreen({ database, onFaqPress }: { database?: SQ
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [toast, setToast] = useState('');
   const [busy, setBusy] = useState(false);
+  const [restoreFile, setRestoreFile] = useState<{ content: string; name: string } | null>(null);
   const dark = mode === 'dark';
   const showToast = (message: string) => { setToast(message); setTimeout(() => setToast(''), 2600); };
 
@@ -44,7 +46,7 @@ export default function SettingsScreen({ database, onFaqPress }: { database?: SQ
     setBusy(true);
     try {
       const picked = await pickBackupContent(); setBusy(false); if (!picked) return;
-      Alert.alert('Timpa semua data?', 'Restore akan mengganti seluruh data Spen saat ini.', [{ text: 'Batal', style: 'cancel' }, { text: 'Restore', style: 'destructive', onPress: () => { void (async () => { setBusy(true); try { await restoreDatabase(database, picked.content); showToast('Data berhasil dipulihkan.'); } catch (error) { showToast(error instanceof Error ? error.message : 'Restore gagal.'); } finally { setBusy(false); } })(); } }]);
+      setRestoreFile(picked);
     } catch (error) { setBusy(false); showToast(error instanceof Error ? error.message : 'File backup tidak dapat dibaca.'); }
   };
   const openLink = async (url: string) => { try { await Linking.openURL(url); } catch { showToast('Halaman belum bisa dibuka.'); } };
@@ -60,6 +62,14 @@ export default function SettingsScreen({ database, onFaqPress }: { database?: SQ
     <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>BANTUAN</ThemedText>
     <ThemedView style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}><ActionRow icon="?" title="FAQ" detail="Jawaban singkat tentang Spen" onPress={onFaqPress ?? (() => undefined)} /><ActionRow icon="!" title="Aduan masalah" detail="Beri tahu kalau ada yang tidak beres" onPress={() => { void openLink('mailto:tondikiag30@gmail.com?subject=Aduan%20masalah%20Spen'); }} /><ActionRow icon="›" title="Syarat & Ketentuan" detail="Baca ketentuan penggunaan" onPress={() => { void openLink(getPublicDocumentUrl('/terms')); }} /><ActionRow icon="›" title="Kebijakan Privasi" detail="Baca cara data dipakai" onPress={() => { void openLink(getPublicDocumentUrl('/privacy')); }} /></ThemedView>
     <View style={styles.footer}><SpenLogo size={42} /><ThemedText type="smallBold" themeColor="muted">Spen</ThemedText><ThemedText type="small" themeColor="muted">Versi {Constants.expoConfig?.version ?? '1.0.0'}</ThemedText></View>
+    <ConfirmationModal visible={restoreFile !== null} title="Timpa semua data?" message="Restore akan mengganti seluruh data Spen saat ini." confirmLabel="Restore" destructive onCancel={() => setRestoreFile(null)} onConfirm={async () => {
+      if (!database || !restoreFile) return;
+      const file = restoreFile;
+      setRestoreFile(null); setBusy(true);
+      try { await restoreDatabase(database, file.content); showToast('Data berhasil dipulihkan.'); }
+      catch (error) { showToast(error instanceof Error ? error.message : 'Restore gagal.'); }
+      finally { setBusy(false); }
+    }} />
   </ScrollView>{toast && <View style={[styles.toast, { backgroundColor: theme.ink }]}><ThemedText type="small" style={{ color: theme.background }}>✓ {toast}</ThemedText></View>}</SafeAreaView></ThemedView>;
 }
 

@@ -175,3 +175,11 @@ export async function archiveWallet(database: SQLiteDatabase, walletId: string |
     if (result.changes === 0) throw new Error('Wallet tidak ditemukan');
   });
 }
+
+export async function restoreWallet(database: SQLiteDatabase, walletId: string | number): Promise<void> {
+  await withExclusiveWrite(database, async (connection) => {
+    const id = databaseId(walletId);
+    const result = await connection.runAsync('UPDATE wallets SET archived = 0 WHERE id = ?;', id);
+    if (result.changes === 0) throw new Error('Wallet tidak ditemukan');
+  });
+}

@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import HomeScreen from '@/components/home-screen';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 import { DataState } from '@/components/screen-skeleton';
-import { archiveWallet, createWallet, getWallets, updateWallet } from '@/services/wallet-service';
+import { archiveWallet, createWallet, getWallets, restoreWallet, updateWallet } from '@/services/wallet-service';
 import { getDatabaseTransactionCategories, getDatabaseTransactions } from '@/services/transaction-service';
 import { getDatabasePlanView } from '@/services/plan-service';
 import { retryDatabaseRead } from '@/services/database-read-retry';
@@ -18,7 +18,7 @@ export default function HomeRoute() {
 
   const loadData = useCallback(async () => {
     try {
-      const [wallets, categories, transactions, plan] = await retryDatabaseRead(() => Promise.all([getWallets(database), getDatabaseTransactionCategories(database), getDatabaseTransactions(database), getDatabasePlanView(database)]));
+      const [wallets, categories, transactions, plan] = await retryDatabaseRead(() => Promise.all([getWallets(database, true), getDatabaseTransactionCategories(database), getDatabaseTransactions(database), getDatabasePlanView(database)]));
       setData({ wallets, categories, transactions, plan }); setError('');
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Data Beranda tidak dapat dimuat.'); }
   }, [database]);
@@ -33,7 +33,8 @@ export default function HomeRoute() {
   if (!data) return <DataState kind="loading" title="Memuat Beranda" description="Menyiapkan ringkasan uangmu." />;
 
   return <HomeScreen key={data.wallets.map((wallet) => `${wallet.id}:${wallet.balance}:${wallet.name}:${wallet.archived}`).join('|')}
-    wallets={data.wallets}
+    wallets={data.wallets.filter((wallet) => !wallet.archived)}
+    archivedWallets={data.wallets.filter((wallet) => wallet.archived)}
     transactions={data.transactions}
     categories={data.categories}
     snapshot={data.plan.snapshot}
@@ -45,6 +46,10 @@ export default function HomeRoute() {
     }}
     onWalletArchive={async (wallet) => {
       await archiveWallet(database, wallet.id);
+      await refreshData();
+    }}
+    onWalletRestore={async (wallet) => {
+      await restoreWallet(database, wallet.id);
       await refreshData();
     }}
     onTransactionPress={(transaction) => router.push({ pathname: '/create', params: { transactionId: transaction.id } })}

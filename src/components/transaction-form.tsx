@@ -1,6 +1,5 @@
 import { useContext, useMemo, useState, type ReactNode } from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -23,6 +22,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { formatMoney } from "@/lib/money";
 import { formatMoneyInput, parseMoneyInput } from "@/lib/money-input";
 import { ThemedInput } from '@/components/themed-input';
+import { ConfirmationModal } from '@/components/confirmation-modal';
 import {
   archiveMockCategory,
   getActiveTransactionCategories,
@@ -59,6 +59,8 @@ type TransactionFormProps = {
   onCategorySave?: (category: Category) => Category | Promise<Category>;
   onCategoryArchive?: (category: Category) => void | Promise<void>;
 };
+
+type Confirmation = { title: string; message: string; confirmLabel: string; destructive?: boolean; onConfirm: () => void | Promise<void> };
 
 const tabs: { type: TransactionType; label: string }[] = [
   { type: "income", label: "Masuk" },
@@ -132,6 +134,7 @@ export function TransactionForm({
   );
   const [categoryActions, setCategoryActions] = useState<Category | null>(null);
   const [categorySaving, setCategorySaving] = useState(false);
+  const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
   const selectedCategoryType = type === "transfer" ? "transfer" : type;
   const visibleCategories = useMemo(
@@ -187,10 +190,7 @@ export function TransactionForm({
       setEditingCategoryId(null);
       setCategoryEditorOpen(false);
     } catch (error) {
-      Alert.alert(
-        "Kategori belum tersimpan",
-        error instanceof Error ? error.message : "Coba lagi.",
-      );
+      setConfirmation({ title: 'Kategori belum tersimpan', message: error instanceof Error ? error.message : 'Coba lagi.', confirmLabel: 'Mengerti', onConfirm: () => undefined });
     } finally {
       setCategorySaving(false);
     }
@@ -613,16 +613,7 @@ export function TransactionForm({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Hapus Transaksi"
-              onPress={() =>
-                Alert.alert(
-                  "Hapus transaksi?",
-                  "Transaksi ini akan dihapus dari catatan.",
-                  [
-                    { text: "Batal", style: "cancel" },
-                    { text: "Hapus", style: "destructive", onPress: onDelete },
-                  ],
-                )
-              }
+              onPress={() => setConfirmation({ title: "Hapus transaksi?", message: "Transaksi ini akan dihapus dari catatan.", confirmLabel: "Hapus", destructive: true, onConfirm: () => onDelete?.() })}
               style={styles.deleteAction}
             >
               <ThemedText type="smallBold" style={{ color: theme.expense }}>
@@ -666,11 +657,11 @@ export function TransactionForm({
                 if (!categoryActions) return;
                 const category = categoryActions;
                 setCategoryActions(null);
-                if (onCategoryArchive) await onCategoryArchive(category);
-                setCategories((current) =>
-                  archiveMockCategory(current, category.id),
-                );
-                if (categoryId === category.id) setCategoryId(null);
+                setConfirmation({ title: 'Arsipkan kategori?', message: `${category.name} tidak akan muncul di pilihan baru. Transaksi lama tetap tersimpan.`, confirmLabel: 'Arsipkan', destructive: true, onConfirm: async () => {
+                  if (onCategoryArchive) await onCategoryArchive(category);
+                  setCategories((current) => archiveMockCategory(current, category.id));
+                  if (categoryId === category.id) setCategoryId(null);
+                }});
               }}
               style={styles.sheetAction}
             >
@@ -681,6 +672,16 @@ export function TransactionForm({
           </View>
         </Pressable>
       </Modal>
+      <ConfirmationModal
+        visible={confirmation !== null}
+        title={confirmation?.title ?? ''}
+        message={confirmation?.message ?? ''}
+        confirmLabel={confirmation?.confirmLabel ?? 'Mengerti'}
+        destructive={confirmation?.destructive}
+        cancelLabel={confirmation?.confirmLabel === 'Mengerti' ? undefined : 'Batal'}
+        onCancel={() => setConfirmation(null)}
+        onConfirm={async () => { const action = confirmation?.onConfirm; setConfirmation(null); await action?.(); }}
+      />
     </ThemedView>
   );
 }
