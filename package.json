@@ -64,6 +64,7 @@
     "format": "prettier --write src db scripts types .github *.js *.json *.ts",
     "format:check": "prettier --check src db scripts types .github *.js *.json *.ts",
     "typecheck": "tsc --noEmit",
+    "benchmark:database": "node scripts/database-baseline.cjs",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm test"
   },
   "private": true
