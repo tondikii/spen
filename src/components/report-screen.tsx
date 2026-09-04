@@ -230,9 +230,9 @@ function ReportScreenContent({
           style={[styles.overlay, { backgroundColor: theme.overlay }]}
           onPress={() => setInsightOpen(false)}
         >
-          <View style={[styles.sheet, { backgroundColor: theme.card }]}>
+          <View accessibilityViewIsModal style={[styles.sheet, { backgroundColor: theme.card }]}>
             {loading ? (
-              <View style={styles.loading}>
+              <View accessibilityLiveRegion="polite" style={styles.loading}>
                 <ThemedText style={[styles.loadingGlyph, { color: theme.pine }]}>✦</ThemedText>
                 <ThemedText type="smallBold">Membaca pola keuanganmu…</ThemedText>
                 <ThemedText type="small" themeColor="muted">
@@ -243,7 +243,9 @@ function ReportScreenContent({
               <>
                 <ThemedText type="sectionHeading">Insight bulan ini</ThemedText>
                 {insightError ? (
-                  <ThemedText style={{ color: theme.expense }}>{insightError}</ThemedText>
+                  <ThemedText accessibilityLiveRegion="polite" style={{ color: theme.expense }}>
+                    {insightError}
+                  </ThemedText>
                 ) : (
                   <ThemedText style={styles.insightText}>{insightText}</ThemedText>
                 )}
@@ -420,7 +422,11 @@ function ChartCard({
   theme: ReturnType<typeof useTheme>;
 }) {
   return (
-    <ThemedView style={[styles.card, { backgroundColor: theme.card, borderColor: theme.line }]}>
+    <ThemedView
+      accessible
+      accessibilityLabel={`${title}${trailing ? `, ${trailing}` : ''}`}
+      style={[styles.card, { backgroundColor: theme.card, borderColor: theme.line }]}
+    >
       <View style={styles.cardHeader}>
         <ThemedText type="sectionHeading">{title}</ThemedText>
         {trailing && (
