@@ -1,7 +1,7 @@
 import ReportScreen from '@/components/report-screen';
 import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { getDatabaseReportView } from '@/services/report-service';
+import { getReportOverview } from '@/services/report-history-service';
 import { DataState } from '@/components/screen-skeleton';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
@@ -9,7 +9,7 @@ import { useFocusedRead } from '@/hooks/use-focused-read';
 export default function ReportRoute() {
   const database = useAppDatabase();
   const [months, setMonths] = useState(3);
-  const read = useCallback(() => getDatabaseReportView(database, months), [database, months]);
+  const read = useCallback(() => getReportOverview(database, months), [database, months]);
   const {
     data: reportView,
     error,
