@@ -157,9 +157,9 @@ function WalletForm(props: WalletFormProps) {
         <ScrollView contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
           <ThemedText type="small" themeColor="muted" style={styles.formNote}>Wallet adalah tempat uangmu disimpan.</ThemedText>
           <ThemedText type="code" themeColor="muted" style={styles.formLabel}>NAMA WALLET</ThemedText>
-          <ThemedInput accessibilityLabel="Nama Wallet" placeholder="Mis. Jago, Tunai, GoPay" value={name} onChangeText={setName} style={[styles.input, { backgroundColor: theme.card }]} />
+          <ThemedInput accessibilityLabel="Nama Wallet" placeholder="Mis. Jago, Tunai, GoPay" value={name} onChangeText={setName} />
           <ThemedText type="code" themeColor="muted" style={styles.formLabel}>{props.mode === 'edit' ? 'SALDO SAAT INI' : 'SALDO AWAL'}</ThemedText>
-            <View style={styles.moneyInputRow}><CurrencyMark /><ThemedInput accessibilityLabel={props.mode === 'edit' ? 'Saldo Wallet' : 'Saldo awal'} keyboardType="numeric" placeholder="0" value={amount} onChangeText={(value) => setAmount(formatMoneyInput(value))} style={[styles.input, styles.moneyInput, { backgroundColor: theme.card }]} /></View>
+            <View style={styles.moneyInputRow}><CurrencyMark /><ThemedInput accessibilityLabel={props.mode === 'edit' ? 'Saldo Wallet' : 'Saldo awal'} keyboardType="numeric" placeholder="0" value={amount} onChangeText={(value) => setAmount(formatMoneyInput(value))} style={styles.moneyInput} /></View>
           {props.mode === 'edit' && <Pressable accessibilityRole="button" accessibilityLabel="Arsipkan Wallet" onPress={props.onArchive} style={[styles.archiveAction, { borderTopColor: theme.line }]}><ThemedText style={[styles.archiveIcon, { backgroundColor: theme.dangerBackground, color: theme.expense }]}>□</ThemedText><View style={styles.archiveCopy}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan Wallet</ThemedText><ThemedText type="small" themeColor="muted">Transaksi tetap tersimpan</ThemedText></View><ThemedText type="subtitle" themeColor="muted">›</ThemedText></Pressable>}
         </ScrollView>
         </KeyboardAvoidingView>
@@ -277,7 +277,6 @@ const styles = StyleSheet.create({
   archiveIcon: { alignItems: 'center', borderRadius: Radius.small, fontFamily: Fonts.mono, fontSize: 18, height: 35, justifyContent: 'center', paddingTop: 4, textAlign: 'center', width: 35 },
   archiveCopy: { flex: 1 },
   formLabel: { ...Typography.eyebrow, marginTop: Spacing.two },
-  input: { borderBottomWidth: 1, fontFamily: Fonts.sans, fontSize: 16, minHeight: 52, paddingHorizontal: Spacing.two },
   moneyInputRow: { alignItems: 'center', flexDirection: 'row', gap: Spacing.two },
   moneyInput: { flex: 1 },
   transactionName: { fontSize: 12, lineHeight: 16 },
