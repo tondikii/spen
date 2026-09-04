@@ -95,7 +95,7 @@ export default function AppRuntime() {
   const retryDatabase = useCallback(() => { setDatabaseError(null); setDatabaseAttempt((attempt) => attempt + 1); }, []);
 
   if (pathname === termsDocument.path || pathname === privacyDocument.path) return <PublicDocumentRoute />;
-  if (pathname === '/faq') return <FaqRoute />;
+  if (pathname.endsWith('/faq')) return <FaqRoute />;
   if (databaseError) return <DatabaseErrorState message={databaseError} onRetry={retryDatabase} />;
   return <SQLiteProvider key={databaseAttempt} databaseName="spen.db" onInit={configureDatabase} onError={(error) => handleDatabaseError(error.message)}><DatabaseGate onFatalError={handleDatabaseError} /></SQLiteProvider>;
 }
