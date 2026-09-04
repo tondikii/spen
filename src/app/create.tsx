@@ -3,17 +3,13 @@ import { useCallback } from 'react';
 
 import { TransactionForm } from '@/components/transaction-form';
 import { DataState } from '@/components/screen-skeleton';
-import { saveToGoal } from '@/services/goal-service';
 import {
-  archiveDatabaseCategory,
-  deleteDatabaseTransaction,
-  getDatabaseTransactionCategories,
-  getDatabaseTransactions,
-  saveDatabaseCategory,
-  saveDatabaseTransaction,
-} from '@/services/transaction-service';
-import { getDatabasePlanView } from '@/services/plan-service';
-import { getWallets } from '@/services/wallet-service';
+  archiveTransactionEntryCategory,
+  deleteTransactionEntry,
+  getTransactionEntryData,
+  saveTransactionEntry,
+  saveTransactionEntryCategory,
+} from '@/services/transaction-entry-service';
 import type { TransactionType } from '@/types/domain';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
@@ -40,13 +36,7 @@ export default function CreateTransactionScreen() {
   }>();
   const database = useAppDatabase();
   const read = useCallback(
-    () =>
-      Promise.all([
-        getWallets(database),
-        getDatabaseTransactionCategories(database),
-        getDatabaseTransactions(database),
-        getDatabasePlanView(database),
-      ]),
+    () => Promise.all([getTransactionEntryData(database, categoryId)]),
     [database],
   );
   const resourceKey = JSON.stringify({
@@ -66,14 +56,7 @@ export default function CreateTransactionScreen() {
   } = useFocusedRead(read, 'Form transaksi tidak dapat dimuat.', resourceKey);
   const data = loaded
     ? {
-        wallets: loaded[0],
-        categories: loaded[1],
-        transactions: loaded[2],
-        allocationLimit: categoryId
-          ? loaded[3].plan.expenseItems
-              .filter((item) => item.categoryId === categoryId)
-              .reduce((sum, item) => sum + item.targetAmount, 0)
-          : 0,
+        ...loaded[0],
       }
     : null;
 
@@ -116,21 +99,19 @@ export default function CreateTransactionScreen() {
       allocationLimit={data.allocationLimit}
       onClose={() => router.back()}
       onSave={async (draft) => {
-        if (goalId && draft.type === 'transfer' && draft.walletId)
-          await saveToGoal(database, goalId, draft.walletId, draft.amount, draft.date, draft.time);
-        else await saveDatabaseTransaction(database, draft, transaction?.id);
+        await saveTransactionEntry(database, draft, transaction?.id, goalId);
         router.back();
       }}
       onDelete={
         transaction
           ? async () => {
-              await deleteDatabaseTransaction(database, transaction.id);
+              await deleteTransactionEntry(database, transaction.id);
               router.back();
             }
           : undefined
       }
-      onCategorySave={(category) => saveDatabaseCategory(database, category)}
-      onCategoryArchive={(category) => archiveDatabaseCategory(database, category.id)}
+      onCategorySave={(category) => saveTransactionEntryCategory(database, category)}
+      onCategoryArchive={(category) => archiveTransactionEntryCategory(database, category.id)}
     />
   );
 }
