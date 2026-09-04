@@ -3,6 +3,7 @@ export type CategoryType = 'income' | 'expense' | 'transfer';
 export type WalletTint = 'pine' | 'coral' | 'gold' | 'goal';
 export type PlanItemType = 'income' | 'expense' | 'fixedExpense' | 'allocation';
 export type ThemeMode = 'system' | 'light' | 'dark';
+export type Locale = 'id' | 'en';
 export type CurrencyCode =
   'IDR' | 'USD' | 'SGD' | 'MYR' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'SAR' | 'AED';
 export type PaymentStatus =
@@ -131,6 +132,7 @@ export type MockBudgetSnapshot = {
 export type AppSettings = {
   currency: CurrencyCode;
   themeMode: ThemeMode;
+  locale: Locale;
 };
 
 export type SpenMockData = {

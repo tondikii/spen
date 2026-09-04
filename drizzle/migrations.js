@@ -9,10 +9,10 @@ import m0005 from './20260902165825_remarkable_thor/migration.sql';
 import m0006 from './20260903120000_unified_expenses/migration.sql';
 import m0007 from './20260903140000_expense_payment_toggle/migration.sql';
 import m0008 from './20260904160000_wallet_to_index/migration.sql';
+import m0009 from './20260904171652_lyrical_doomsday/migration.sql';
 
-export default {
-  journal: {
-    entries: [
+  export default {
+    journal: { entries: [
       { idx: 0, version: '7', when: 20260901102535, tag: 'foamy_runaways', breakpoints: true },
       { idx: 1, version: '7', when: 20260901191900, tag: 'unknown_baron_strucker', breakpoints: true },
       { idx: 2, version: '7', when: 20260901193906, tag: 'nostalgic_dragon_lord', breakpoints: true },
@@ -22,17 +22,19 @@ export default {
       { idx: 6, version: '7', when: 20260903120000, tag: 'unified_expenses', breakpoints: true },
       { idx: 7, version: '7', when: 20260903140000, tag: 'expense_payment_toggle', breakpoints: true },
       { idx: 8, version: '7', when: 20260904160000, tag: 'wallet_to_index', breakpoints: true },
-    ],
-  },
-  migrations: {
-    '20260901102535_foamy_runaways': m0000,
-    '20260901191900_unknown_baron_strucker': m0001,
-    '20260901193906_nostalgic_dragon_lord': m0002,
-    '20260902031456_windy_starbolt': m0003,
-    '20260902165744_flawless_puppet_master': m0004,
-    '20260902165825_remarkable_thor': m0005,
-    '20260903120000_unified_expenses': m0006,
-    '20260903140000_expense_payment_toggle': m0007,
-    '20260904160000_wallet_to_index': m0008,
-  },
-};
+      { idx: 9, version: '7', when: 20260904171652, tag: 'lyrical_doomsday', breakpoints: true },
+    ] },
+    migrations: {
+      "20260901102535_foamy_runaways": m0000,
+"20260901191900_unknown_baron_strucker": m0001,
+"20260901193906_nostalgic_dragon_lord": m0002,
+"20260902031456_windy_starbolt": m0003,
+"20260902165744_flawless_puppet_master": m0004,
+"20260902165825_remarkable_thor": m0005,
+"20260903120000_unified_expenses": m0006,
+"20260903140000_expense_payment_toggle": m0007,
+"20260904160000_wallet_to_index": m0008,
+"20260904171652_lyrical_doomsday": m0009
+}
+  }
+  

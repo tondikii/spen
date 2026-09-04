@@ -329,6 +329,7 @@ export const mockData = {
   settings: {
     currency: 'IDR',
     themeMode: 'light',
+    locale: 'id',
   },
   budgetSnapshot: {
     totalIncome: 6500000,

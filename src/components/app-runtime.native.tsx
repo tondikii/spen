@@ -15,6 +15,7 @@ import { completeSetup, getSetupState } from '@/services/setup-service';
 import {
   getDatabaseSettings,
   setSelectedCurrency,
+  setSelectedLocale,
   setDatabaseThemeMode,
 } from '@/services/settings-service';
 import { retryDatabaseRead } from '@/services/database-read-retry';
@@ -22,6 +23,8 @@ import { configureDatabase } from '../../db/database';
 import { seedDefaultCategories } from '../../db/seed';
 import migrations from '../../drizzle/migrations';
 import { privacyDocument, termsDocument } from '@/lib/public-documents';
+import i18n from '@/i18n';
+import { I18nextProvider } from 'react-i18next';
 
 function AppNavigation({ initialSetupComplete }: { initialSetupComplete: boolean }) {
   const { colorScheme } = useAppTheme();
@@ -63,6 +66,8 @@ function DatabaseGate({ onFatalError }: { onFatalError: (message: string) => voi
           Promise.all([getSetupState(sqlite), getDatabaseSettings(sqlite)]),
         );
         setSelectedCurrency(setup.currency);
+        setSelectedLocale(settings.locale as 'id' | 'en');
+        void i18n.changeLanguage(settings.locale);
         setThemeMode(settings.themeMode as 'system' | 'light' | 'dark');
         if (!cancelled) {
           setSetupComplete(setup.hasWallet);
@@ -100,7 +105,7 @@ function DatabaseGate({ onFatalError }: { onFatalError: (message: string) => voi
       initialMode={themeMode}
       onModeChange={(mode) => setDatabaseThemeMode(sqlite, mode)}
     >
-      <AppNavigation initialSetupComplete={setupComplete} />
+      <I18nextProvider i18n={i18n}><AppNavigation initialSetupComplete={setupComplete} /></I18nextProvider>
     </AppThemeProvider>
   );
 }

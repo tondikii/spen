@@ -57,7 +57,7 @@ type GoalRow = {
   monthly_contribution: number;
   archived: number;
 };
-type SettingsRow = { id: number; currency: string; theme_mode: string; budget_start_day: number };
+type SettingsRow = { id: number; currency: string; theme_mode: string; locale: string; budget_start_day: number };
 
 export type BackupPayload = {
   version: number;
@@ -176,7 +176,7 @@ export async function exportDatabase(database: SQLiteDatabase): Promise<BackupPa
       'SELECT id, name, target_amount, target_date, wallet_id, monthly_contribution, archived FROM goals ORDER BY id;',
     ),
     database.getAllAsync<SettingsRow>(
-      'SELECT id, currency, theme_mode, budget_start_day FROM settings ORDER BY id;',
+      'SELECT id, currency, theme_mode, locale, budget_start_day FROM settings ORDER BY id;',
     ),
   ]);
   return {
@@ -221,10 +221,11 @@ async function insertRows(database: SQLiteDatabase, payload: BackupPayload) {
     );
   for (const row of data.settings)
     await database.runAsync(
-      'INSERT INTO settings (id, currency, theme_mode, budget_start_day) VALUES (?, ?, ?, ?);',
+      'INSERT INTO settings (id, currency, theme_mode, locale, budget_start_day) VALUES (?, ?, ?, ?, ?);',
       row.id,
       row.currency,
       row.theme_mode,
+      row.locale ?? 'id',
       row.budget_start_day,
     );
   for (const row of data.budgetPeriods)

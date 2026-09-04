@@ -23,10 +23,14 @@ import {
 import {
   currencyOptions,
   getSelectedCurrency,
+  getSelectedLocale,
+  setDatabaseLocale,
+  setSelectedLocale,
   setDatabaseCurrency,
   setSelectedCurrency,
 } from '@/services/settings-service';
-import type { CurrencyCode } from '@/types/domain';
+import type { CurrencyCode, Locale } from '@/types/domain';
+import i18n from '@/i18n';
 import { getPublicDocumentUrl } from '@/lib/public-documents';
 
 const currencySymbols: Record<CurrencyCode, string> = {
@@ -49,6 +53,7 @@ export default function SettingsScreen({
   const theme = useTheme();
   const { mode, setMode } = useAppTheme();
   const [currency, setCurrency] = useState<CurrencyCode>(getSelectedCurrency());
+  const [locale, setLocale] = useState<Locale>(getSelectedLocale());
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [toast, setToast] = useState('');
   const [busy, setBusy] = useState(false);
@@ -68,6 +73,13 @@ export default function SettingsScreen({
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Mata uang gagal disimpan.');
     }
+  };
+  const chooseLocale = async (option: Locale) => {
+    try {
+      const next = database ? await setDatabaseLocale(database, option) : setSelectedLocale(option);
+      setLocale(next);
+      await i18n.changeLanguage(next);
+    } catch (error) { showToast(error instanceof Error ? error.message : 'Bahasa gagal disimpan.'); }
   };
   const runBackup = async () => {
     if (!database) {
@@ -181,6 +193,15 @@ export default function SettingsScreen({
                 ))}
               </View>
             )}
+            <SettingRow icon="文" title="Bahasa" detail="Pilih bahasa aplikasi">
+              <View style={styles.languageOptions}>
+                {(['id', 'en'] as Locale[]).map((option) => (
+                  <Pressable key={option} accessibilityRole="button" accessibilityLabel={`Pilih bahasa ${option}`} onPress={() => void chooseLocale(option)} style={[styles.languageOption, { backgroundColor: locale === option ? theme.mint : theme.card, borderColor: locale === option ? theme.pine : theme.line }]}>
+                    <ThemedText type="smallBold" themeColor={locale === option ? 'pine' : 'ink'}>{option.toUpperCase()}</ThemedText>
+                  </Pressable>
+                ))}
+              </View>
+            </SettingRow>
           </ThemedView>
           <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
             DATA
@@ -413,6 +434,8 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 13,
   },
+  languageOptions: { flexDirection: 'row', gap: 8 },
+  languageOption: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
   currency: {
     alignItems: 'center',
     borderRadius: 10,

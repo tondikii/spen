@@ -40,7 +40,7 @@ export async function seedDefaultCategories(database: SQLiteDatabase) {
     );
     if (!setting) {
       await transaction.runAsync(
-        `INSERT INTO settings (id, currency, theme_mode, budget_start_day) VALUES (1, 'IDR', 'light', 1);`,
+        `INSERT INTO settings (id, currency, theme_mode, locale, budget_start_day) VALUES (1, 'IDR', 'light', 'id', 1);`,
       );
     }
   };

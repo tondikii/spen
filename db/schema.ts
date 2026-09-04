@@ -150,6 +150,7 @@ export const settings = sqliteTable('settings', {
   themeMode: text('theme_mode', { enum: ['system', 'light', 'dark'] })
     .notNull()
     .default('light'),
+  locale: text('locale', { enum: ['id', 'en'] }).notNull().default('id'),
   budgetStartDay: integer('budget_start_day').notNull().default(1),
 });
 
