@@ -5,7 +5,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -17,6 +16,7 @@ import { CURRENCY_SYMBOLS, CurrencyMark } from "@/components/currency-mark";
 import { Fonts, Radius, Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { formatMoneyInput, parseMoneyInput } from "@/lib/money-input";
+import { ThemedInput } from '@/components/themed-input';
 import type { SetupWalletDraft } from "@/services/setup-service";
 import type { CurrencyCode } from "@/types/domain";
 
@@ -215,7 +215,7 @@ export function SetupWizard({
                       <ThemedText type="code" themeColor="muted">
                         NAMA WALLET
                       </ThemedText>
-                      <TextInput
+                      <ThemedInput
                         accessibilityLabel={
                           index === 0
                             ? "Nama wallet pertama"
@@ -243,7 +243,7 @@ export function SetupWizard({
                       >
                         SALDO AWAL
                       </ThemedText>
-                      <View style={styles.moneyInputRow}><CurrencyMark /><TextInput
+                      <View style={styles.moneyInputRow}><CurrencyMark /><ThemedInput
                         accessibilityLabel={
                           index === 0
                             ? "Saldo awal wallet pertama"

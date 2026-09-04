@@ -7,7 +7,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +18,7 @@ import { BottomTabInset, Fonts, Layout, MaxContentWidth, Radius, Shadows, Spacin
 import type { BudgetPeriod, Category, MockBudgetSnapshot, Transaction, Wallet, WalletTint } from '@/types/domain';
 import { formatMoney } from '@/lib/money';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
+import { ThemedInput } from '@/components/themed-input';
 import { useTheme } from '@/hooks/use-theme';
 import { addMockWallet, archiveMockWallet, getHomeRecentTransactions, getHomeSnapshot, getHomeWallets, getTransactionPresentation, getWalletTotal, updateMockWallet } from '@/services/home-service';
 import { CategoryIcon } from '@/components/category-icon';
@@ -157,9 +157,9 @@ function WalletForm(props: WalletFormProps) {
         <ScrollView contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
           <ThemedText type="small" themeColor="muted" style={styles.formNote}>Wallet adalah tempat uangmu disimpan.</ThemedText>
           <ThemedText type="code" themeColor="muted" style={styles.formLabel}>NAMA WALLET</ThemedText>
-          <TextInput accessibilityLabel="Nama Wallet" placeholder="Mis. Jago, Tunai, GoPay" placeholderTextColor={theme.muted} value={name} onChangeText={setName} style={[styles.input, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} />
+          <ThemedInput accessibilityLabel="Nama Wallet" placeholder="Mis. Jago, Tunai, GoPay" value={name} onChangeText={setName} style={[styles.input, { backgroundColor: theme.card }]} />
           <ThemedText type="code" themeColor="muted" style={styles.formLabel}>{props.mode === 'edit' ? 'SALDO SAAT INI' : 'SALDO AWAL'}</ThemedText>
-            <View style={styles.moneyInputRow}><CurrencyMark /><TextInput accessibilityLabel={props.mode === 'edit' ? 'Saldo Wallet' : 'Saldo awal'} keyboardType="numeric" placeholder="0" placeholderTextColor={theme.muted} value={amount} onChangeText={(value) => setAmount(formatMoneyInput(value))} style={[styles.input, styles.moneyInput, { borderBottomColor: theme.line, color: theme.ink, backgroundColor: theme.card }]} /></View>
+            <View style={styles.moneyInputRow}><CurrencyMark /><ThemedInput accessibilityLabel={props.mode === 'edit' ? 'Saldo Wallet' : 'Saldo awal'} keyboardType="numeric" placeholder="0" value={amount} onChangeText={(value) => setAmount(formatMoneyInput(value))} style={[styles.input, styles.moneyInput, { backgroundColor: theme.card }]} /></View>
           {props.mode === 'edit' && <Pressable accessibilityRole="button" accessibilityLabel="Arsipkan Wallet" onPress={props.onArchive} style={[styles.archiveAction, { borderTopColor: theme.line }]}><ThemedText style={[styles.archiveIcon, { backgroundColor: theme.dangerBackground, color: theme.expense }]}>□</ThemedText><View style={styles.archiveCopy}><ThemedText type="smallBold" style={{ color: theme.expense }}>Arsipkan Wallet</ThemedText><ThemedText type="small" themeColor="muted">Transaksi tetap tersimpan</ThemedText></View><ThemedText type="subtitle" themeColor="muted">›</ThemedText></Pressable>}
         </ScrollView>
         </KeyboardAvoidingView>

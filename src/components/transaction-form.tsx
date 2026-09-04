@@ -7,7 +7,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaInsetsContext } from "react-native-safe-area-context";
@@ -23,6 +22,7 @@ import { Fonts, Radius, Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { formatMoney } from "@/lib/money";
 import { formatMoneyInput, parseMoneyInput } from "@/lib/money-input";
+import { ThemedInput } from '@/components/themed-input';
 import {
   archiveMockCategory,
   getActiveTransactionCategories,
@@ -372,7 +372,7 @@ export function TransactionForm({
                   (opsional)
                 </ThemedText>
               </FieldLabel>
-              <View style={styles.moneyInputRow}><CurrencyMark /><TextInput
+              <View style={styles.moneyInputRow}><CurrencyMark /><ThemedInput
                 accessibilityLabel="Biaya admin transfer"
                 keyboardType="numeric"
                 placeholder="0"
@@ -475,7 +475,7 @@ export function TransactionForm({
                       </ThemedText>
                     </Pressable>
                   </View>
-                  <TextInput
+                  <ThemedInput
                     accessibilityLabel={
                       editingCategoryId ? "Nama kategori" : "Nama kategori baru"
                     }
@@ -558,7 +558,7 @@ export function TransactionForm({
           <FieldLabel>
             {type === "transfer" ? "NOMINAL TRANSFER" : "NOMINAL"}
           </FieldLabel>
-          <View style={styles.moneyInputRow}><CurrencyMark /><TextInput
+          <View style={styles.moneyInputRow}><CurrencyMark /><ThemedInput
             accessibilityLabel="Nominal transaksi"
             keyboardType="numeric"
             placeholder="0"
@@ -598,7 +598,7 @@ export function TransactionForm({
               (opsional)
             </ThemedText>
           </FieldLabel>
-          <TextInput
+          <ThemedInput
             accessibilityLabel="Catatan transaksi"
             placeholder="Mis. makan siang"
             placeholderTextColor={theme.muted}
