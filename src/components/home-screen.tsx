@@ -58,6 +58,15 @@ function walletGlyph(wallet: Wallet) {
   return 'D';
 }
 
+function walletTintColor(wallet: Wallet, theme: ReturnType<typeof useTheme>) {
+  return {
+    pine: theme.walletPine,
+    coral: theme.walletCoral,
+    gold: theme.walletGold,
+    goal: theme.walletGoal,
+  }[wallet.tint];
+}
+
 function HomeHeader({ today = new Date() }: { today?: Date }) {
   const label = new Intl.DateTimeFormat('id-ID', {
     weekday: 'long',
@@ -130,7 +139,10 @@ function WalletCards({
             onPress={() => onSelect(wallet)}
             style={({ pressed }) => [
               styles.walletCard,
-              { backgroundColor: theme.card, borderColor: theme.line },
+              {
+                backgroundColor: theme.card,
+                borderColor: walletTintColor(wallet, theme),
+              },
               pressed && styles.pressed,
             ]}
           >
@@ -143,6 +155,16 @@ function WalletCards({
             <ThemedText style={styles.walletBalance}>{formatMoney(wallet.balance)}</ThemedText>
           </Pressable>
         ))}
+        {wallets.length === 0 && (
+          <View style={[styles.walletEmpty, { backgroundColor: theme.mint }]}>
+            <ThemedText type="smallBold" themeColor="pine">
+              Belum ada Wallet aktif
+            </ThemedText>
+            <ThemedText type="small" themeColor="muted">
+              Tambahkan tempat uangmu disimpan.
+            </ThemedText>
+          </View>
+        )}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Tambah Wallet"
@@ -741,6 +763,14 @@ const styles = StyleSheet.create({
     padding: 12,
     width: Layout.walletWidth,
     ...Shadows.card,
+  },
+  walletEmpty: {
+    borderRadius: 18,
+    gap: Spacing.one,
+    height: Layout.walletHeight,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    width: Layout.walletWidth * 1.8,
   },
   walletGlyph: {
     borderRadius: 10,
