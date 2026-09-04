@@ -11,6 +11,8 @@ import { BottomTabInset, Fonts, Radius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoney } from '@/lib/money';
 import { aiService, type BudgetAIInput } from '@/services/ai-service';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import {
   getDatabaseReportView,
   getReportNetSavingLabel,
@@ -33,6 +35,8 @@ function ReportScreenContent({
   aiInput?: BudgetAIInput;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
+  const locale = i18n.language === 'en' ? 'en' : 'id';
   const { snapshot, expenses, period, netSavingByPeriod } = reportView;
   const [range, setRange] = useState(3);
   const [insightOpen, setInsightOpen] = useState(false);
@@ -48,7 +52,7 @@ function ReportScreenContent({
       setLoading(true);
       void aiService
         .generateInsight(
-          aiInput ?? {
+          { ...(aiInput ?? {
             spareBudget: reportView.snapshot.spareBudget,
             totalIncome: reportView.snapshot.totalIncome,
             fixedExpense: 0,
@@ -58,7 +62,7 @@ function ReportScreenContent({
               name: expense.name,
               amount: expense.amount,
             })),
-          },
+          }), locale },
         )
         .then((result) => {
           if (cancelled) return;
@@ -106,7 +110,7 @@ function ReportScreenContent({
             <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
               BUDGET PERIOD
             </ThemedText>
-            <ThemedText type="title">Laporan</ThemedText>
+            <ThemedText type="title">{t('common.report')}</ThemedText>
             <Pressable accessibilityRole="button" accessibilityLabel="Ubah Budget period">
               <ThemedText type="small" themeColor="muted">
                 {formatPeriodAccurate(period)}⌄
@@ -141,7 +145,7 @@ function ReportScreenContent({
           {expenses.length === 0 ? (
             <View style={styles.empty}>
               <ThemedText style={styles.emptyGlyph}>◌</ThemedText>
-              <ThemedText type="smallBold">Belum ada pengeluaran</ThemedText>
+              <ThemedText type="smallBold">{t('common.noExpenses')}</ThemedText>
             </View>
           ) : (
             <View style={styles.pieArea}>
@@ -195,7 +199,7 @@ function ReportScreenContent({
           {chartPoints.length === 0 ? (
             <View style={styles.empty}>
               <ThemedText style={styles.emptyGlyph}>◌</ThemedText>
-              <ThemedText type="smallBold">Belum ada data net saving</ThemedText>
+              <ThemedText type="smallBold">{t('common.noNetSaving')}</ThemedText>
             </View>
           ) : (
             <>
@@ -327,16 +331,16 @@ function ReportScreenContent({
 }
 
 function formatPeriodAccurate(period: { startDate: string; endDate: string }) {
-  const month = new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(
+  const month = new Intl.DateTimeFormat(i18n.language === 'en' ? 'en-US' : 'id-ID', { month: 'short' }).format(
     new Date(`${period.endDate}T12:00:00`),
   );
   return `${Number(period.startDate.slice(-2))}–${Number(period.endDate.slice(-2))} ${month}`;
 }
 function formatMonth(date: string) {
-  return new Intl.DateTimeFormat('id-ID', { month: 'long' }).format(new Date(`${date}T12:00:00`));
+  return new Intl.DateTimeFormat(i18n.language === 'en' ? 'en-US' : 'id-ID', { month: 'long' }).format(new Date(`${date}T12:00:00`));
 }
 function formatMonthShort(date: string) {
-  return new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(new Date(`${date}T12:00:00`));
+  return new Intl.DateTimeFormat(i18n.language === 'en' ? 'en-US' : 'id-ID', { month: 'short' }).format(new Date(`${date}T12:00:00`));
 }
 function percentage(amount: number, total: number) {
   return total > 0 ? Math.round((amount / total) * 100) : 0;

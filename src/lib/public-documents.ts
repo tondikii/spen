@@ -18,6 +18,16 @@ export type PublicDocument = {
   sections: PublicDocumentSection[];
 };
 
+export function getLocalizedPublicDocument(document: PublicDocument, locale: 'id' | 'en') {
+  if (locale === 'id') return document;
+  const titles: Record<PublicDocumentPath, [string, string]> = {
+    '/terms': ['TERMS & CONDITIONS', 'Simple rules for using Spen safely and clearly.'],
+    '/privacy': ['PRIVACY POLICY', 'How Spen stores data and when it sends data to AI services.'],
+  };
+  const [title, summary] = titles[document.path];
+  return { ...document, eyebrow: 'SPEN DOCUMENT', title, summary };
+}
+
 export function getPublicDocumentUrl(
   path: PublicDocumentPath,
   webUrl = process.env.EXPO_PUBLIC_WEB_URL ?? DEFAULT_WEB_URL,

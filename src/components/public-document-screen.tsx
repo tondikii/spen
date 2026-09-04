@@ -7,29 +7,32 @@ import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { BottomTabInset, MaxContentWidth, Radius, Spacing, Typography } from '@/constants/theme';
 import type { PublicDocument } from '@/lib/public-documents';
+import { getLocalizedPublicDocument } from '@/lib/public-documents';
+import i18n from '@/i18n';
 
 export default function PublicDocumentScreen({ document }: { document: PublicDocument }) {
   const theme = useTheme();
+  const localizedDocument = getLocalizedPublicDocument(document, i18n.language === 'en' ? 'en' : 'id');
 
   return (
     <ThemedView style={styles.page}>
       <Head>
-        <title>{`${document.title} | Spen`}</title>
-        <meta name="description" content={document.summary} />
-        <meta property="og:title" content={`${document.title} | Spen`} />
-        <meta property="og:description" content={document.summary} />
+        <title>{`${localizedDocument.title} | Spen`}</title>
+        <meta name="description" content={localizedDocument.summary} />
+        <meta property="og:title" content={`${localizedDocument.title} | Spen`} />
+        <meta property="og:description" content={localizedDocument.summary} />
       </Head>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-              {document.eyebrow}
+              {localizedDocument.eyebrow}
             </ThemedText>
             <ThemedText type="title" style={styles.title}>
-              {document.title}
+              {localizedDocument.title}
             </ThemedText>
             <ThemedText type="default" themeColor="muted" style={styles.summary}>
-              {document.summary}
+              {localizedDocument.summary}
             </ThemedText>
           </View>
           <View

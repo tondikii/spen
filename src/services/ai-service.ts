@@ -1,4 +1,4 @@
-import type { CurrencyCode } from '@/types/domain';
+import type { CurrencyCode, Locale } from '@/types/domain';
 
 export type BudgetAIInput = {
   spareBudget: number;
@@ -10,6 +10,7 @@ export type BudgetAIInput = {
   goals?: { name: string; targetAmount: number; savedAmount: number }[];
   wallets?: { name: string; balance: number }[];
   currency?: CurrencyCode;
+  locale?: Locale;
 };
 
 export type BudgetSuggestion = {
@@ -101,12 +102,13 @@ function isSuggestion(value: unknown): value is BudgetSuggestion {
 }
 
 function fallbackSuggestions(input: BudgetAIInput): BudgetSuggestion[] {
+  const en = input.locale === 'en';
   if (input.spareBudget > 0) {
     return [
       {
         action: 'allocate_spare',
-        title: 'Sisihkan setengah spare budget',
-        description: 'Jadikan dana darurat untuk kebutuhan tak terduga.',
+        title: en ? 'Set aside half of your spare budget' : 'Sisihkan setengah spare budget',
+        description: en ? 'Build an emergency fund for unexpected needs.' : 'Jadikan dana darurat untuk kebutuhan tak terduga.',
         amount: Math.floor(input.spareBudget / 2),
       },
     ];
@@ -116,29 +118,30 @@ function fallbackSuggestions(input: BudgetAIInput): BudgetSuggestion[] {
     return [
       {
         action: 'review_expense',
-        title: `Tinjau pengeluaran ${largest.name}`,
-        description: `Pengeluaran ${largest.name} paling besar. Cek transaksi dan alokasinya.`,
+        title: en ? `Review ${largest.name} spending` : `Tinjau pengeluaran ${largest.name}`,
+        description: en ? `${largest.name} is your largest expense. Review its transactions and allocation.` : `Pengeluaran ${largest.name} paling besar. Cek transaksi dan alokasinya.`,
         categoryName: largest.name,
       },
     ];
   return [
     {
       action: 'review_expense',
-      title: 'Rapikan Budget plan',
-      description: 'Catat pendapatan dan pengeluaran agar saran berikutnya lebih tepat.',
+      title: en ? 'Organize your Budget plan' : 'Rapikan Budget plan',
+      description: en ? 'Record income and expenses so future suggestions are more useful.' : 'Catat pendapatan dan pengeluaran agar saran berikutnya lebih tepat.',
     },
   ];
 }
 
 function fallbackInsight(input: BudgetAIInput): string {
+  const en = input.locale === 'en';
   const largest = input.topExpenses?.[0];
   const expenseText = largest
-    ? `Pengeluaran terbesar: kategori ${largest.name} sebesar ${largest.amount.toLocaleString('id-ID')}.`
-    : 'Belum ada kategori pengeluaran yang dominan.';
+    ? (en ? `Largest expense: ${largest.name} at ${largest.amount.toLocaleString('en-US')}.` : `Pengeluaran terbesar: kategori ${largest.name} sebesar ${largest.amount.toLocaleString('id-ID')}.`)
+    : (en ? 'No spending category stands out yet.' : 'Belum ada kategori pengeluaran yang dominan.');
   const savingText =
     input.netSaving >= 0
-      ? 'Net saving masih positif — masih ada ruang untuk menambah alokasi.'
-      : 'Net saving sedang negatif — cek pengeluaran terbesar dan alokasinya.';
+      ? (en ? 'Net saving is positive — there is room to increase allocations.' : 'Net saving masih positif — masih ada ruang untuk menambah alokasi.')
+      : (en ? 'Net saving is negative — review your largest expenses and allocations.' : 'Net saving sedang negatif — cek pengeluaran terbesar dan alokasinya.');
   return `${expenseText} ${savingText}`;
 }
 
@@ -155,6 +158,7 @@ export class AIService {
 
   async suggestBudget(input: BudgetAIInput): Promise<SuggestionResult> {
     const fallback = { source: 'fallback' as const, suggestions: fallbackSuggestions(input) };
+    const en = input.locale === 'en';
     if (!this.apiKey) return fallback;
     try {
       const response = await this.fetchImpl(this.baseUrl, {
@@ -167,7 +171,7 @@ export class AIService {
             {
               role: 'system',
               content:
-                'Kamu asisten Budget plan Spen. Jawab ringkas dan tenang dalam Bahasa Indonesia, langsung ke saran. Jangan mengubah data pengguna.',
+                en ? 'You are Spen’s Budget plan assistant. Reply briefly and calmly in English with actionable suggestions. Do not change user data.' : 'Kamu asisten Budget plan Spen. Jawab ringkas dan tenang dalam Bahasa Indonesia, langsung ke saran. Jangan mengubah data pengguna.',
             },
             { role: 'user', content: JSON.stringify(input) },
           ],
@@ -191,6 +195,7 @@ export class AIService {
 
   async generateInsight(input: BudgetAIInput): Promise<InsightResult> {
     const fallback = { source: 'fallback' as const, text: fallbackInsight(input) };
+    const en = input.locale === 'en';
     if (!this.apiKey) return fallback;
     try {
       const response = await this.fetchImpl(this.baseUrl, {
@@ -203,7 +208,7 @@ export class AIService {
             {
               role: 'system',
               content:
-                'Kamu analis keuangan Spen. Tulis insight ringkas, jelas, dan tenang dalam Bahasa Indonesia, langsung ke fakta dan arahnya, tanpa menghakimi.',
+                en ? 'You are Spen’s financial analyst. Write a brief, clear, calm insight in English, focused on facts and direction without judgment.' : 'Kamu analis keuangan Spen. Tulis insight ringkas, jelas, dan tenang dalam Bahasa Indonesia, langsung ke fakta dan arahnya, tanpa menghakimi.',
             },
             { role: 'user', content: JSON.stringify(input) },
           ],

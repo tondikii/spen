@@ -25,6 +25,9 @@ import type { BudgetPlanItem, Category, Goal, PlanItemType, Wallet } from '@/typ
 import { CATEGORY_ICON_CHOICES, CategoryIcon } from '@/components/category-icon';
 import { CurrencyMark } from '@/components/currency-mark';
 import { ConfirmationModal } from '@/components/confirmation-modal';
+import { useTranslation } from 'react-i18next';
+import type { Locale } from '@/types/domain';
+import i18n from '@/i18n';
 
 type PlanView = ReturnType<typeof getPlanView> | Awaited<ReturnType<typeof getDatabasePlanView>>;
 type PlanItemState = { realizedAmount: number; progressPercent: number; overBudget: boolean };
@@ -83,6 +86,8 @@ function PlanScreenContent({
   onSuggestionApply?: (suggestion: BudgetSuggestion) => void | Promise<void>;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
+  const locale = (i18n.language === 'en' ? 'en' : 'id') as Locale;
   const { snapshot, plan, goals, wallets, period } = planView;
   const [startDay, setStartDay] = useState(Number(period.startDate.slice(-2)));
   const [periodOpen, setPeriodOpen] = useState(false);
@@ -108,13 +113,13 @@ function PlanScreenContent({
       setAiError('');
       void aiService
         .suggestBudget(
-          aiInput ?? {
+          { ...(aiInput ?? {
             spareBudget: snapshot.spareBudget,
             totalIncome: snapshot.totalIncome,
             fixedExpense: 0,
             goalContributions: snapshot.goalBalance,
             netSaving: snapshot.netSaving,
-          },
+          }), locale },
         )
         .then((result) => {
           if (cancelled) return;
@@ -174,7 +179,7 @@ function PlanScreenContent({
         <View style={styles.header}>
           <View>
             <ThemedText type="title" style={styles.title}>
-              Rencana
+              {t('common.plan')}
             </ThemedText>
             <Pressable
               accessibilityRole="button"

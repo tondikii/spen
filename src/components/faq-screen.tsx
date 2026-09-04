@@ -7,7 +7,8 @@ import { ThemedView } from '@/components/themed-view';
 import { PageHeader } from '@/components/ui-primitives';
 import { Fonts, Layout, Radius, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { faqEntries } from '@/lib/faq';
+import { getFaqEntries } from '@/lib/faq';
+import i18n from '@/i18n';
 
 type FaqScreenProps = {
   onBack: () => void;
@@ -53,7 +54,7 @@ export default function FaqScreen({ onBack }: FaqScreenProps) {
           </View>
 
           <View style={styles.list}>
-            {faqEntries.map((entry) => {
+            {getFaqEntries(i18n.language === 'en' ? 'en' : 'id').map((entry) => {
               const expanded = openQuestions.has(entry.question);
               return (
                 <ThemedView
