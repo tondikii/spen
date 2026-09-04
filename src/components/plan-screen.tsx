@@ -166,6 +166,7 @@ function PlanScreenContent({
       {aiError && (
         <ThemedText
           type="small"
+          accessibilityLiveRegion="polite"
           style={{ color: theme.expense, paddingHorizontal: 21, paddingTop: 8 }}
         >
           {aiError}
@@ -191,6 +192,7 @@ function PlanScreenContent({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Saran AI"
+            accessibilityHint="Membuka saran Budget plan yang bisa kamu tinjau"
             onPress={() => setAiOpen(true)}
             style={[styles.aiButton, { borderColor: theme.line, backgroundColor: theme.mint }]}
           >
@@ -1345,7 +1347,11 @@ function Progress({
   theme: ReturnType<typeof useTheme>;
 }) {
   return (
-    <View style={[styles.progress, { backgroundColor: theme.line }]}>
+    <View
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 100, now: Math.min(Math.max(value, 0), 100) }}
+      style={[styles.progress, { backgroundColor: theme.line }]}
+    >
       <View
         style={[styles.progressFill, { backgroundColor: color, width: `${Math.min(value, 100)}%` }]}
       />
