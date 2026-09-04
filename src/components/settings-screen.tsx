@@ -127,6 +127,7 @@ export default function SettingsScreen({
               <Pressable
                 accessibilityRole="switch"
                 accessibilityLabel="Tema gelap"
+                accessibilityState={{ checked: dark, busy }}
                 onPress={() => setMode(dark ? 'light' : 'dark')}
                 style={[styles.toggle, { backgroundColor: dark ? theme.pine : theme.line }]}
               >
@@ -144,6 +145,7 @@ export default function SettingsScreen({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Pilih mata uang"
+                accessibilityState={{ expanded: currencyOpen }}
                 onPress={() => setCurrencyOpen((open) => !open)}
                 style={[styles.dropdown, { borderColor: theme.line }]}
               >
@@ -278,7 +280,10 @@ export default function SettingsScreen({
           />
         </ScrollView>
         {toast && (
-          <View style={[styles.toast, { backgroundColor: theme.ink }]}>
+          <View
+            accessibilityLiveRegion="polite"
+            style={[styles.toast, { backgroundColor: theme.ink }]}
+          >
             <ThemedText type="small" style={{ color: theme.background }}>
               ✓ {toast}
             </ThemedText>
