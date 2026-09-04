@@ -17,6 +17,7 @@ import { aiService, type BudgetAIInput, type BudgetSuggestion } from '@/services
 import { ThemedInput } from '@/components/themed-input';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { StatusBadge } from '@/components/ui-primitives';
 import { FinanceHeroCard } from '@/components/finance-hero-card';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
@@ -1106,9 +1107,16 @@ function PlanItemContent({
           <ThemedText type="smallBold" style={styles.itemName}>
             {item.name}
           </ThemedText>
-          <ThemedText type="small" themeColor="muted" style={styles.itemSubtitle}>
-            {income ? 'Dari transaksi' : paid ? 'Sudah dibayar' : 'Belum dibayar'}
-          </ThemedText>
+          {income ? (
+            <ThemedText type="small" themeColor="muted" style={styles.itemSubtitle}>
+              Dari transaksi
+            </ThemedText>
+          ) : (
+            <StatusBadge
+              label={paid ? 'Sudah dibayar' : 'Belum dibayar'}
+              tone={paid ? 'positive' : 'neutral'}
+            />
+          )}
         </View>
         <ThemedText
           type="code"

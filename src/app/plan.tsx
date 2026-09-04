@@ -8,20 +8,17 @@ import {
   setBudgetPeriodStartDay,
   setDatabasePlanItemPaid,
   updateDatabasePlanItem,
-} from '@/services/plan-service';
-import { getBudgetGoalOverview } from '@/services/budget-goal-service';
+} from '@/features/budget';
+import { getBudgetGoalOverview } from '@/features/budget';
 import type { BudgetSuggestion } from '@/services/ai-service';
-import {
-  getDatabaseTransactionCategories,
-  saveDatabaseCategory,
-} from '@/services/transaction-service';
+import { saveDatabaseCategory } from '@/features/transactions';
 import {
   archiveGoal,
   createGoal,
   updateGoal,
   withdrawFromGoal,
   type GoalDraft,
-} from '@/services/goal-service';
+} from '@/features/budget';
 import { DataState } from '@/components/screen-skeleton';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';

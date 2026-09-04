@@ -6,15 +6,12 @@ import { DataState } from '@/components/screen-skeleton';
 import {
   archiveWallet,
   createWallet,
+  getWalletOverview,
   restoreWallet,
   updateWallet,
-} from '@/services/wallet-service';
-import { getWalletOverview } from '@/services/wallet-overview-service';
-import {
-  getDatabaseTransactionCategories,
-  getDatabaseTransactions,
-} from '@/services/transaction-service';
-import { getDatabasePlanView } from '@/services/plan-service';
+} from '@/features/wallet';
+import { getDatabaseTransactionCategories, getDatabaseTransactions } from '@/features/transactions';
+import { getDatabasePlanView } from '@/features/budget';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
 

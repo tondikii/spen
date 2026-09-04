@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { DataState } from '@/components/screen-skeleton';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
-import { getHistoryOverview } from '@/services/report-history-service';
+import { getHistoryOverview } from '@/features/report';
 
 export default function HistoryRoute() {
   const database = useAppDatabase();

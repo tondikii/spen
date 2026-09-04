@@ -9,7 +9,7 @@ import {
   getTransactionEntryData,
   saveTransactionEntry,
   saveTransactionEntryCategory,
-} from '@/services/transaction-entry-service';
+} from '@/features/transactions';
 import type { TransactionType } from '@/types/domain';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';

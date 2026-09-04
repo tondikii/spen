@@ -1,7 +1,7 @@
 import ReportScreen from '@/components/report-screen';
 import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { getReportOverview } from '@/services/report-history-service';
+import { getReportOverview } from '@/features/report';
 import { DataState } from '@/components/screen-skeleton';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';

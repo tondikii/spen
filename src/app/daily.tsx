@@ -1,10 +1,7 @@
 import DailyTransactionsScreen from '@/components/daily-transactions-screen';
 import { useCallback } from 'react';
-import {
-  getDatabaseTransactionCategories,
-  getDatabaseTransactions,
-} from '@/services/transaction-service';
-import { getWallets } from '@/services/wallet-service';
+import { getDatabaseTransactionCategories, getDatabaseTransactions } from '@/features/transactions';
+import { getWallets } from '@/features/wallet';
 import { DataState } from '@/components/screen-skeleton';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
