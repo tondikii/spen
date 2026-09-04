@@ -29,6 +29,7 @@ import {
   Typography,
 } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from 'react-i18next';
 import { formatMoney } from '@/lib/money';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import {
@@ -86,9 +87,10 @@ function HomeHeader({ today = new Date() }: { today?: Date }) {
 }
 
 function BalanceCard({ total, period }: { total: number; period?: BudgetPeriod }) {
+  const { t } = useTranslation();
   return (
     <FinanceHeroCard
-      label="Saldo total"
+      label={t('common.totalBalance')}
       marker="●"
       amount={total}
       footer={[

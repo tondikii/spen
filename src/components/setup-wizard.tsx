@@ -19,6 +19,7 @@ import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import { ThemedInput } from '@/components/themed-input';
 import type { SetupWalletDraft } from '@/services/setup-service';
 import type { CurrencyCode } from '@/types/domain';
+import { useTranslation } from 'react-i18next';
 
 const totalSteps = 3;
 
@@ -28,6 +29,7 @@ export function SetupWizard({
   onComplete: (wallets: SetupWalletDraft[], currency: CurrencyCode) => void;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const carouselRef = useRef<ScrollView>(null);
   const { width: windowWidth } = useWindowDimensions();
   const [step, setStep] = useState(0);
@@ -142,22 +144,22 @@ export function SetupWizard({
                   ✦
                 </ThemedText>
                 <ThemedText type="title" style={styles.title}>
-                  Buat rencana untuk uangmu.
+                  {t('common.createPlan')}
                 </ThemedText>
                 <ThemedText type="small" themeColor="muted" style={styles.lead}>
-                  Catat transaksi dan sisihkan.
+                  {t('common.recordAndSetAside')}
                 </ThemedText>
               </View>
 
               <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
                 <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-                  Buat Wallet
+                  {t('common.createWallet')}
                 </ThemedText>
                 <ThemedText type="title" style={styles.title}>
-                  Uangmu disimpan di mana?
+                  {t('common.whereMoney')}
                 </ThemedText>
                 <ThemedText type="small" themeColor="muted" style={styles.lead}>
-                  Bisa untuk uang tunai, e-wallet, atau bank.
+                  {t('common.walletHint')}
                 </ThemedText>
                 <ScrollView
                   style={styles.walletList}
@@ -181,7 +183,7 @@ export function SetupWizard({
                             hitSlop={8}
                           >
                             <ThemedText type="smallBold" style={{ color: theme.expense }}>
-                              Hapus
+                              {t('common.remove')}
                             </ThemedText>
                           </Pressable>
                         </View>
@@ -193,7 +195,7 @@ export function SetupWizard({
                         accessibilityLabel={
                           index === 0 ? 'Nama wallet pertama' : `Nama wallet ${index + 1}`
                         }
-                        placeholder="Mis. Tunai"
+                        placeholder={t('common.exampleCash')}
                         placeholderTextColor={theme.muted}
                         value={wallet.name}
                         onChangeText={(name) =>
@@ -206,7 +208,7 @@ export function SetupWizard({
                         style={[styles.input, { borderBottomColor: theme.line, color: theme.ink }]}
                       />
                       <ThemedText type="code" themeColor="muted" style={styles.balanceLabel}>
-                        SALDO AWAL
+                        {t('common.initialBalance').toUpperCase()}
                       </ThemedText>
                       <View style={styles.moneyInputRow}>
                         <CurrencyMark />
@@ -248,7 +250,7 @@ export function SetupWizard({
                     style={[styles.addWallet, { borderBottomColor: theme.line }]}
                   >
                     <ThemedText type="smallBold" themeColor="pine">
-                      + Tambah Wallet
+                      {t('common.addWallet')}
                     </ThemedText>
                   </Pressable>
                 </ScrollView>
@@ -256,13 +258,13 @@ export function SetupWizard({
 
               <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
                 <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-                  Mata Uang
+                  {t('common.currency')}
                 </ThemedText>
                 <ThemedText type="title" style={styles.title}>
-                  Pilih mata uang
+                  {t('common.chooseCurrency')}
                 </ThemedText>
                 <ThemedText type="small" themeColor="muted" style={styles.lead}>
-                  Nilai tidak dikonversi, hanya tampilannya yang berubah.
+                  {t('common.noConversion')}
                 </ThemedText>
                 <View style={styles.currencyGrid}>
                   {(['IDR', 'USD', 'SGD', 'MYR'] as CurrencyCode[]).map((option) => (
@@ -300,14 +302,14 @@ export function SetupWizard({
             <Pressable
               accessible
               accessibilityRole="button"
-              accessibilityLabel={step === 0 ? 'Mulai' : step === 2 ? 'Masuk ke Spen' : 'Lanjut'}
+              accessibilityLabel={step === 0 ? t('common.start') : step === 2 ? t('common.enterSpen') : t('common.next')}
               accessibilityHint="Membuka langkah berikutnya"
               accessibilityState={{ busy: false }}
               onPress={next}
               style={[styles.primary, { backgroundColor: theme.pine }]}
             >
               <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-                {step === 0 ? 'Mulai' : step === 1 ? 'Lanjut' : 'Masuk ke Spen'}{' '}
+                {step === 0 ? t('common.start') : step === 1 ? t('common.next') : t('common.enterSpen')}{' '}
                 <ThemedText style={{ color: theme.heroText }}>→</ThemedText>
               </ThemedText>
             </Pressable>

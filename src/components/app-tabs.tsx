@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Fonts, Shadows, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from 'react-i18next';
 
 type TabItem = {
   name: 'index' | 'plan' | 'report' | 'settings';
@@ -20,9 +21,11 @@ const tabs: TabItem[] = [
 
 export default function AppTabs() {
   const theme = useTheme();
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const localizedTabs = tabs.map((tab) => ({ ...tab, label: t(`common.${tab.name === 'index' ? 'home' : tab.name}`) }));
   return (
     <Tabs
       screenOptions={{
@@ -42,12 +45,12 @@ export default function AppTabs() {
         tabBarItemStyle: styles.tabItem,
       }}
     >
-      {tabs.slice(0, 2).map((tab) => (
+      {localizedTabs.slice(0, 2).map((tab) => (
         <Tabs.Screen
           key={tab.name}
           name={tab.name}
           options={{
-            title: tab.label,
+          title: tab.label,
             tabBarAccessibilityLabel: tab.label,
             tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>{tab.icon}</Text>,
           }}
@@ -75,7 +78,7 @@ export default function AppTabs() {
           ),
         }}
       />
-      {tabs.slice(2).map((tab) => (
+      {localizedTabs.slice(2).map((tab) => (
         <Tabs.Screen
           key={tab.name}
           name={tab.name}
