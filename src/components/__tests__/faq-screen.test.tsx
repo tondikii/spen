@@ -12,12 +12,12 @@ describe('FaqScreen', () => {
     );
 
     expect(getByText('FAQ')).toBeTruthy();
-    expect(getByText('Apa itu Spen?')).toBeTruthy();
-    expect(queryByText('Spen membantu mencatat Transaksi dan menyusun Budget plan pribadi.')).toBeNull();
+    expect(getByText('Apakah data Spen tersimpan online?')).toBeTruthy();
+    expect(queryByText('Data Spen tersimpan lokal di perangkatmu. Tidak ada sinkronisasi cloud.')).toBeNull();
 
-    await fireEvent.press(getByLabelText('Apa itu Spen?'));
+    await fireEvent.press(getByLabelText('Apakah data Spen tersimpan online?'));
 
-    expect(getByText('Spen membantu mencatat Transaksi dan menyusun Budget plan pribadi.')).toBeTruthy();
+    expect(getByText('Data Spen tersimpan lokal di perangkatmu. Tidak ada sinkronisasi cloud.')).toBeTruthy();
   });
 
   it('membuka beberapa jawaban tanpa menutup jawaban lain dan dapat menutupnya kembali', async () => {
@@ -26,16 +26,18 @@ describe('FaqScreen', () => {
         <FaqScreen onBack={() => undefined} />
       </AppThemeProvider>,
     );
-    const firstAnswer = 'Spen membantu mencatat Transaksi dan menyusun Budget plan pribadi.';
-    const secondAnswer = 'Data Spen tersimpan lokal di perangkatmu. Tidak ada sinkronisasi cloud.';
+    const firstQuestion = 'Apakah data Spen tersimpan online?';
+    const firstAnswer = 'Data Spen tersimpan lokal di perangkatmu. Tidak ada sinkronisasi cloud.';
+    const secondQuestion = 'Apa yang dikirim saat memakai AI?';
+    const secondAnswer = 'Saat kamu meminta saran atau insight, ringkasan angka dan nama Wallet, kategori, atau Goal yang diperlukan dapat dikirim ke Groq untuk diproses.';
 
-    await fireEvent.press(getByLabelText('Apa itu Spen?'));
-    await fireEvent.press(getByLabelText('Apakah data Spen tersimpan online?'));
+    await fireEvent.press(getByLabelText(firstQuestion));
+    await fireEvent.press(getByLabelText(secondQuestion));
 
     expect(getByText(firstAnswer)).toBeTruthy();
     expect(getByText(secondAnswer)).toBeTruthy();
 
-    await fireEvent.press(getByLabelText('Apa itu Spen?'));
+    await fireEvent.press(getByLabelText(firstQuestion));
 
     expect(queryByText(firstAnswer)).toBeNull();
     expect(getByText(secondAnswer)).toBeTruthy();
