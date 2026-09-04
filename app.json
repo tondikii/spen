@@ -7,6 +7,10 @@
       }
     },
     "owner": "kizaruxds-team",
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
     "android": {
       "package": "com.spen"
     }

@@ -1,9 +1,12 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import * as Linking from 'expo-linking';
 
 import SettingsScreen from '@/components/settings-screen';
 import { AppThemeProvider } from '@/components/theme-provider';
 
 describe('SettingsScreen', () => {
+  afterEach(() => jest.restoreAllMocks());
+
   it('menampilkan pengaturan tema, currency, data, dan footer', async () => {
     const { getByText } = await render(<AppThemeProvider><SettingsScreen /></AppThemeProvider>);
 
@@ -21,5 +24,33 @@ describe('SettingsScreen', () => {
     await fireEvent.press(getByLabelText('Pilih mata uang USD'));
 
     await waitFor(() => expect(getByText('USD⌄')).toBeTruthy());
+  });
+
+  it('membuka dokumen legal di origin web yang dikonfigurasi', async () => {
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    const { getByLabelText } = await render(<AppThemeProvider><SettingsScreen /></AppThemeProvider>);
+
+    await fireEvent.press(getByLabelText('Syarat & Ketentuan'));
+    await fireEvent.press(getByLabelText('Kebijakan Privasi'));
+
+    await waitFor(() => {
+      expect(openURL).toHaveBeenNthCalledWith(1, 'http://localhost:8081/terms');
+      expect(openURL).toHaveBeenNthCalledWith(2, 'http://localhost:8081/privacy');
+    });
+  });
+
+  it('membaca origin web dari environment variable', async () => {
+    const previousWebUrl = process.env.EXPO_PUBLIC_WEB_URL;
+    process.env.EXPO_PUBLIC_WEB_URL = 'https://spen.app/';
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+
+    try {
+      const { getByLabelText } = await render(<AppThemeProvider><SettingsScreen /></AppThemeProvider>);
+      await fireEvent.press(getByLabelText('Syarat & Ketentuan'));
+      await waitFor(() => expect(openURL).toHaveBeenCalledWith('https://spen.app/terms'));
+    } finally {
+      if (previousWebUrl === undefined) delete process.env.EXPO_PUBLIC_WEB_URL;
+      else process.env.EXPO_PUBLIC_WEB_URL = previousWebUrl;
+    }
   });
 });
