@@ -1,6 +1,5 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { useSQLiteContext } from 'expo-sqlite';
 
 import HomeScreen from '@/components/home-screen';
 import type { Category, Transaction, Wallet } from '@/types/domain';
@@ -9,10 +8,11 @@ import { archiveWallet, createWallet, getWallets, updateWallet } from '@/service
 import { getDatabaseTransactionCategories, getDatabaseTransactions } from '@/services/transaction-service';
 import { getDatabasePlanView } from '@/services/plan-service';
 import { retryDatabaseRead } from '@/services/database-read-retry';
+import useAppDatabase from '@/hooks/use-app-database';
 
 export default function HomeRoute() {
   const router = useRouter();
-  const database = useSQLiteContext();
+  const database = useAppDatabase();
   const [data, setData] = useState<{ wallets: Wallet[]; categories: Category[]; transactions: Transaction[]; plan: Awaited<ReturnType<typeof getDatabasePlanView>> } | null>(null);
   const [error, setError] = useState('');
 

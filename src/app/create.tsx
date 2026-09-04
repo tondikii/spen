@@ -1,6 +1,5 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { useSQLiteContext } from 'expo-sqlite';
 
 import { TransactionForm } from '@/components/transaction-form';
 import { DataState } from '@/components/screen-skeleton';
@@ -10,10 +9,11 @@ import { getDatabasePlanView } from '@/services/plan-service';
 import { getWallets } from '@/services/wallet-service';
 import type { Category, Transaction, TransactionType, Wallet } from '@/types/domain';
 import { retryDatabaseRead } from '@/services/database-read-retry';
+import useAppDatabase from '@/hooks/use-app-database';
 
 export default function CreateTransactionScreen() {
   const { transactionId, goalId, type, categoryId, amount, walletId, toWalletId, lockedToWalletId } = useLocalSearchParams<{ transactionId?: string; goalId?: string; type?: TransactionType; categoryId?: string; amount?: string; walletId?: string; toWalletId?: string; lockedToWalletId?: string }>();
-  const database = useSQLiteContext();
+  const database = useAppDatabase();
   const [data, setData] = useState<{ wallets: Wallet[]; categories: Category[]; transactions: Transaction[]; allocationLimit: number } | null>(null);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);

@@ -10,7 +10,6 @@ import AppTabs from '@/components/app-tabs';
 import { SetupWizard } from '@/components/setup-wizard';
 import { AppThemeProvider, useAppTheme } from '@/components/theme-provider';
 import PublicDocumentScreen from '@/components/public-document-screen';
-import FaqScreen from '@/components/faq-screen';
 import { SpenSplash } from '@/components/brand-assets';
 import { completeSetup, getSetupState } from '@/services/setup-service';
 import { getDatabaseSettings, setSelectedCurrency, setDatabaseThemeMode } from '@/services/settings-service';
@@ -82,11 +81,6 @@ function PublicDocumentRoute() {
   return <AppThemeProvider><PublicDocumentScreen document={document} onBack={() => router.back()} /></AppThemeProvider>;
 }
 
-function FaqRoute() {
-  const router = useRouter();
-  return <AppThemeProvider><FaqScreen onBack={() => router.back()} /></AppThemeProvider>;
-}
-
 export default function AppRuntime() {
   const pathname = usePathname();
   const [databaseAttempt, setDatabaseAttempt] = useState(0);
@@ -95,7 +89,6 @@ export default function AppRuntime() {
   const retryDatabase = useCallback(() => { setDatabaseError(null); setDatabaseAttempt((attempt) => attempt + 1); }, []);
 
   if (pathname === termsDocument.path || pathname === privacyDocument.path) return <PublicDocumentRoute />;
-  if (pathname.endsWith('/faq')) return <FaqRoute />;
   if (databaseError) return <DatabaseErrorState message={databaseError} onRetry={retryDatabase} />;
   return <SQLiteProvider key={databaseAttempt} databaseName="spen.db" onInit={configureDatabase} onError={(error) => handleDatabaseError(error.message)}><DatabaseGate onFatalError={handleDatabaseError} /></SQLiteProvider>;
 }

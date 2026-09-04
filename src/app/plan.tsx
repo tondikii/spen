@@ -1,5 +1,4 @@
 import PlanScreen from '@/components/plan-screen';
-import { useSQLiteContext } from 'expo-sqlite';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { applyDatabaseBudgetSuggestion, createDatabasePlanItem, deleteDatabasePlanItem, getDatabasePlanView, setBudgetPeriodStartDay, setDatabasePlanItemPaid, updateDatabasePlanItem } from '@/services/plan-service';
@@ -8,9 +7,10 @@ import { getDatabaseTransactionCategories, saveDatabaseCategory } from '@/servic
 import { archiveGoal, createGoal, updateGoal, withdrawFromGoal, type GoalDraft } from '@/services/goal-service';
 import { DataState } from '@/components/screen-skeleton';
 import { retryDatabaseRead } from '@/services/database-read-retry';
+import useAppDatabase from '@/hooks/use-app-database';
 
 export default function PlanRoute() {
-  const database = useSQLiteContext();
+  const database = useAppDatabase();
   const [planView, setPlanView] = useState<Awaited<ReturnType<typeof getDatabasePlanView>> | null>(null);
   const [categories, setCategories] = useState<Awaited<ReturnType<typeof getDatabaseTransactionCategories>>>([]);
   const [error, setError] = useState('');
