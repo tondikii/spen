@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -519,8 +519,11 @@ export default function HomeScreen({
   const [archivedWallets, setArchivedWallets] = useState<Wallet[]>(archivedWalletsProp ?? []);
   const [formWallet, setFormWallet] = useState<Wallet | 'new' | null>(null);
   const [walletToArchive, setWalletToArchive] = useState<Wallet | null>(null);
-  const recentTransactions = transactionsProp ?? getHomeRecentTransactions();
-  const total = getWalletTotal(wallets);
+  const recentTransactions = useMemo(
+    () => transactionsProp ?? getHomeRecentTransactions(),
+    [transactionsProp],
+  );
+  const total = useMemo(() => getWalletTotal(wallets), [wallets]);
 
   const saveWallet = async (name: string, balance: number) => {
     if (onWalletSave) {
