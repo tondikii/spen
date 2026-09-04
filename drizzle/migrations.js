@@ -8,6 +8,7 @@ import m0004 from './20260902165744_flawless_puppet_master/migration.sql';
 import m0005 from './20260902165825_remarkable_thor/migration.sql';
 import m0006 from './20260903120000_unified_expenses/migration.sql';
 import m0007 from './20260903140000_expense_payment_toggle/migration.sql';
+import m0008 from './20260904160000_wallet_to_index/migration.sql';
 
 export default {
   journal: {
@@ -20,6 +21,7 @@ export default {
       { idx: 5, version: '7', when: 20260902165825, tag: 'remarkable_thor', breakpoints: true },
       { idx: 6, version: '7', when: 20260903120000, tag: 'unified_expenses', breakpoints: true },
       { idx: 7, version: '7', when: 20260903140000, tag: 'expense_payment_toggle', breakpoints: true },
+      { idx: 8, version: '7', when: 20260904160000, tag: 'wallet_to_index', breakpoints: true },
     ],
   },
   migrations: {
@@ -31,5 +33,6 @@ export default {
     '20260902165825_remarkable_thor': m0005,
     '20260903120000_unified_expenses': m0006,
     '20260903140000_expense_payment_toggle': m0007,
+    '20260904160000_wallet_to_index': m0008,
   },
 };

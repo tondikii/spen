@@ -22,6 +22,8 @@ Contoh hasil query baseline pada dataset tersebut: `walletOverview` min 5,26 ms 
 
 Plan penting yang terekam: `walletOverview` melakukan scan tabel transaksi pada LEFT JOIN; `transactions` menggunakan `transactions_date_idx` namun memakai temporary B-tree untuk sebagian ordering; `goals` melakukan scan tabel kecil; `transactionById` menggunakan primary key. Optimasi hanya boleh dilakukan setelah pengukuran ulang di device target dan tetap mempertahankan invariant domain.
 
+Setelah migration index `transactions_to_wallet_idx` pada #43, plan `walletOverview` berubah menjadi `MULTI-INDEX OR` dan contoh host timing turun dari rata-rata 6,18 ms menjadi 3,31 ms. Read lain tidak ditargetkan karena belum menunjukkan bottleneck yang layak dioptimasi.
+
 ## Android profile yang tersedia
 
 Emulator `Pixel_4`, Android 13, berhasil digunakan dengan Expo Go pada pengukuran 2026-09-04. Pengukuran `adb shell monkey -p host.exp.exponent 1` setelah force-stop, lima kali, menghasilkan 1.298,57 ms; 492,63 ms; 517,97 ms; 302,07 ms; dan 275,46 ms (rata-rata 577,34 ms). Ini adalah launch dispatch Expo Go, bukan waktu sampai screen Spen selesai render; pengukuran screen-ready perlu dilakukan pada development build/standalone build ketika tersedia.

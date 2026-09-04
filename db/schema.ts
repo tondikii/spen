@@ -37,6 +37,7 @@ export const transactions = sqliteTable(
   (table) => ({
     dateIndex: index('transactions_date_idx').on(table.date),
     walletIndex: index('transactions_wallet_idx').on(table.walletId),
+    toWalletIndex: index('transactions_to_wallet_idx').on(table.toWalletId),
     categoryIndex: index('transactions_category_idx').on(table.categoryId),
   }),
 );
