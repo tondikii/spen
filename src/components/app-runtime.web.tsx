@@ -1,4 +1,4 @@
-import { Link, usePathname, useRouter } from 'expo-router';
+import { Link, usePathname } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import PublicDocumentScreen from '@/components/public-document-screen';
@@ -9,11 +9,10 @@ import { privacyDocument, termsDocument } from '@/lib/public-documents';
 
 export default function AppRuntime() {
   const pathname = usePathname();
-  const router = useRouter();
 
   if (pathname === termsDocument.path || pathname === privacyDocument.path) {
     const document = pathname === termsDocument.path ? termsDocument : privacyDocument;
-    return <AppThemeProvider><PublicDocumentScreen document={document} onBack={() => router.replace('/' as never)} /></AppThemeProvider>;
+    return <AppThemeProvider><PublicDocumentScreen document={document} /></AppThemeProvider>;
   }
 
   return <AppThemeProvider><ThemedView style={styles.page}><View style={styles.content}>

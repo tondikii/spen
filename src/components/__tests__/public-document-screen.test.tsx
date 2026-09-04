@@ -8,7 +8,7 @@ describe('PublicDocumentScreen', () => {
   it('menampilkan dokumen dan penanda review pemilik', async () => {
     const { getByText } = await render(
       <AppThemeProvider>
-        <PublicDocumentScreen document={termsDocument} onBack={() => undefined} />
+        <PublicDocumentScreen document={termsDocument} />
       </AppThemeProvider>,
     );
 
@@ -17,16 +17,13 @@ describe('PublicDocumentScreen', () => {
     expect(getByText('Berlaku sejak 4 September 2026')).toBeTruthy();
   });
 
-  it('meneruskan aksi kembali ke route', async () => {
-    const onBack = jest.fn();
+  it('tidak menampilkan tombol kembali agar memakai tombol back perangkat', async () => {
     const { getByLabelText } = await render(
       <AppThemeProvider>
-        <PublicDocumentScreen document={termsDocument} onBack={onBack} />
+        <PublicDocumentScreen document={termsDocument} />
       </AppThemeProvider>,
     );
 
-    fireEvent.press(getByLabelText('Kembali'));
-
-    expect(onBack).toHaveBeenCalledTimes(1);
+    expect(() => getByLabelText('Kembali')).toThrow();
   });
 });

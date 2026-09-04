@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider, usePathname, useRouter } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -76,9 +76,8 @@ function DatabaseErrorState({ message, onRetry }: { message: string; onRetry: ()
 
 function PublicDocumentRoute() {
   const pathname = usePathname();
-  const router = useRouter();
   const document = pathname === termsDocument.path ? termsDocument : privacyDocument;
-  return <AppThemeProvider><PublicDocumentScreen document={document} onBack={() => router.replace('/' as never)} /></AppThemeProvider>;
+  return <AppThemeProvider><PublicDocumentScreen document={document} /></AppThemeProvider>;
 }
 
 export default function AppRuntime() {

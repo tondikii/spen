@@ -21,17 +21,16 @@ describe('public document and FAQ route navigation', () => {
   it.each([
     ['terms', TermsRoute],
     ['privacy', PrivacyRoute],
-  ])('%s returns to the web home route without relying on history', async (_name, Route) => {
-    const { getByLabelText } = await render(
+  ])('%s leaves back navigation to the device or browser', async (_name, Route) => {
+    const { queryByLabelText } = await render(
       <AppThemeProvider>
         <Route />
       </AppThemeProvider>,
     );
 
-    fireEvent.press(getByLabelText('Kembali'));
-
-    expect(mockReplace).toHaveBeenCalledWith('/');
+    expect(queryByLabelText('Kembali')).toBeNull();
     expect(mockBack).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('FAQ returns to Settings instead of the default Beranda tab', async () => {

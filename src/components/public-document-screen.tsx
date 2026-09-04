@@ -8,7 +8,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { BottomTabInset, MaxContentWidth, Radius, Spacing, Typography } from '@/constants/theme';
 import type { PublicDocument } from '@/lib/public-documents';
 
-export default function PublicDocumentScreen({ document, onBack }: { document: PublicDocument; onBack: () => void }) {
+export default function PublicDocumentScreen({ document }: { document: PublicDocument }) {
   const theme = useTheme();
 
   return (
@@ -21,9 +21,6 @@ export default function PublicDocumentScreen({ document, onBack }: { document: P
       </Head>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <Pressable accessibilityLabel="Kembali" accessibilityRole="button" onPress={onBack} style={({ pressed }) => [styles.back, pressed && styles.pressed]}>
-            <ThemedText type="smallBold" themeColor="pine">‹ Kembali</ThemedText>
-          </Pressable>
           <View style={styles.header}>
             <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>{document.eyebrow}</ThemedText>
             <ThemedText type="title" style={styles.title}>{document.title}</ThemedText>
@@ -54,7 +51,6 @@ const styles = StyleSheet.create({
   page: { flex: 1 },
   safeArea: { flex: 1 },
   content: { alignSelf: 'center', maxWidth: MaxContentWidth, paddingBottom: BottomTabInset + Spacing.four, paddingHorizontal: 21, paddingTop: Spacing.two, width: '100%' },
-  back: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center', paddingRight: Spacing.three },
   header: { gap: Spacing.two, paddingBottom: Spacing.four, paddingTop: Spacing.three },
   eyebrow: Typography.eyebrow,
   title: { marginTop: Spacing.one },
@@ -65,5 +61,4 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 19, lineHeight: 24 },
   paragraph: { lineHeight: 24 },
   meta: { borderTopWidth: StyleSheet.hairlineWidth, gap: Spacing.one, paddingTop: Spacing.three },
-  pressed: { opacity: 0.7 },
 });
