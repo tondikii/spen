@@ -1,10 +1,11 @@
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
+import { Card, PrimaryButton } from '@/components/ui-primitives';
 
 export function ScreenSkeleton({ title, eyebrow }: { title: string; eyebrow: string }) {
   const theme = useTheme();
@@ -17,13 +18,13 @@ export function ScreenSkeleton({ title, eyebrow }: { title: string; eyebrow: str
             {eyebrow}
           </ThemedText>
           <ThemedText type="title">{title}</ThemedText>
-          <ThemedView type="card" style={styles.card}>
+          <Card style={styles.card}>
             <View style={[styles.dot, { backgroundColor: theme.pine }]} />
             <ThemedText type="subtitle">Segera hadir</ThemedText>
             <ThemedText themeColor="muted" style={styles.description}>
               Ruang ini sedang disiapkan untuk membantu mengatur uangmu dengan lebih tenang.
             </ThemedText>
-          </ThemedView>
+          </Card>
         </View>
       </SafeAreaView>
     </ThemedView>
@@ -60,16 +61,7 @@ export function DataState({
         {description}
       </ThemedText>
       {onRetry && (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Coba lagi"
-          onPress={onRetry}
-          style={[styles.retry, { backgroundColor: theme.pine }]}
-        >
-          <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-            Coba lagi
-          </ThemedText>
-        </Pressable>
+        <PrimaryButton label="Coba lagi" onPress={onRetry} accessibilityLabel="Coba lagi" />
       )}
     </View>
   );
