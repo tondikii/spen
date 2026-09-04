@@ -6,10 +6,10 @@ import { DataState } from '@/components/screen-skeleton';
 import {
   archiveWallet,
   createWallet,
-  getWallets,
   restoreWallet,
   updateWallet,
 } from '@/services/wallet-service';
+import { getWalletOverview } from '@/services/wallet-overview-service';
 import {
   getDatabaseTransactionCategories,
   getDatabaseTransactions,
@@ -24,7 +24,7 @@ export default function HomeRoute() {
   const read = useCallback(
     () =>
       Promise.all([
-        getWallets(database, true),
+        getWalletOverview(database),
         getDatabaseTransactionCategories(database),
         getDatabaseTransactions(database),
         getDatabasePlanView(database),
@@ -33,7 +33,13 @@ export default function HomeRoute() {
   );
   const { data: loaded, error, retry } = useFocusedRead(read, 'Data Beranda tidak dapat dimuat.');
   const data = loaded
-    ? { wallets: loaded[0], categories: loaded[1], transactions: loaded[2], plan: loaded[3] }
+    ? {
+        wallets: loaded[0].active,
+        archivedWallets: loaded[0].archived,
+        categories: loaded[1],
+        transactions: loaded[2],
+        plan: loaded[3],
+      }
     : null;
   const loadData = async () => retry();
   const refreshData = async () => loadData();
@@ -60,7 +66,7 @@ export default function HomeRoute() {
         .map((wallet) => `${wallet.id}:${wallet.balance}:${wallet.name}:${wallet.archived}`)
         .join('|')}
       wallets={data.wallets.filter((wallet) => !wallet.archived)}
-      archivedWallets={data.wallets.filter((wallet) => wallet.archived)}
+      archivedWallets={data.archivedWallets}
       transactions={data.transactions}
       categories={data.categories}
       snapshot={data.plan.snapshot}
