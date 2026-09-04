@@ -24,6 +24,8 @@ import type { Category, Transaction, Wallet } from '@/types/domain';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 
 type HistoryChip = HistoryFilter | 'makan';
 
@@ -41,6 +43,8 @@ function HistoryScreenContent({
   wallets,
 }: { transactions?: Transaction[]; categories?: Category[]; wallets?: Wallet[] } = {}) {
   const theme = useTheme();
+  const { t } = useTranslation();
+  const tr = (key: string, fallback: string) => t(key) === key ? fallback : t(key);
   const {
     categoryId: categoryParam,
     walletId: walletParam,
@@ -112,10 +116,10 @@ function HistoryScreenContent({
             </Pressable>
             <View style={styles.headerCopy}>
               <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-                SEMUA TRANSAKSI
+                {tr('common.allTransactions', 'SEMUA TRANSAKSI')}
               </ThemedText>
               <ThemedText type="title" style={styles.title}>
-                Riwayat
+                {tr('common.history', 'Riwayat')}
               </ThemedText>
             </View>
           </View>
@@ -123,7 +127,7 @@ function HistoryScreenContent({
         ListEmptyComponent={
           <View style={styles.empty}>
             <ThemedText style={[styles.emptyGlyph, { color: theme.pine }]}>◌</ThemedText>
-            <ThemedText type="subtitle">Belum ada catatan</ThemedText>
+            <ThemedText type="subtitle">{tr('common.noRecords', 'Belum ada catatan')}</ThemedText>
             <ThemedText type="small" themeColor="muted">
               Tidak ada transaksi yang cocok dengan filter ini.
             </ThemedText>
@@ -144,7 +148,7 @@ function HistoryScreenContent({
                   0,
                 ),
               )}{' '}
-              masuk
+              {tr('common.income', 'Masuk').toLowerCase()}
             </ThemedText>
           </View>
         )}
@@ -167,7 +171,7 @@ function HistoryScreenContent({
             onPress={() => setFilterOpen(true)}
           >
             <ThemedText type="smallBold" themeColor="pine">
-              Filter
+              {tr('common.filter', 'Filter')}
             </ThemedText>
           </Pressable>
         }
@@ -183,7 +187,7 @@ function HistoryScreenContent({
           onPress={() => setFilterOpen(false)}
         >
           <View style={[styles.filterSheet, { backgroundColor: theme.card }]}>
-            <ThemedText type="sectionHeading">Filter transaksi</ThemedText>
+            <ThemedText type="sectionHeading">{tr('common.filterTransactions', 'Filter transaksi')}</ThemedText>
             {filterOptions.map((option) => (
               <Pressable
                 key={option.key}
@@ -319,7 +323,7 @@ function HistoryTransaction({
 }
 
 function formatDate(date: string) {
-  return new Intl.DateTimeFormat('id-ID', {
+  return new Intl.DateTimeFormat(i18n.language === 'en' ? 'en-US' : 'id-ID', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',

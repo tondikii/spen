@@ -16,6 +16,8 @@ import type { Category, Transaction, Wallet } from '@/types/domain';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 
 export default function DailyTransactionsScreen({
   transactions: transactionsProp,
@@ -29,6 +31,7 @@ export default function DailyTransactionsScreen({
   today?: string;
 } = {}) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [date, setDate] = useState(today ?? '2026-09-01');
   const [calendarOpen, setCalendarOpen] = useState(false);
   const transactions = useMemo(
@@ -52,7 +55,7 @@ export default function DailyTransactionsScreen({
             </Pressable>
             <View style={styles.headerCenter}>
               <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-                TRANSAKSI HARIAN
+                {t('common.daily')}
               </ThemedText>
               <Pressable
                 accessibilityRole="button"
@@ -128,8 +131,8 @@ export default function DailyTransactionsScreen({
             </View>
           )}
           <View style={[styles.summary, { borderColor: theme.line, backgroundColor: theme.card }]}>
-            <SummaryItem label="Masuk" value={totals.income} color={theme.income} sign="+" />
-            <SummaryItem label="Keluar" value={totals.expense} color={theme.expense} sign="−" />
+            <SummaryItem label={t('common.income')} value={totals.income} color={theme.income} sign="+" />
+            <SummaryItem label={t('common.expense')} value={totals.expense} color={theme.expense} sign="−" />
           </View>
           {transactions.length > 0 ? (
             <View style={[styles.list, { borderTopColor: theme.line }]}>
@@ -146,7 +149,7 @@ export default function DailyTransactionsScreen({
             <View style={styles.empty}>
               <ThemedText style={[styles.emptyGlyph, { color: theme.pine }]}>◌</ThemedText>
               <ThemedText type="subtitle" style={styles.emptyTitle}>
-                Belum ada catatan
+                {t('common.noRecords')}
               </ThemedText>
               <ThemedText type="small" themeColor="muted" style={styles.emptyDescription}>
                 Tidak ada transaksi pada {formatDateLabel(date)}.
@@ -158,7 +161,7 @@ export default function DailyTransactionsScreen({
                 style={[styles.primary, { backgroundColor: theme.pine }]}
               >
                 <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-                  Tambah transaksi →
+                  {t('common.addTransaction')} →
                 </ThemedText>
               </Pressable>
             </View>
@@ -170,7 +173,7 @@ export default function DailyTransactionsScreen({
             style={styles.allHistory}
           >
             <ThemedText type="smallBold" themeColor="pine">
-              Lihat Semua Transaksi →
+              {t('common.allTransactions')} →
             </ThemedText>
           </Pressable>
         </ScrollView>
@@ -250,7 +253,7 @@ function DailyTransaction({
   );
 }
 function formatDateLabel(date: string) {
-  return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short' }).format(
+  return new Intl.DateTimeFormat(i18n.language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'short' }).format(
     new Date(`${date}T12:00:00`),
   );
 }

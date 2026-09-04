@@ -36,6 +36,7 @@ function ReportScreenContent({
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
+  const tr = (key: string, fallback: string) => t(key) === key ? fallback : t(key);
   const locale = i18n.language === 'en' ? 'en' : 'id';
   const { snapshot, expenses, period, netSavingByPeriod } = reportView;
   const [range, setRange] = useState(3);
@@ -110,7 +111,7 @@ function ReportScreenContent({
             <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
               BUDGET PERIOD
             </ThemedText>
-            <ThemedText type="title">{t('common.report')}</ThemedText>
+            <ThemedText type="title">{tr('common.report', 'Laporan')}</ThemedText>
             <Pressable accessibilityRole="button" accessibilityLabel="Ubah Budget period">
               <ThemedText type="small" themeColor="muted">
                 {formatPeriodAccurate(period)}⌄
@@ -145,7 +146,7 @@ function ReportScreenContent({
           {expenses.length === 0 ? (
             <View style={styles.empty}>
               <ThemedText style={styles.emptyGlyph}>◌</ThemedText>
-              <ThemedText type="smallBold">{t('common.noExpenses')}</ThemedText>
+              <ThemedText type="smallBold">{tr('common.noExpenses', 'Belum ada pengeluaran')}</ThemedText>
             </View>
           ) : (
             <View style={styles.pieArea}>
@@ -199,7 +200,7 @@ function ReportScreenContent({
           {chartPoints.length === 0 ? (
             <View style={styles.empty}>
               <ThemedText style={styles.emptyGlyph}>◌</ThemedText>
-              <ThemedText type="smallBold">{t('common.noNetSaving')}</ThemedText>
+              <ThemedText type="smallBold">{tr('common.noNetSaving', 'Belum ada data net saving')}</ThemedText>
             </View>
           ) : (
             <>
