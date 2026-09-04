@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -7,16 +7,16 @@ import {
   ScrollView,
   StyleSheet,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CategoryIcon } from "@/components/category-icon";
-import { ConfirmationModal } from "@/components/confirmation-modal";
-import { CurrencyMark } from "@/components/currency-mark";
-import { FinanceHeroCard } from "@/components/finance-hero-card";
-import { ThemedInput } from "@/components/themed-input";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
+import { CategoryIcon } from '@/components/category-icon';
+import { ConfirmationModal } from '@/components/confirmation-modal';
+import { CurrencyMark } from '@/components/currency-mark';
+import { FinanceHeroCard } from '@/components/finance-hero-card';
+import { ThemedInput } from '@/components/themed-input';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 import {
   BottomTabInset,
   Fonts,
@@ -26,10 +26,10 @@ import {
   Shadows,
   Spacing,
   Typography,
-} from "@/constants/theme";
-import { useTheme } from "@/hooks/use-theme";
-import { formatMoney } from "@/lib/money";
-import { formatMoneyInput, parseMoneyInput } from "@/lib/money-input";
+} from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { formatMoney } from '@/lib/money';
+import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import {
   addMockWallet,
   getHomeRecentTransactions,
@@ -39,7 +39,7 @@ import {
   getWalletTotal,
   restoreMockWallet,
   updateMockWallet,
-} from "@/services/home-service";
+} from '@/services/home-service';
 import type {
   BudgetPeriod,
   Category,
@@ -47,22 +47,22 @@ import type {
   Transaction,
   Wallet,
   WalletTint,
-} from "@/types/domain";
+} from '@/types/domain';
 
-const tintSequence: WalletTint[] = ["pine", "coral", "gold", "goal"];
+const tintSequence: WalletTint[] = ['pine', 'coral', 'gold', 'goal'];
 
 function walletGlyph(wallet: Wallet) {
-  if (wallet.tint === "coral") return "T";
-  if (wallet.tint === "pine") return "B";
-  if (wallet.tint === "gold") return "G";
-  return "D";
+  if (wallet.tint === 'coral') return 'T';
+  if (wallet.tint === 'pine') return 'B';
+  if (wallet.tint === 'gold') return 'G';
+  return 'D';
 }
 
 function HomeHeader({ today = new Date() }: { today?: Date }) {
-  const label = new Intl.DateTimeFormat("id-ID", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
+  const label = new Intl.DateTimeFormat('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
   })
     .format(today)
     .toUpperCase();
@@ -75,13 +75,7 @@ function HomeHeader({ today = new Date() }: { today?: Date }) {
   );
 }
 
-function BalanceCard({
-  total,
-  period,
-}: {
-  total: number;
-  period?: BudgetPeriod;
-}) {
+function BalanceCard({ total, period }: { total: number; period?: BudgetPeriod }) {
   return (
     <FinanceHeroCard
       label="Saldo total"
@@ -89,8 +83,8 @@ function BalanceCard({
       amount={total}
       footer={[
         {
-          label: "Budget period",
-          value: period ? formatPeriod(period) : "Budget period",
+          label: 'Budget period',
+          value: period ? formatPeriod(period) : 'Budget period',
         },
       ]}
       style={styles.balanceCard}
@@ -117,16 +111,8 @@ function WalletCards({
     <View style={styles.walletSection}>
       <View style={styles.sectionTitle}>
         <ThemedText type="sectionHeading">Wallet</ThemedText>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Tambah Wallet"
-          onPress={onAdd}
-        >
-          <ThemedText
-            type="smallBold"
-            themeColor="pine"
-            style={styles.quietAction}
-          >
+        <Pressable accessibilityRole="button" accessibilityLabel="Tambah Wallet" onPress={onAdd}>
+          <ThemedText type="smallBold" themeColor="pine" style={styles.quietAction}>
             Tambah
           </ThemedText>
         </Pressable>
@@ -149,17 +135,12 @@ function WalletCards({
             ]}
           >
             <ThemedText
-              style={[
-                styles.walletGlyph,
-                { backgroundColor: theme.mint, color: theme.pine },
-              ]}
+              style={[styles.walletGlyph, { backgroundColor: theme.mint, color: theme.pine }]}
             >
               {walletGlyph(wallet)}
             </ThemedText>
             <ThemedText style={styles.walletName}>{wallet.name}</ThemedText>
-            <ThemedText style={styles.walletBalance}>
-              {formatMoney(wallet.balance)}
-            </ThemedText>
+            <ThemedText style={styles.walletBalance}>{formatMoney(wallet.balance)}</ThemedText>
           </Pressable>
         ))}
         <Pressable
@@ -179,11 +160,7 @@ function WalletCards({
           >
             ＋
           </ThemedText>
-          <ThemedText
-            type="small"
-            themeColor="muted"
-            style={styles.walletAddLabel}
-          >
+          <ThemedText type="small" themeColor="muted" style={styles.walletAddLabel}>
             Tambah Wallet
           </ThemedText>
         </Pressable>
@@ -194,24 +171,14 @@ function WalletCards({
       </ScrollView>
       {archivedWallets.length > 0 && (
         <View
-          style={[
-            styles.archivedWallets,
-            { backgroundColor: theme.card, borderColor: theme.line },
-          ]}
+          style={[styles.archivedWallets, { backgroundColor: theme.card, borderColor: theme.line }]}
         >
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={
-              archivedOpen
-                ? "Tutup Wallet diarsipkan"
-                : "Buka Wallet diarsipkan"
-            }
+            accessibilityLabel={archivedOpen ? 'Tutup Wallet diarsipkan' : 'Buka Wallet diarsipkan'}
             accessibilityHint="Menampilkan Wallet yang tidak ada di daftar aktif"
             onPress={() => setArchivedOpen((open) => !open)}
-            style={({ pressed }) => [
-              styles.archivedHeader,
-              pressed && styles.pressed,
-            ]}
+            style={({ pressed }) => [styles.archivedHeader, pressed && styles.pressed]}
           >
             <ThemedText
               type="smallBold"
@@ -227,7 +194,7 @@ function WalletCards({
               </ThemedText>
             </View>
             <ThemedText type="subtitle" themeColor="muted">
-              {archivedOpen ? "⌃" : "⌄"}
+              {archivedOpen ? '⌃' : '⌄'}
             </ThemedText>
           </Pressable>
           {archivedOpen && (
@@ -301,14 +268,9 @@ function PlanSnapshot({
   const theme = useTheme();
   const snapshot = snapshotProp ?? getHomeSnapshot();
   const progress =
-    snapshot.totalIncome > 0
-      ? (snapshot.totalExpense / snapshot.totalIncome) * 100
-      : 0;
+    snapshot.totalIncome > 0 ? (snapshot.totalExpense / snapshot.totalIncome) * 100 : 0;
   return (
-    <ThemedView
-      type="card"
-      style={[styles.planSnapshot, { borderColor: theme.line }]}
-    >
+    <ThemedView type="card" style={[styles.planSnapshot, { borderColor: theme.line }]}>
       <View>
         <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
           SPARE BUDGET
@@ -326,27 +288,19 @@ function PlanSnapshot({
         onPress={onPress}
         style={styles.planLink}
       >
-        <ThemedText
-          type="smallBold"
-          themeColor="pine"
-          style={styles.planLinkText}
-        >
+        <ThemedText type="smallBold" themeColor="pine" style={styles.planLinkText}>
           Lihat Rencana →
         </ThemedText>
       </Pressable>
       <ProgressBar progress={progress} />
       <View style={styles.miniStats}>
         <ThemedText type="small" themeColor="muted" style={styles.miniStat}>
-          Pendapatan{" "}
-          <ThemedText style={styles.miniStatValue}>
-            {formatMoney(snapshot.totalIncome)}
-          </ThemedText>
+          Pendapatan{' '}
+          <ThemedText style={styles.miniStatValue}>{formatMoney(snapshot.totalIncome)}</ThemedText>
         </ThemedText>
         <ThemedText type="small" themeColor="muted" style={styles.miniStat}>
-          Terpakai{" "}
-          <ThemedText style={styles.miniStatValue}>
-            {formatMoney(snapshot.totalExpense)}
-          </ThemedText>
+          Terpakai{' '}
+          <ThemedText style={styles.miniStatValue}>{formatMoney(snapshot.totalExpense)}</ThemedText>
         </ThemedText>
       </View>
     </ThemedView>
@@ -365,45 +319,25 @@ function RecentTransaction({
   onPress?: () => void;
 }) {
   const theme = useTheme();
-  const presentation = getTransactionPresentation(
-    transaction,
-    categories,
-    wallets,
-  );
+  const presentation = getTransactionPresentation(transaction, categories, wallets);
   const typeColor =
-    transaction.type === "income"
-      ? "income"
-      : transaction.type === "expense"
-        ? "expense"
-        : "gold";
+    transaction.type === 'income' ? 'income' : transaction.type === 'expense' ? 'expense' : 'gold';
   const iconBackground =
-    transaction.type === "income"
+    transaction.type === 'income'
       ? theme.incomeBackground
-      : transaction.type === "expense"
+      : transaction.type === 'expense'
         ? theme.expenseBackground
         : theme.transferBackground;
-  const sign =
-    transaction.type === "income"
-      ? "+"
-      : transaction.type === "expense"
-        ? "−"
-        : "↔";
+  const sign = transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '−' : '↔';
   return (
     <Pressable
-      accessibilityRole={onPress ? "button" : undefined}
-      accessibilityLabel={
-        onPress ? `Edit transaksi ${presentation.categoryName}` : undefined
-      }
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={onPress ? `Edit transaksi ${presentation.categoryName}` : undefined}
       onPress={onPress}
       style={[styles.transactionRow, { borderBottomColor: theme.line }]}
     >
-      <ThemedView
-        style={[styles.categoryIcon, { backgroundColor: iconBackground }]}
-      >
-        <CategoryIcon
-          name={presentation.categoryIcon}
-          color={theme[typeColor]}
-        />
+      <ThemedView style={[styles.categoryIcon, { backgroundColor: iconBackground }]}>
+        <CategoryIcon name={presentation.categoryIcon} color={theme[typeColor]} />
       </ThemedView>
       <View style={styles.transactionDescription}>
         <ThemedText type="smallBold" style={styles.transactionName}>
@@ -419,18 +353,10 @@ function RecentTransaction({
         </ThemedText>
       </View>
       <View style={styles.transactionAmount}>
-        <ThemedText
-          type="smallBold"
-          themeColor={typeColor}
-          style={styles.transactionAmountText}
-        >
+        <ThemedText type="smallBold" themeColor={typeColor} style={styles.transactionAmountText}>
           {sign} {formatMoney(transaction.amount)}
         </ThemedText>
-        <ThemedText
-          type="small"
-          themeColor="muted"
-          style={styles.transactionTime}
-        >
+        <ThemedText type="small" themeColor="muted" style={styles.transactionTime}>
           {transaction.time}
         </ThemedText>
       </View>
@@ -440,12 +366,12 @@ function RecentTransaction({
 
 type WalletFormProps =
   | {
-      mode: "create";
+      mode: 'create';
       onClose: () => void;
       onSave: (name: string, balance: number) => void;
     }
   | {
-      mode: "edit";
+      mode: 'edit';
       wallet: Wallet;
       onClose: () => void;
       onSave: (name: string, balance: number) => void;
@@ -454,11 +380,9 @@ type WalletFormProps =
 
 function WalletForm(props: WalletFormProps) {
   const theme = useTheme();
-  const wallet = props.mode === "edit" ? props.wallet : undefined;
-  const [name, setName] = useState(wallet?.name ?? "");
-  const [amount, setAmount] = useState(
-    wallet ? formatMoneyInput(wallet.balance) : "",
-  );
+  const wallet = props.mode === 'edit' ? props.wallet : undefined;
+  const [name, setName] = useState(wallet?.name ?? '');
+  const [amount, setAmount] = useState(wallet ? formatMoneyInput(wallet.balance) : '');
   return (
     <Modal animationType="slide" visible onRequestClose={props.onClose}>
       <ThemedView style={styles.formPage}>
@@ -474,17 +398,12 @@ function WalletForm(props: WalletFormProps) {
             </ThemedText>
           </Pressable>
           <ThemedText type="sectionHeading">
-            {props.mode === "edit" ? "Edit Wallet" : "Wallet baru"}
+            {props.mode === 'edit' ? 'Edit Wallet' : 'Wallet baru'}
           </ThemedText>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Simpan Wallet"
-            onPress={() =>
-              props.onSave(
-                name.trim() || "Wallet baru",
-                parseMoneyInput(amount),
-              )
-            }
+            onPress={() => props.onSave(name.trim() || 'Wallet baru', parseMoneyInput(amount))}
             style={styles.headerButton}
           >
             <ThemedText type="smallBold" themeColor="pine">
@@ -494,7 +413,7 @@ function WalletForm(props: WalletFormProps) {
         </View>
         <KeyboardAvoidingView
           style={styles.formBody}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={0}
         >
           <ScrollView
@@ -515,14 +434,12 @@ function WalletForm(props: WalletFormProps) {
               onChangeText={setName}
             />
             <ThemedText type="code" themeColor="muted" style={styles.formLabel}>
-              {props.mode === "edit" ? "SALDO SAAT INI" : "SALDO AWAL"}
+              {props.mode === 'edit' ? 'SALDO SAAT INI' : 'SALDO AWAL'}
             </ThemedText>
             <View style={styles.moneyInputRow}>
               <CurrencyMark />
               <ThemedInput
-                accessibilityLabel={
-                  props.mode === "edit" ? "Saldo Wallet" : "Saldo awal"
-                }
+                accessibilityLabel={props.mode === 'edit' ? 'Saldo Wallet' : 'Saldo awal'}
                 keyboardType="numeric"
                 placeholder="0"
                 value={amount}
@@ -530,7 +447,7 @@ function WalletForm(props: WalletFormProps) {
                 style={styles.moneyInput}
               />
             </View>
-            {props.mode === "edit" && (
+            {props.mode === 'edit' && (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Arsipkan Wallet"
@@ -578,11 +495,7 @@ type HomeScreenProps = {
   categories?: Category[];
   snapshot?: MockBudgetSnapshot;
   period?: BudgetPeriod;
-  onWalletSave?: (
-    wallet: Wallet | null,
-    name: string,
-    balance: number,
-  ) => void | Promise<void>;
+  onWalletSave?: (wallet: Wallet | null, name: string, balance: number) => void | Promise<void>;
   onWalletArchive?: (wallet: Wallet) => void | Promise<void>;
   onWalletRestore?: (wallet: Wallet) => void | Promise<void>;
 };
@@ -602,31 +515,21 @@ export default function HomeScreen({
   onWalletRestore,
 }: HomeScreenProps = {}) {
   const theme = useTheme();
-  const [wallets, setWallets] = useState<Wallet[]>(
-    walletsProp ?? getHomeWallets,
-  );
-  const [archivedWallets, setArchivedWallets] = useState<Wallet[]>(
-    archivedWalletsProp ?? [],
-  );
-  const [formWallet, setFormWallet] = useState<Wallet | "new" | null>(null);
+  const [wallets, setWallets] = useState<Wallet[]>(walletsProp ?? getHomeWallets);
+  const [archivedWallets, setArchivedWallets] = useState<Wallet[]>(archivedWalletsProp ?? []);
+  const [formWallet, setFormWallet] = useState<Wallet | 'new' | null>(null);
   const [walletToArchive, setWalletToArchive] = useState<Wallet | null>(null);
   const recentTransactions = transactionsProp ?? getHomeRecentTransactions();
   const total = getWalletTotal(wallets);
 
   const saveWallet = async (name: string, balance: number) => {
     if (onWalletSave) {
-      await onWalletSave(
-        formWallet && formWallet !== "new" ? formWallet : null,
-        name,
-        balance,
-      );
+      await onWalletSave(formWallet && formWallet !== 'new' ? formWallet : null, name, balance);
       setFormWallet(null);
       return;
     }
-    if (formWallet && formWallet !== "new") {
-      setWallets((current) =>
-        updateMockWallet(current, formWallet.id, name, balance),
-      );
+    if (formWallet && formWallet !== 'new') {
+      setWallets((current) => updateMockWallet(current, formWallet.id, name, balance));
     } else {
       const tint = tintSequence[wallets.length % tintSequence.length];
       setWallets((current) => addMockWallet(current, name, balance ?? 0, tint));
@@ -637,33 +540,23 @@ export default function HomeScreen({
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <HomeHeader />
           <BalanceCard total={total} period={period} />
           <WalletCards
             wallets={wallets}
             archivedWallets={archivedWallets}
             onSelect={(wallet) => setFormWallet(wallet)}
-            onAdd={() => setFormWallet("new")}
+            onAdd={() => setFormWallet('new')}
             onRestore={(wallet) => {
               if (onWalletRestore) void onWalletRestore(wallet);
               else {
-                setArchivedWallets((current) =>
-                  current.filter((item) => item.id !== wallet.id),
-                );
-                setWallets((current) =>
-                  restoreMockWallet([...current, wallet], wallet.id),
-                );
+                setArchivedWallets((current) => current.filter((item) => item.id !== wallet.id));
+                setWallets((current) => restoreMockWallet([...current, wallet], wallet.id));
               }
             }}
           />
-          <PlanSnapshot
-            snapshot={snapshot}
-            onPress={onPlanPress ?? (() => undefined)}
-          />
+          <PlanSnapshot snapshot={snapshot} onPress={onPlanPress ?? (() => undefined)} />
           <View style={styles.recent}>
             <View style={styles.sectionTitle}>
               <ThemedText type="sectionHeading">Terbaru</ThemedText>
@@ -690,10 +583,7 @@ export default function HomeScreen({
                   onPress={onDailyPress}
                   style={[styles.emptyButton, { backgroundColor: theme.pine }]}
                 >
-                  <ThemedText
-                    type="smallBold"
-                    style={{ color: theme.heroText }}
-                  >
+                  <ThemedText type="smallBold" style={{ color: theme.heroText }}>
                     Tambah transaksi
                   </ThemedText>
                 </Pressable>
@@ -705,25 +595,17 @@ export default function HomeScreen({
                   transaction={transaction}
                   wallets={wallets}
                   categories={categoriesProp}
-                  onPress={
-                    onTransactionPress
-                      ? () => onTransactionPress(transaction)
-                      : undefined
-                  }
+                  onPress={onTransactionPress ? () => onTransactionPress(transaction) : undefined}
                 />
               ))
             )}
           </View>
         </ScrollView>
       </SafeAreaView>
-      {formWallet === "new" && (
-        <WalletForm
-          mode="create"
-          onClose={() => setFormWallet(null)}
-          onSave={saveWallet}
-        />
+      {formWallet === 'new' && (
+        <WalletForm mode="create" onClose={() => setFormWallet(null)} onSave={saveWallet} />
       )}
-      {formWallet && formWallet !== "new" && (
+      {formWallet && formWallet !== 'new' && (
         <WalletForm
           mode="edit"
           wallet={formWallet}
@@ -738,7 +620,7 @@ export default function HomeScreen({
         message={
           walletToArchive
             ? `${walletToArchive.name} tidak akan tampil di daftar Wallet aktif. Transaksi tetap tersimpan.`
-            : ""
+            : ''
         }
         confirmLabel="Arsipkan"
         destructive
@@ -747,13 +629,8 @@ export default function HomeScreen({
           if (!walletToArchive) return;
           if (onWalletArchive) await onWalletArchive(walletToArchive);
           else {
-            setWallets((current) =>
-              current.filter((item) => item.id !== walletToArchive.id),
-            );
-            setArchivedWallets((current) => [
-              ...current,
-              { ...walletToArchive, archived: true },
-            ]);
+            setWallets((current) => current.filter((item) => item.id !== walletToArchive.id));
+            setArchivedWallets((current) => [...current, { ...walletToArchive, archived: true }]);
           }
           setWalletToArchive(null);
           setFormWallet(null);
@@ -766,15 +643,15 @@ export default function HomeScreen({
 function formatPeriod(period: BudgetPeriod) {
   const start = new Date(`${period.startDate}T12:00:00`);
   const end = new Date(`${period.endDate}T12:00:00`);
-  return `${start.getDate()} — ${end.getDate()} ${new Intl.DateTimeFormat("id-ID", { month: "short" }).format(end)}`;
+  return `${start.getDate()} — ${end.getDate()} ${new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(end)}`;
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: {
     flex: 1,
-    alignSelf: "center",
-    width: "100%",
+    alignSelf: 'center',
+    width: '100%',
     maxWidth: MaxContentWidth,
   },
   content: {
@@ -784,17 +661,17 @@ const styles = StyleSheet.create({
     gap: 0,
   },
   header: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
   eyebrow: { ...Typography.eyebrow },
   balanceCard: { marginBottom: Layout.sectionGap },
   sectionTitle: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 12,
   },
   walletSection: {},
@@ -802,11 +679,11 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     borderWidth: 1,
     marginTop: 2,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   archivedHeader: {
-    alignItems: "center",
-    flexDirection: "row",
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: 10,
     minHeight: 64,
     paddingHorizontal: 14,
@@ -818,7 +695,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     height: 31,
     lineHeight: 31,
-    textAlign: "center",
+    textAlign: 'center',
     width: 31,
   },
   archivedHeaderCopy: { flex: 1, gap: 3 },
@@ -826,9 +703,9 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   archivedWalletRow: {
-    alignItems: "center",
+    alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 10,
     minHeight: 64,
     paddingHorizontal: 14,
@@ -840,16 +717,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     height: 28,
     lineHeight: 28,
-    textAlign: "center",
+    textAlign: 'center',
     width: 28,
   },
   archivedWalletCopy: { flex: 1, gap: 3, minWidth: 0 },
   restoreButton: {
-    alignItems: "center",
+    alignItems: 'center',
     borderRadius: Radius.pill,
     borderWidth: 1,
     minHeight: 36,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingHorizontal: 12,
   },
   walletRow: { gap: Layout.walletGap, paddingTop: 2, paddingBottom: 20 },
@@ -857,7 +734,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
     height: Layout.walletHeight,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
     padding: 12,
     width: Layout.walletWidth,
     ...Shadows.card,
@@ -868,7 +745,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     height: 28,
     lineHeight: 28,
-    textAlign: "center",
+    textAlign: 'center',
     width: 28,
   },
   walletName: { fontFamily: Fonts.sansBold, fontSize: 11, lineHeight: 14 },
@@ -879,12 +756,12 @@ const styles = StyleSheet.create({
     letterSpacing: -0.63,
   },
   walletAdd: {
-    alignItems: "flex-start",
+    alignItems: 'flex-start',
     borderRadius: 18,
-    borderStyle: "dashed",
+    borderStyle: 'dashed',
     borderWidth: 1,
     height: Layout.walletHeight,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
     padding: 12,
     width: Layout.walletWidth,
   },
@@ -893,7 +770,7 @@ const styles = StyleSheet.create({
     fontSize: 21,
     height: 28,
     lineHeight: 28,
-    textAlign: "center",
+    textAlign: 'center',
     width: 28,
   },
   walletAddLabel: { fontSize: 10, lineHeight: 12 },
@@ -905,7 +782,7 @@ const styles = StyleSheet.create({
     marginBottom: Layout.sectionGap,
     padding: 17,
   },
-  planLink: { position: "absolute", right: Spacing.three, top: Spacing.three },
+  planLink: { position: 'absolute', right: Spacing.three, top: Spacing.three },
   planAmount: { fontSize: 25, lineHeight: 28 },
   planCaption: { fontSize: 11, lineHeight: 14 },
   planLinkText: { fontSize: 11, lineHeight: 14 },
@@ -913,74 +790,74 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     height: 5,
     marginVertical: Spacing.three,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
-  progressFill: { borderRadius: Radius.pill, height: "100%" },
-  miniStats: { flexDirection: "row", justifyContent: "space-between" },
+  progressFill: { borderRadius: Radius.pill, height: '100%' },
+  miniStats: { flexDirection: 'row', justifyContent: 'space-between' },
   miniStatValue: { fontFamily: Fonts.mono, fontSize: 10 },
   miniStat: { fontSize: 10, lineHeight: 14 },
   recent: { paddingBottom: Spacing.two },
   transactionRow: {
-    alignItems: "center",
+    alignItems: 'center',
     borderBottomWidth: 1,
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 11,
     minHeight: 62,
     paddingHorizontal: 1,
     paddingVertical: 12,
   },
   categoryIcon: {
-    alignItems: "center",
+    alignItems: 'center',
     borderRadius: 12,
     height: 35,
-    justifyContent: "center",
+    justifyContent: 'center',
     width: 35,
   },
   transactionDescription: { flex: 1, minWidth: 0 },
-  transactionAmount: { alignItems: "flex-end" },
+  transactionAmount: { alignItems: 'flex-end' },
   formPage: { flex: 1 },
   formHeader: {
-    alignItems: "center",
+    alignItems: 'center',
     borderBottomWidth: 1,
-    flexDirection: "row",
+    flexDirection: 'row',
     height: 65,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
   },
   headerButton: {
-    alignItems: "center",
+    alignItems: 'center',
     height: 44,
-    justifyContent: "center",
+    justifyContent: 'center',
     minWidth: 56,
   },
   formBody: { flex: 1 },
   formContent: { gap: Spacing.two, paddingHorizontal: 21, paddingVertical: 24 },
   formNote: { fontSize: 12, lineHeight: 18, marginBottom: Spacing.five },
   archiveAction: {
-    alignItems: "center",
+    alignItems: 'center',
     borderTopWidth: 1,
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
     marginTop: Spacing.five,
     paddingHorizontal: 3,
     paddingTop: Spacing.four,
   },
   archiveIcon: {
-    alignItems: "center",
+    alignItems: 'center',
     borderRadius: Radius.small,
     fontFamily: Fonts.mono,
     fontSize: 18,
     height: 35,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingTop: 4,
-    textAlign: "center",
+    textAlign: 'center',
     width: 35,
   },
   archiveCopy: { flex: 1 },
   formLabel: { ...Typography.eyebrow, marginTop: Spacing.two },
   moneyInputRow: {
-    alignItems: "center",
-    flexDirection: "row",
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: Spacing.two,
   },
   moneyInput: { flex: 1 },
@@ -988,7 +865,7 @@ const styles = StyleSheet.create({
   transactionDetail: { fontSize: 10, lineHeight: 14, marginTop: Spacing.half },
   transactionAmountText: { fontSize: 12, lineHeight: 16 },
   transactionTime: { fontSize: 10, lineHeight: 14 },
-  empty: { alignItems: "center", gap: 7, paddingVertical: 34 },
+  empty: { alignItems: 'center', gap: 7, paddingVertical: 34 },
   emptyGlyph: { fontSize: 38 },
   emptyButton: {
     borderRadius: 15,

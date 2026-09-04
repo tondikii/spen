@@ -4,7 +4,13 @@ import migrations from '../../../drizzle/migrations';
 import { configureDatabase } from '../../../db/database';
 import { seedDefaultCategories } from '../../../db/seed';
 import { createWallet, getWallets } from '@/services/wallet-service';
-import { archiveDatabaseCategory, getDatabaseTransactionCategories, getDatabaseTransactions, hasSimilarIncome, saveDatabaseTransaction } from '@/services/transaction-service';
+import {
+  archiveDatabaseCategory,
+  getDatabaseTransactionCategories,
+  getDatabaseTransactions,
+  hasSimilarIncome,
+  saveDatabaseTransaction,
+} from '@/services/transaction-service';
 import type { TransactionDraft } from '@/types/domain';
 
 type TempSQLite = {
@@ -18,17 +24,22 @@ type TempSQLite = {
 };
 
 function createDatabase() {
-  const { DatabaseSync } = require('node:sqlite') as { DatabaseSync: new (path: string) => TempSQLite };
+  const { DatabaseSync } = require('node:sqlite') as {
+    DatabaseSync: new (path: string) => TempSQLite;
+  };
   const sqlite = new DatabaseSync(':memory:');
   const database = {
     execAsync: async (source: string) => sqlite.exec(source),
-    getFirstAsync: async <T>(source: string, ...params: unknown[]) => sqlite.prepare(source).get(...params) as T | undefined,
-    getAllAsync: async <T>(source: string, ...params: unknown[]) => sqlite.prepare(source).all(...params) as T[],
+    getFirstAsync: async <T>(source: string, ...params: unknown[]) =>
+      sqlite.prepare(source).get(...params) as T | undefined,
+    getAllAsync: async <T>(source: string, ...params: unknown[]) =>
+      sqlite.prepare(source).all(...params) as T[],
     runAsync: async (source: string, ...params: unknown[]) => {
       const result = sqlite.prepare(source).run(...params);
       return { changes: result.changes, lastInsertRowId: result.lastInsertRowid };
     },
-    withExclusiveTransactionAsync: async (task: (transaction: SQLiteDatabase) => Promise<void>) => task(database as unknown as SQLiteDatabase),
+    withExclusiveTransactionAsync: async (task: (transaction: SQLiteDatabase) => Promise<void>) =>
+      task(database as unknown as SQLiteDatabase),
   } as unknown as SQLiteDatabase;
   return { database, sqlite };
 }
@@ -63,58 +74,120 @@ describe('database transaction service', () => {
 
   it('keeps transfers wealth-neutral while applying income and expense to balances', async () => {
     const income = await saveDatabaseTransaction(database, {
-      type: 'income', walletId, toWalletId: null, categoryId: incomeCategoryId,
-      amount: 500, date: '2026-09-02', time: '08:00', note: 'Gaji',
+      type: 'income',
+      walletId,
+      toWalletId: null,
+      categoryId: incomeCategoryId,
+      amount: 500,
+      date: '2026-09-02',
+      time: '08:00',
+      note: 'Gaji',
     });
     await saveDatabaseTransaction(database, {
-      type: 'expense', walletId, toWalletId: null, categoryId: expenseCategoryId,
-      amount: 200, date: '2026-09-02', time: '09:00', note: 'Makan',
+      type: 'expense',
+      walletId,
+      toWalletId: null,
+      categoryId: expenseCategoryId,
+      amount: 200,
+      date: '2026-09-02',
+      time: '09:00',
+      note: 'Makan',
     });
     await saveDatabaseTransaction(database, {
-      type: 'transfer', walletId, toWalletId: secondWalletId, categoryId: null,
-      amount: 100, date: '2026-09-02', time: '10:00', note: 'Pindah',
+      type: 'transfer',
+      walletId,
+      toWalletId: secondWalletId,
+      categoryId: null,
+      amount: 100,
+      date: '2026-09-02',
+      time: '10:00',
+      note: 'Pindah',
     });
 
     expect((await getWallets(database)).map((wallet) => wallet.balance)).toEqual([1200, 100]);
-    expect((await getDatabaseTransactions(database)).map((transaction) => transaction.id)).toHaveLength(4);
-    expect(hasSimilarIncome(await getDatabaseTransactions(database), {
-      type: 'income', walletId, toWalletId: null, categoryId: incomeCategoryId,
-      amount: 500, date: '2026-09-02', time: '11:00', note: 'Gaji kedua',
-    })).toBe(true);
+    expect(
+      (await getDatabaseTransactions(database)).map((transaction) => transaction.id),
+    ).toHaveLength(4);
+    expect(
+      hasSimilarIncome(await getDatabaseTransactions(database), {
+        type: 'income',
+        walletId,
+        toWalletId: null,
+        categoryId: incomeCategoryId,
+        amount: 500,
+        date: '2026-09-02',
+        time: '11:00',
+        note: 'Gaji kedua',
+      }),
+    ).toBe(true);
     expect(income.type).toBe('income');
   });
 
   it('mengurangi biaya admin dari Wallet sumber Transfer', async () => {
     await saveDatabaseTransaction(database, {
-      type: 'transfer', walletId, toWalletId: secondWalletId, categoryId: null,
-      amount: 100, adminFee: 7, date: '2026-09-02', time: '10:00', note: 'Transfer dengan admin',
+      type: 'transfer',
+      walletId,
+      toWalletId: secondWalletId,
+      categoryId: null,
+      amount: 100,
+      adminFee: 7,
+      date: '2026-09-02',
+      time: '10:00',
+      note: 'Transfer dengan admin',
     });
 
     expect((await getWallets(database)).map((wallet) => wallet.balance)).toEqual([893, 100]);
-    expect((await getDatabaseTransactions(database)).find((transaction) => transaction.type === 'transfer')?.adminFee).toBe(7);
+    expect(
+      (await getDatabaseTransactions(database)).find(
+        (transaction) => transaction.type === 'transfer',
+      )?.adminFee,
+    ).toBe(7);
   });
 
   it('edits by replacing the old ledger row so wallet balances stay consistent', async () => {
     const draft: TransactionDraft = {
-      type: 'expense', walletId, toWalletId: null, categoryId: expenseCategoryId,
-      amount: 200, date: '2026-09-02', time: '09:00', note: 'Makan',
+      type: 'expense',
+      walletId,
+      toWalletId: null,
+      categoryId: expenseCategoryId,
+      amount: 200,
+      date: '2026-09-02',
+      time: '09:00',
+      note: 'Makan',
     };
     const transaction = await saveDatabaseTransaction(database, draft);
-    const edited = await saveDatabaseTransaction(database, { ...draft, amount: 300, note: 'Makan siang' }, transaction.id);
+    const edited = await saveDatabaseTransaction(
+      database,
+      { ...draft, amount: 300, note: 'Makan siang' },
+      transaction.id,
+    );
 
     expect(edited.id).not.toBe(transaction.id);
     expect((await getWallets(database))[0].balance).toBe(700);
-    expect((await getDatabaseTransactions(database)).map((item) => item.note)).toEqual(['Saldo awal Wallet', 'Makan siang']);
+    expect((await getDatabaseTransactions(database)).map((item) => item.note)).toEqual([
+      'Saldo awal Wallet',
+      'Makan siang',
+    ]);
   });
 
   it('archives a used category instead of deleting its history', async () => {
     await saveDatabaseTransaction(database, {
-      type: 'expense', walletId, toWalletId: null, categoryId: expenseCategoryId,
-      amount: 200, date: '2026-09-02', time: '09:00', note: 'Makan',
+      type: 'expense',
+      walletId,
+      toWalletId: null,
+      categoryId: expenseCategoryId,
+      amount: 200,
+      date: '2026-09-02',
+      time: '09:00',
+      note: 'Makan',
     });
     await archiveDatabaseCategory(database, expenseCategoryId);
 
-    expect((await getDatabaseTransactionCategories(database)).find((item) => item.id === expenseCategoryId)?.archived).toBe(true);
-    expect((await getDatabaseTransactions(database))).toHaveLength(2);
+    expect(
+      (await getDatabaseTransactionCategories(database)).find(
+        (item) => item.id === expenseCategoryId,
+      )?.archived,
+    ).toBe(true);
+    expect(await getDatabaseTransactions(database)).toHaveLength(2);
   });
 });

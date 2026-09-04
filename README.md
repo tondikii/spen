@@ -42,6 +42,10 @@ Jangan commit file env lokal atau API key ke repository.
 - `npm run web`
 - `npm test`
 - `npm run lint`
+- `npm run format`
+- `npm run format:check`
+- `npm run typecheck`
+- `npm run verify`
 
 ## Catatan
 

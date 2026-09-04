@@ -31,7 +31,9 @@ describe('PlanScreen', () => {
 
   it('menampilkan Pendapatan sebagai realisasi tanpa progress', async () => {
     const onItemAction = jest.fn();
-    const { getByText, queryByLabelText } = await render(<PlanScreen onItemAction={onItemAction} />);
+    const { getByText, queryByLabelText } = await render(
+      <PlanScreen onItemAction={onItemAction} />,
+    );
 
     expect(getByText('Dari transaksi')).toBeTruthy();
     expect(queryByLabelText('Catat Gaji')).toBeNull();
@@ -44,7 +46,10 @@ describe('PlanScreen', () => {
 
     await fireEvent.press(getByLabelText('Tandai sudah dibayar Internet'));
 
-    expect(onItemPayment).toHaveBeenCalledWith(expect.objectContaining({ type: 'expense', name: 'Internet' }), true);
+    expect(onItemPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'expense', name: 'Internet' }),
+      true,
+    );
   });
 
   it('menawarkan edit dan hapus untuk setiap item plan', async () => {
@@ -54,7 +59,9 @@ describe('PlanScreen', () => {
     await fireEvent.press(getByLabelText('Hapus Gaji'));
     await fireEvent.press(getByLabelText('Hapus'));
 
-    expect(onPlanItemDelete).toHaveBeenCalledWith(expect.objectContaining({ id: 'income-item-gaji', name: 'Gaji' }));
+    expect(onPlanItemDelete).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'income-item-gaji', name: 'Gaji' }),
+    );
   });
 
   it('membuka form Goal baru dan mengirim draft yang diisi pengguna', async () => {
@@ -66,7 +73,10 @@ describe('PlanScreen', () => {
     await fireEvent.changeText(getByLabelText('Target Goal'), '10000000');
     await fireEvent.press(getByLabelText('Simpan Goal'));
 
-    expect(onGoalSave).toHaveBeenCalledWith(null, expect.objectContaining({ name: 'Dana Motor', targetAmount: 10000000 }));
+    expect(onGoalSave).toHaveBeenCalledWith(
+      null,
+      expect.objectContaining({ name: 'Dana Motor', targetAmount: 10000000 }),
+    );
   });
 
   it('meneruskan aksi Nabung Goal ke route transaksi', async () => {
@@ -75,6 +85,8 @@ describe('PlanScreen', () => {
 
     await fireEvent.press(getByLabelText('Nabung ke Goal Dana Nikah'));
 
-    expect(onGoalSaveAction).toHaveBeenCalledWith(expect.objectContaining({ id: 'goal-dana-nikah' }));
+    expect(onGoalSaveAction).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'goal-dana-nikah' }),
+    );
   });
 });

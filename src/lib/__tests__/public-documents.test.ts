@@ -7,8 +7,12 @@ import {
 
 describe('public document configuration', () => {
   it('builds the document URL from the configured web origin', () => {
-    expect(getPublicDocumentUrl('/terms', 'https://spen.example')).toBe('https://spen.example/terms');
-    expect(getPublicDocumentUrl('/privacy', 'https://spen.example/')).toBe('https://spen.example/privacy');
+    expect(getPublicDocumentUrl('/terms', 'https://spen.example')).toBe(
+      'https://spen.example/terms',
+    );
+    expect(getPublicDocumentUrl('/privacy', 'https://spen.example/')).toBe(
+      'https://spen.example/privacy',
+    );
   });
 
   it('uses the local Expo Web origin by default', () => {

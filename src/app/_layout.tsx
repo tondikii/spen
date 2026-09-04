@@ -1,9 +1,6 @@
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
-import {
-  DMMono_400Regular,
-  DMMono_500Medium,
-} from '@expo-google-fonts/dm-mono';
+import { DMMono_400Regular, DMMono_500Medium } from '@expo-google-fonts/dm-mono';
 import {
   Fraunces_500Medium,
   Fraunces_600SemiBold,
@@ -36,7 +33,12 @@ export default function RootLayout() {
     NunitoSans_700Bold,
   });
 
-  if (!fontsLoaded && !fontError) return <View style={styles.splash}><SpenSplash /></View>;
+  if (!fontsLoaded && !fontError)
+    return (
+      <View style={styles.splash}>
+        <SpenSplash />
+      </View>
+    );
   return <AppRuntime />;
 }
 

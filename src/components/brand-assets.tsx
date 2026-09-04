@@ -8,5 +8,7 @@ export function SpenLogo({ size = 42 }: { size?: number }) {
 }
 
 export function SpenSplash() {
-  return <SvgXml accessibilityLabel="Splash screen Spen" xml={splashSvg} width="100%" height="100%" />;
+  return (
+    <SvgXml accessibilityLabel="Splash screen Spen" xml={splashSvg} width="100%" height="100%" />
+  );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -7,18 +7,18 @@ import {
   StyleSheet,
   useWindowDimensions,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { CURRENCY_SYMBOLS, CurrencyMark } from "@/components/currency-mark";
-import { Fonts, Radius, Spacing, Typography } from "@/constants/theme";
-import { useTheme } from "@/hooks/use-theme";
-import { formatMoneyInput, parseMoneyInput } from "@/lib/money-input";
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { CURRENCY_SYMBOLS, CurrencyMark } from '@/components/currency-mark';
+import { Fonts, Radius, Spacing, Typography } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import { ThemedInput } from '@/components/themed-input';
-import type { SetupWalletDraft } from "@/services/setup-service";
-import type { CurrencyCode } from "@/types/domain";
+import type { SetupWalletDraft } from '@/services/setup-service';
+import type { CurrencyCode } from '@/types/domain';
 
 const totalSteps = 3;
 
@@ -31,8 +31,8 @@ export function SetupWizard({
   const carouselRef = useRef<ScrollView>(null);
   const { width: windowWidth } = useWindowDimensions();
   const [step, setStep] = useState(0);
-  const [wallets, setWallets] = useState([{ name: "", balance: "" }]);
-  const [currency, setCurrency] = useState<CurrencyCode>("IDR");
+  const [wallets, setWallets] = useState([{ name: '', balance: '' }]);
+  const [currency, setCurrency] = useState<CurrencyCode>('IDR');
   const carouselWidth = Math.max(0, Math.min(windowWidth, 430) - 42);
 
   useEffect(() => {
@@ -51,9 +51,7 @@ export function SetupWizard({
   const complete = () => {
     onComplete(
       wallets.map((wallet, index) => ({
-        name:
-          wallet.name.trim() ||
-          (index === 0 ? "Wallet utama" : `Wallet ${index + 1}`),
+        name: wallet.name.trim() || (index === 0 ? 'Wallet utama' : `Wallet ${index + 1}`),
         initialBalance: parseMoneyInput(wallet.balance),
       })),
       currency,
@@ -69,13 +67,9 @@ export function SetupWizard({
     complete();
   };
 
-  const handleMomentumEnd = (event: {
-    nativeEvent: { contentOffset: { x: number } };
-  }) => {
+  const handleMomentumEnd = (event: { nativeEvent: { contentOffset: { x: number } } }) => {
     if (!carouselWidth) return;
-    const nextStep = Math.round(
-      event.nativeEvent.contentOffset.x / carouselWidth,
-    );
+    const nextStep = Math.round(event.nativeEvent.contentOffset.x / carouselWidth);
     setStep(Math.max(0, Math.min(totalSteps - 1, nextStep)));
   };
 
@@ -83,7 +77,7 @@ export function SetupWizard({
     <ThemedView style={styles.page}>
       <KeyboardAvoidingView
         style={styles.safeArea}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
         <SafeAreaView style={styles.safeArea}>
@@ -134,22 +128,12 @@ export function SetupWizard({
               onMomentumScrollEnd={handleMomentumEnd}
               contentContainerStyle={[
                 styles.carouselContent,
-                carouselWidth
-                  ? { width: carouselWidth * totalSteps }
-                  : undefined,
+                carouselWidth ? { width: carouselWidth * totalSteps } : undefined,
               ]}
             >
-              <View
-                style={[
-                  styles.slide,
-                  carouselWidth ? { width: carouselWidth } : null,
-                ]}
-              >
+              <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
                 <ThemedText
-                  style={[
-                    styles.orb,
-                    { backgroundColor: theme.mint, color: theme.pine },
-                  ]}
+                  style={[styles.orb, { backgroundColor: theme.mint, color: theme.pine }]}
                 >
                   ✦
                 </ThemedText>
@@ -161,17 +145,8 @@ export function SetupWizard({
                 </ThemedText>
               </View>
 
-              <View
-                style={[
-                  styles.slide,
-                  carouselWidth ? { width: carouselWidth } : null,
-                ]}
-              >
-                <ThemedText
-                  type="code"
-                  themeColor="muted"
-                  style={styles.eyebrow}
-                >
+              <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
+                <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
                   Buat Wallet
                 </ThemedText>
                 <ThemedText type="title" style={styles.title}>
@@ -196,17 +171,12 @@ export function SetupWizard({
                             accessibilityLabel={`Hapus wallet ${index + 1}`}
                             onPress={() =>
                               setWallets((current) =>
-                                current.filter(
-                                  (_, itemIndex) => itemIndex !== index,
-                                ),
+                                current.filter((_, itemIndex) => itemIndex !== index),
                               )
                             }
                             hitSlop={8}
                           >
-                            <ThemedText
-                              type="smallBold"
-                              style={{ color: theme.expense }}
-                            >
+                            <ThemedText type="smallBold" style={{ color: theme.expense }}>
                               Hapus
                             </ThemedText>
                           </Pressable>
@@ -217,9 +187,7 @@ export function SetupWizard({
                       </ThemedText>
                       <ThemedInput
                         accessibilityLabel={
-                          index === 0
-                            ? "Nama wallet pertama"
-                            : `Nama wallet ${index + 1}`
+                          index === 0 ? 'Nama wallet pertama' : `Nama wallet ${index + 1}`
                         }
                         placeholder="Mis. Tunai"
                         placeholderTextColor={theme.muted}
@@ -231,61 +199,49 @@ export function SetupWizard({
                             ),
                           )
                         }
-                        style={[
-                          styles.input,
-                          { borderBottomColor: theme.line, color: theme.ink },
-                        ]}
+                        style={[styles.input, { borderBottomColor: theme.line, color: theme.ink }]}
                       />
-                      <ThemedText
-                        type="code"
-                        themeColor="muted"
-                        style={styles.balanceLabel}
-                      >
+                      <ThemedText type="code" themeColor="muted" style={styles.balanceLabel}>
                         SALDO AWAL
                       </ThemedText>
-                      <View style={styles.moneyInputRow}><CurrencyMark /><ThemedInput
-                        accessibilityLabel={
-                          index === 0
-                            ? "Saldo awal wallet pertama"
-                            : `Saldo awal wallet ${index + 1}`
-                        }
-                        keyboardType="numeric"
-                        placeholder="0"
-                        placeholderTextColor={theme.muted}
-                        value={wallet.balance}
-                        onChangeText={(balance) =>
-                          setWallets((current) =>
-                            current.map((item, itemIndex) =>
-                              itemIndex === index
-                                ? {
-                                    ...item,
-                                    balance: formatMoneyInput(balance),
-                                  }
-                                : item,
-                            ),
-                          )
-                        }
-                        style={[
-                          styles.input,
-                          styles.moneyInput,
-                          { borderBottomColor: theme.line, color: theme.ink },
-                        ]}
-                      /></View>
+                      <View style={styles.moneyInputRow}>
+                        <CurrencyMark />
+                        <ThemedInput
+                          accessibilityLabel={
+                            index === 0
+                              ? 'Saldo awal wallet pertama'
+                              : `Saldo awal wallet ${index + 1}`
+                          }
+                          keyboardType="numeric"
+                          placeholder="0"
+                          placeholderTextColor={theme.muted}
+                          value={wallet.balance}
+                          onChangeText={(balance) =>
+                            setWallets((current) =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index
+                                  ? {
+                                      ...item,
+                                      balance: formatMoneyInput(balance),
+                                    }
+                                  : item,
+                              ),
+                            )
+                          }
+                          style={[
+                            styles.input,
+                            styles.moneyInput,
+                            { borderBottomColor: theme.line, color: theme.ink },
+                          ]}
+                        />
+                      </View>
                     </View>
                   ))}
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel="Tambah Wallet"
-                    onPress={() =>
-                      setWallets((current) => [
-                        ...current,
-                        { name: "", balance: "" },
-                      ])
-                    }
-                    style={[
-                      styles.addWallet,
-                      { borderBottomColor: theme.line },
-                    ]}
+                    onPress={() => setWallets((current) => [...current, { name: '', balance: '' }])}
+                    style={[styles.addWallet, { borderBottomColor: theme.line }]}
                   >
                     <ThemedText type="smallBold" themeColor="pine">
                       + Tambah Wallet
@@ -294,17 +250,8 @@ export function SetupWizard({
                 </ScrollView>
               </View>
 
-              <View
-                style={[
-                  styles.slide,
-                  carouselWidth ? { width: carouselWidth } : null,
-                ]}
-              >
-                <ThemedText
-                  type="code"
-                  themeColor="muted"
-                  style={styles.eyebrow}
-                >
+              <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
+                <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
                   Mata Uang
                 </ThemedText>
                 <ThemedText type="title" style={styles.title}>
@@ -314,35 +261,34 @@ export function SetupWizard({
                   Nilai tidak dikonversi, hanya tampilannya yang berubah.
                 </ThemedText>
                 <View style={styles.currencyGrid}>
-                  {(["IDR", "USD", "SGD", "MYR"] as CurrencyCode[]).map(
-                    (option) => (
-                      <Pressable
-                        key={option}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Pilih mata uang ${option}`}
-                        onPress={() => setCurrency(option)}
-                        style={[
-                          styles.currency,
-                          {
-                            borderColor:
-                              currency === option ? theme.pine : theme.line,
-                            backgroundColor:
-                              currency === option ? theme.mint : theme.card,
-                          },
-                        ]}
+                  {(['IDR', 'USD', 'SGD', 'MYR'] as CurrencyCode[]).map((option) => (
+                    <Pressable
+                      key={option}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Pilih mata uang ${option}`}
+                      onPress={() => setCurrency(option)}
+                      style={[
+                        styles.currency,
+                        {
+                          borderColor: currency === option ? theme.pine : theme.line,
+                          backgroundColor: currency === option ? theme.mint : theme.card,
+                        },
+                      ]}
+                    >
+                      <ThemedText
+                        style={styles.currencySymbol}
+                        themeColor={currency === option ? 'pine' : 'muted'}
                       >
-                        <ThemedText style={styles.currencySymbol} themeColor={currency === option ? "pine" : "muted"}>
-                          {CURRENCY_SYMBOLS[option]}
-                        </ThemedText>
-                        <ThemedText
-                          type="smallBold"
-                          themeColor={currency === option ? "pine" : "ink"}
-                        >
-                          {option}
-                        </ThemedText>
-                      </Pressable>
-                    ),
-                  )}
+                        {CURRENCY_SYMBOLS[option]}
+                      </ThemedText>
+                      <ThemedText
+                        type="smallBold"
+                        themeColor={currency === option ? 'pine' : 'ink'}
+                      >
+                        {option}
+                      </ThemedText>
+                    </Pressable>
+                  ))}
                 </View>
               </View>
             </ScrollView>
@@ -350,14 +296,12 @@ export function SetupWizard({
             <Pressable
               accessible
               accessibilityRole="button"
-              accessibilityLabel={
-                step === 0 ? "Mulai" : step === 2 ? "Masuk ke Spen" : "Lanjut"
-              }
+              accessibilityLabel={step === 0 ? 'Mulai' : step === 2 ? 'Masuk ke Spen' : 'Lanjut'}
               onPress={next}
               style={[styles.primary, { backgroundColor: theme.pine }]}
             >
               <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-                {step === 0 ? "Mulai" : step === 1 ? "Lanjut" : "Masuk ke Spen"}{" "}
+                {step === 0 ? 'Mulai' : step === 1 ? 'Lanjut' : 'Masuk ke Spen'}{' '}
                 <ThemedText style={{ color: theme.heroText }}>→</ThemedText>
               </ThemedText>
             </Pressable>
@@ -370,34 +314,34 @@ export function SetupWizard({
 
 const styles = StyleSheet.create({
   page: {
-    alignSelf: "center",
+    alignSelf: 'center',
     flex: 1,
     maxWidth: 430,
     padding: 21,
-    width: "100%",
+    width: '100%',
   },
   safeArea: { flex: 1 },
   screenContent: { flex: 1 },
-  top: { flexDirection: "row", justifyContent: "space-between" },
+  top: { flexDirection: 'row', justifyContent: 'space-between' },
   dots: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 5,
     marginBottom: 24,
     marginTop: 37,
   },
   dot: { borderRadius: Radius.pill, height: 6, width: 29 },
-  carouselContent: { flexDirection: "row" },
+  carouselContent: { flexDirection: 'row' },
   slide: { flex: 1, paddingBottom: Spacing.four },
   orb: {
-    alignItems: "center",
+    alignItems: 'center',
     borderRadius: 30,
     fontFamily: Fonts.serif,
     fontSize: 39,
     height: 82,
-    justifyContent: "center",
+    justifyContent: 'center',
     marginBottom: 29,
     paddingTop: 18,
-    textAlign: "center",
+    textAlign: 'center',
     width: 82,
   },
   title: { fontSize: 37, lineHeight: 40, letterSpacing: -1.48 },
@@ -412,11 +356,11 @@ const styles = StyleSheet.create({
   walletListContent: { paddingBottom: Spacing.two },
   walletItem: { paddingBottom: 16, paddingTop: 12 },
   walletItemActions: {
-    alignItems: "flex-end",
+    alignItems: 'flex-end',
     marginBottom: 6,
   },
   addWallet: {
-    alignItems: "center",
+    alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
     paddingVertical: 15,
   },
@@ -428,17 +372,24 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingHorizontal: 0,
   },
-  moneyInputRow: { alignItems: "center", flexDirection: "row", gap: Spacing.two },
+  moneyInputRow: { alignItems: 'center', flexDirection: 'row', gap: Spacing.two },
   moneyInput: { flex: 1 },
   balanceLabel: { marginTop: 25 },
   currencyGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
     marginBottom: 25,
     marginTop: 5,
   },
-  currency: { alignItems: "center", borderRadius: 17, borderWidth: 1, gap: 5, padding: 14, width: "47%" },
+  currency: {
+    alignItems: 'center',
+    borderRadius: 17,
+    borderWidth: 1,
+    gap: 5,
+    padding: 14,
+    width: '47%',
+  },
   currencySymbol: { fontFamily: Fonts.mono, fontSize: 16 },
-  primary: { borderRadius: 15, marginTop: "auto", padding: 15 },
+  primary: { borderRadius: 15, marginTop: 'auto', padding: 15 },
 });

@@ -22,24 +22,48 @@ export default function PublicDocumentScreen({ document }: { document: PublicDoc
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>{document.eyebrow}</ThemedText>
-            <ThemedText type="title" style={styles.title}>{document.title}</ThemedText>
-            <ThemedText type="default" themeColor="muted" style={styles.summary}>{document.summary}</ThemedText>
+            <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
+              {document.eyebrow}
+            </ThemedText>
+            <ThemedText type="title" style={styles.title}>
+              {document.title}
+            </ThemedText>
+            <ThemedText type="default" themeColor="muted" style={styles.summary}>
+              {document.summary}
+            </ThemedText>
           </View>
-          <View style={[styles.draftNotice, { backgroundColor: theme.mint, borderColor: theme.line }]}>
-            <ThemedText type="smallBold" themeColor="pine">Draf untuk ditinjau</ThemedText>
-            <ThemedText type="small" themeColor="muted" style={styles.draftCopy}>Teks ini perlu ditinjau dan disetujui pemilik Spen sebelum rilis production.</ThemedText>
+          <View
+            style={[styles.draftNotice, { backgroundColor: theme.mint, borderColor: theme.line }]}
+          >
+            <ThemedText type="smallBold" themeColor="pine">
+              Draf untuk ditinjau
+            </ThemedText>
+            <ThemedText type="small" themeColor="muted" style={styles.draftCopy}>
+              Teks ini perlu ditinjau dan disetujui pemilik Spen sebelum rilis production.
+            </ThemedText>
           </View>
           {document.sections.map((section) => (
             <View key={section.heading} style={styles.section}>
-              <ThemedText type="sectionHeading" style={styles.sectionTitle}>{section.heading}</ThemedText>
-              {section.paragraphs.map((paragraph) => <ThemedText key={paragraph} type="default" style={styles.paragraph}>{paragraph}</ThemedText>)}
+              <ThemedText type="sectionHeading" style={styles.sectionTitle}>
+                {section.heading}
+              </ThemedText>
+              {section.paragraphs.map((paragraph) => (
+                <ThemedText key={paragraph} type="default" style={styles.paragraph}>
+                  {paragraph}
+                </ThemedText>
+              ))}
             </View>
           ))}
           <View style={[styles.meta, { borderTopColor: theme.line }]}>
-            <ThemedText type="small" themeColor="muted">Pemilik: {document.owner}</ThemedText>
-            <ThemedText type="small" themeColor="muted">Kontak: {document.contact}</ThemedText>
-            <ThemedText type="small" themeColor="muted">Berlaku sejak {document.effectiveDate}</ThemedText>
+            <ThemedText type="small" themeColor="muted">
+              Pemilik: {document.owner}
+            </ThemedText>
+            <ThemedText type="small" themeColor="muted">
+              Kontak: {document.contact}
+            </ThemedText>
+            <ThemedText type="small" themeColor="muted">
+              Berlaku sejak {document.effectiveDate}
+            </ThemedText>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -50,12 +74,25 @@ export default function PublicDocumentScreen({ document }: { document: PublicDoc
 const styles = StyleSheet.create({
   page: { flex: 1 },
   safeArea: { flex: 1 },
-  content: { alignSelf: 'center', maxWidth: MaxContentWidth, paddingBottom: BottomTabInset + Spacing.four, paddingHorizontal: 21, paddingTop: Spacing.two, width: '100%' },
+  content: {
+    alignSelf: 'center',
+    maxWidth: MaxContentWidth,
+    paddingBottom: BottomTabInset + Spacing.four,
+    paddingHorizontal: 21,
+    paddingTop: Spacing.two,
+    width: '100%',
+  },
   header: { gap: Spacing.two, paddingBottom: Spacing.four, paddingTop: Spacing.three },
   eyebrow: Typography.eyebrow,
   title: { marginTop: Spacing.one },
   summary: { lineHeight: 23 },
-  draftNotice: { borderRadius: Radius.medium, borderWidth: 1, gap: Spacing.one, marginBottom: Spacing.five, padding: Spacing.three },
+  draftNotice: {
+    borderRadius: Radius.medium,
+    borderWidth: 1,
+    gap: Spacing.one,
+    marginBottom: Spacing.five,
+    padding: Spacing.three,
+  },
   draftCopy: { lineHeight: 17 },
   section: { gap: Spacing.two, marginBottom: Spacing.five },
   sectionTitle: { fontSize: 19, lineHeight: 24 },

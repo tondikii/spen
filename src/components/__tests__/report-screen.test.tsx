@@ -39,6 +39,9 @@ describe('ReportScreen', () => {
 
     await fireEvent.press(getByLabelText('Lihat kategori Makan'));
 
-    expect(onCategoryPress).toHaveBeenCalledWith(expect.objectContaining({ categoryId: 'category-makan' }), expect.objectContaining({ startDate: '2026-09-01', endDate: '2026-09-30' }));
+    expect(onCategoryPress).toHaveBeenCalledWith(
+      expect.objectContaining({ categoryId: 'category-makan' }),
+      expect.objectContaining({ startDate: '2026-09-01', endDate: '2026-09-30' }),
+    );
   });
 });

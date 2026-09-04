@@ -20,9 +20,13 @@ describe('mockData', () => {
     expect(transfer?.toWalletId).toBe('wallet-dana-nikah');
     expect(mockData.categories.some((category) => category.name === 'Saldo Awal')).toBe(true);
 
-    const adjustment = mockData.transactions.find((transaction) => transaction.type === 'adjustment');
+    const adjustment = mockData.transactions.find(
+      (transaction) => transaction.type === 'adjustment',
+    );
     expect(adjustment?.categoryId).toBe('category-penyesuaian');
-    expect(mockData.categories.find((category) => category.id === adjustment?.categoryId)?.isAdjustment).toBe(true);
+    expect(
+      mockData.categories.find((category) => category.id === adjustment?.categoryId)?.isAdjustment,
+    ).toBe(true);
   });
 
   it('menyediakan state plan dan goal penting untuk preview UI', () => {
@@ -37,13 +41,20 @@ describe('mockData', () => {
       const walletTransactions = mockData.transactions.filter(
         (transaction) => transaction.walletId === wallet.id || transaction.toWalletId === wallet.id,
       );
-      return wallet.initialBalance + walletTransactions.reduce((balance, transaction) => {
-        if (transaction.type === 'income' && transaction.walletId === wallet.id) return balance + transaction.amount;
-        if (transaction.type === 'expense' && transaction.walletId === wallet.id) return balance - transaction.amount;
-        if (transaction.type === 'transfer' && transaction.toWalletId === wallet.id) return balance + transaction.amount;
-        if (transaction.type === 'transfer' && transaction.walletId === wallet.id) return balance - transaction.amount;
-        return balance;
-      }, 0);
+      return (
+        wallet.initialBalance +
+        walletTransactions.reduce((balance, transaction) => {
+          if (transaction.type === 'income' && transaction.walletId === wallet.id)
+            return balance + transaction.amount;
+          if (transaction.type === 'expense' && transaction.walletId === wallet.id)
+            return balance - transaction.amount;
+          if (transaction.type === 'transfer' && transaction.toWalletId === wallet.id)
+            return balance + transaction.amount;
+          if (transaction.type === 'transfer' && transaction.walletId === wallet.id)
+            return balance - transaction.amount;
+          return balance;
+        }, 0)
+      );
     });
 
     expect(mockData.wallets.map((wallet) => wallet.balance)).toEqual(ledgerBalances);

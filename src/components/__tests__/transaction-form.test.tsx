@@ -6,7 +6,9 @@ import mockData from '@/data/mock-data';
 describe('TransactionForm', () => {
   it('mencatat expense dengan wallet, kategori, nominal, dan catatan', async () => {
     const onSave = jest.fn();
-    const { getByLabelText } = await render(<TransactionForm mode="create" onClose={jest.fn()} onSave={onSave} />);
+    const { getByLabelText } = await render(
+      <TransactionForm mode="create" onClose={jest.fn()} onSave={onSave} />,
+    );
 
     await fireEvent.press(getByLabelText('Tipe Keluar'));
     await fireEvent.press(getByLabelText('Pilih Wallet GoPay'));
@@ -15,20 +17,32 @@ describe('TransactionForm', () => {
     await fireEvent.changeText(getByLabelText('Catatan transaksi'), 'Kopi');
     await fireEvent.press(getByLabelText('Simpan Transaksi'));
 
-    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'expense',
-      walletId: 'wallet-gopay',
-      categoryId: 'category-makan',
-      amount: 45000,
-      note: 'Kopi',
-    })));
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'expense',
+          walletId: 'wallet-gopay',
+          categoryId: 'category-makan',
+          amount: 45000,
+          note: 'Kopi',
+        }),
+      ),
+    );
   });
 
   it('membuka edit state dengan data terisi dan tombol hapus', async () => {
     const onSave = jest.fn();
     const onDelete = jest.fn();
     const transaction = mockData.transactions[1];
-    const { getByLabelText, getByText } = await render(<TransactionForm mode="edit" transaction={transaction} onClose={jest.fn()} onSave={onSave} onDelete={onDelete} />);
+    const { getByLabelText, getByText } = await render(
+      <TransactionForm
+        mode="edit"
+        transaction={transaction}
+        onClose={jest.fn()}
+        onSave={onSave}
+        onDelete={onDelete}
+      />,
+    );
 
     expect(getByText('Edit Transaksi')).toBeTruthy();
     expect(getByLabelText('Nominal transaksi').props.value).toBe('45.000');
@@ -37,7 +51,9 @@ describe('TransactionForm', () => {
   });
 
   it('menampilkan warning lembut saat expense melewati alokasi', async () => {
-    const { getByLabelText, getByText } = await render(<TransactionForm mode="create" onClose={jest.fn()} onSave={jest.fn()} />);
+    const { getByLabelText, getByText } = await render(
+      <TransactionForm mode="create" onClose={jest.fn()} onSave={jest.fn()} />,
+    );
 
     await fireEvent.press(getByLabelText('Tipe Keluar'));
     await fireEvent.press(getByLabelText('Kategori Makan'));
@@ -48,7 +64,15 @@ describe('TransactionForm', () => {
 
   it('menampilkan peringatan saat income mirip sudah tercatat di hari yang sama', async () => {
     const existing = { ...mockData.transactions[0], date: '2026-09-02' };
-    const { getByLabelText, getByText } = await render(<TransactionForm mode="create" wallets={mockData.wallets} existingTransactions={[existing]} onClose={jest.fn()} onSave={jest.fn()} />);
+    const { getByLabelText, getByText } = await render(
+      <TransactionForm
+        mode="create"
+        wallets={mockData.wallets}
+        existingTransactions={[existing]}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
 
     await fireEvent.press(getByLabelText('Pilih Wallet BCA'));
     await fireEvent.press(getByLabelText('Kategori Gaji'));
@@ -58,7 +82,9 @@ describe('TransactionForm', () => {
   });
 
   it('memungkinkan CRUD kategori inline tanpa menghapus data saat archive', async () => {
-    const { getByLabelText, queryByLabelText } = await render(<TransactionForm mode="create" onClose={jest.fn()} onSave={jest.fn()} />);
+    const { getByLabelText, queryByLabelText } = await render(
+      <TransactionForm mode="create" onClose={jest.fn()} onSave={jest.fn()} />,
+    );
 
     await fireEvent.press(getByLabelText('Tipe Keluar'));
     await fireEvent.press(getByLabelText('Kelola kategori'));
@@ -73,14 +99,33 @@ describe('TransactionForm', () => {
   });
 
   it('menerima preset dari aksi plan untuk membuka form transaksi siap catat', async () => {
-    const { getByLabelText } = await render(<TransactionForm mode="create" initialType="expense" initialCategoryId="category-makan" initialAmount={175000} onClose={jest.fn()} onSave={jest.fn()} />);
+    const { getByLabelText } = await render(
+      <TransactionForm
+        mode="create"
+        initialType="expense"
+        initialCategoryId="category-makan"
+        initialAmount={175000}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
 
     expect(getByLabelText('Nominal transaksi').props.value).toBe('175.000');
     expect(getByLabelText('Kategori Makan')).toBeTruthy();
   });
 
   it('mengunci tujuan transfer saat transaksi berasal dari Goal', async () => {
-    const { getAllByText, getByText } = await render(<TransactionForm mode="create" initialType="transfer" initialToWalletId="wallet-dana-nikah" lockedToWalletId="wallet-dana-nikah" wallets={mockData.wallets} onClose={jest.fn()} onSave={jest.fn()} />);
+    const { getAllByText, getByText } = await render(
+      <TransactionForm
+        mode="create"
+        initialType="transfer"
+        initialToWalletId="wallet-dana-nikah"
+        lockedToWalletId="wallet-dana-nikah"
+        wallets={mockData.wallets}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
 
     expect(getByText('Tujuan Wallet Goal terkunci')).toBeTruthy();
     expect(getAllByText('Dana Nikah').length).toBeGreaterThan(0);
@@ -88,12 +133,22 @@ describe('TransactionForm', () => {
 
   it('menyimpan biaya admin opsional pada Transfer', async () => {
     const onSave = jest.fn();
-    const { getByLabelText } = await render(<TransactionForm mode="create" initialType="transfer" wallets={mockData.wallets} onClose={jest.fn()} onSave={onSave} />);
+    const { getByLabelText } = await render(
+      <TransactionForm
+        mode="create"
+        initialType="transfer"
+        wallets={mockData.wallets}
+        onClose={jest.fn()}
+        onSave={onSave}
+      />,
+    );
 
     await fireEvent.changeText(getByLabelText('Nominal transaksi'), '100000');
     await fireEvent.changeText(getByLabelText('Biaya admin transfer'), '2500');
     await fireEvent.press(getByLabelText('Simpan Transaksi'));
 
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ type: 'transfer', amount: 100000, adminFee: 2500 }));
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'transfer', amount: 100000, adminFee: 2500 }),
+    );
   });
 });

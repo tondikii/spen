@@ -3,7 +3,8 @@ export type CategoryType = 'income' | 'expense' | 'transfer';
 export type WalletTint = 'pine' | 'coral' | 'gold' | 'goal';
 export type PlanItemType = 'income' | 'expense' | 'fixedExpense' | 'allocation';
 export type ThemeMode = 'system' | 'light' | 'dark';
-export type CurrencyCode = 'IDR' | 'USD' | 'SGD' | 'MYR' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'SAR' | 'AED';
+export type CurrencyCode =
+  'IDR' | 'USD' | 'SGD' | 'MYR' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'SAR' | 'AED';
 export type PaymentStatus =
   | { kind: 'Lunas' }
   | { kind: 'Sebagian dibayar'; paidAmount: number; targetAmount: number }

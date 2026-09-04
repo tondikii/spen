@@ -4,27 +4,48 @@ import migrations from '../../../drizzle/migrations';
 import { configureDatabase } from '../../../db/database';
 import { seedDefaultCategories } from '../../../db/seed';
 import { createWallet, updateWallet } from '@/services/wallet-service';
-import { getDatabaseTransactionCategories, saveDatabaseTransaction } from '@/services/transaction-service';
-import { applyDatabaseBudgetSuggestion, createDatabasePlanItem, deleteDatabasePlanItem, ensureActiveBudgetPlan, getDatabasePlanView, setBudgetPeriodStartDay, setDatabasePlanItemPaid, updateDatabasePlanItem } from '@/services/plan-service';
+import {
+  getDatabaseTransactionCategories,
+  saveDatabaseTransaction,
+} from '@/services/transaction-service';
+import {
+  applyDatabaseBudgetSuggestion,
+  createDatabasePlanItem,
+  deleteDatabasePlanItem,
+  ensureActiveBudgetPlan,
+  getDatabasePlanView,
+  setBudgetPeriodStartDay,
+  setDatabasePlanItemPaid,
+  updateDatabasePlanItem,
+} from '@/services/plan-service';
 
 type TempSQLite = {
   exec(source: string): void;
-  prepare(source: string): { get(...params: unknown[]): Record<string, unknown> | undefined; all(...params: unknown[]): Record<string, unknown>[]; run(...params: unknown[]): { changes: number; lastInsertRowid: number } };
+  prepare(source: string): {
+    get(...params: unknown[]): Record<string, unknown> | undefined;
+    all(...params: unknown[]): Record<string, unknown>[];
+    run(...params: unknown[]): { changes: number; lastInsertRowid: number };
+  };
   close(): void;
 };
 
 function createDatabase() {
-  const { DatabaseSync } = require('node:sqlite') as { DatabaseSync: new (path: string) => TempSQLite };
+  const { DatabaseSync } = require('node:sqlite') as {
+    DatabaseSync: new (path: string) => TempSQLite;
+  };
   const sqlite = new DatabaseSync(':memory:');
   const database = {
     execAsync: async (source: string) => sqlite.exec(source),
-    getFirstAsync: async <T>(source: string, ...params: unknown[]) => sqlite.prepare(source).get(...params) as T | undefined,
-    getAllAsync: async <T>(source: string, ...params: unknown[]) => sqlite.prepare(source).all(...params) as T[],
+    getFirstAsync: async <T>(source: string, ...params: unknown[]) =>
+      sqlite.prepare(source).get(...params) as T | undefined,
+    getAllAsync: async <T>(source: string, ...params: unknown[]) =>
+      sqlite.prepare(source).all(...params) as T[],
     runAsync: async (source: string, ...params: unknown[]) => {
       const result = sqlite.prepare(source).run(...params);
       return { changes: result.changes, lastInsertRowId: result.lastInsertRowid };
     },
-    withExclusiveTransactionAsync: async (task: (transaction: SQLiteDatabase) => Promise<void>) => task(database as unknown as SQLiteDatabase),
+    withExclusiveTransactionAsync: async (task: (transaction: SQLiteDatabase) => Promise<void>) =>
+      task(database as unknown as SQLiteDatabase),
   } as unknown as SQLiteDatabase;
   return { database, sqlite };
 }
@@ -57,7 +78,11 @@ describe('database plan service', () => {
     expect(rolled.period?.start_date).toBe('2026-09-05');
     expect(rolled.period?.end_date).toBe('2026-10-04');
     expect(rolled.planId).not.toBe(first.planId);
-    expect(await database.getFirstAsync<{ count: number }>('SELECT COUNT(*) AS count FROM budget_plans;')).toEqual({ count: 2 });
+    expect(
+      await database.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) AS count FROM budget_plans;',
+      ),
+    ).toEqual({ count: 2 });
   });
 
   it('persists the selected start day and reuses the matching historical period', async () => {
@@ -84,13 +109,56 @@ describe('database plan service', () => {
     const planId = active.planId;
     const goalWalletNumber = Number(goalWallet.id.replace('wallet-', ''));
 
-    await database.runAsync('INSERT INTO income_items (budget_plan_id, name, category_id, target_amount) VALUES (?, ?, ?, ?);', planId, 'Gaji', incomeId, 1000);
-    await database.runAsync('INSERT INTO fixed_expense_items (budget_plan_id, name, category_id, target_amount) VALUES (?, ?, ?, ?);', planId, 'Makan tetap', expenseId, 200);
-    await database.runAsync('INSERT INTO allocation_items (budget_plan_id, name, category_id, target_amount) VALUES (?, ?, ?, ?);', planId, 'Makan fleksibel', expenseId, 300);
-    await database.runAsync('INSERT INTO goals (name, target_amount, target_date, wallet_id, monthly_contribution, archived) VALUES (?, ?, ?, ?, ?, 0);', 'Dana Nikah', 500, null, goalWalletNumber, 150);
+    await database.runAsync(
+      'INSERT INTO income_items (budget_plan_id, name, category_id, target_amount) VALUES (?, ?, ?, ?);',
+      planId,
+      'Gaji',
+      incomeId,
+      1000,
+    );
+    await database.runAsync(
+      'INSERT INTO fixed_expense_items (budget_plan_id, name, category_id, target_amount) VALUES (?, ?, ?, ?);',
+      planId,
+      'Makan tetap',
+      expenseId,
+      200,
+    );
+    await database.runAsync(
+      'INSERT INTO allocation_items (budget_plan_id, name, category_id, target_amount) VALUES (?, ?, ?, ?);',
+      planId,
+      'Makan fleksibel',
+      expenseId,
+      300,
+    );
+    await database.runAsync(
+      'INSERT INTO goals (name, target_amount, target_date, wallet_id, monthly_contribution, archived) VALUES (?, ?, ?, ?, ?, 0);',
+      'Dana Nikah',
+      500,
+      null,
+      goalWalletNumber,
+      150,
+    );
 
-    await saveDatabaseTransaction(database, { type: 'income', walletId: wallet.id, toWalletId: null, categoryId: incomeCategory, amount: 1000, date: '2026-09-02', time: '08:00', note: 'Gaji' });
-    await saveDatabaseTransaction(database, { type: 'expense', walletId: wallet.id, toWalletId: null, categoryId: expenseCategory, amount: 350, date: '2026-09-02', time: '09:00', note: 'Makan' });
+    await saveDatabaseTransaction(database, {
+      type: 'income',
+      walletId: wallet.id,
+      toWalletId: null,
+      categoryId: incomeCategory,
+      amount: 1000,
+      date: '2026-09-02',
+      time: '08:00',
+      note: 'Gaji',
+    });
+    await saveDatabaseTransaction(database, {
+      type: 'expense',
+      walletId: wallet.id,
+      toWalletId: null,
+      categoryId: expenseCategory,
+      amount: 350,
+      date: '2026-09-02',
+      time: '09:00',
+      note: 'Makan',
+    });
 
     const view = await getDatabasePlanView(database, '2026-09-10');
     const expense = view.plan.expenseItems.find((item) => item.categoryId === expenseCategory)!;
@@ -113,12 +181,17 @@ describe('database plan service', () => {
 
     const view = await getDatabasePlanView(database, '2026-09-10');
 
-    expect(view.plan.incomeItems).toEqual(expect.arrayContaining([
-      expect.objectContaining({ name: 'Saldo Awal', categoryId: expect.stringMatching(/^category-/) }),
-    ]));
-    expect(view.snapshot.planItems).toEqual(expect.arrayContaining([
-      expect.objectContaining({ realizedAmount: 1000 }),
-    ]));
+    expect(view.plan.incomeItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Saldo Awal',
+          categoryId: expect.stringMatching(/^category-/),
+        }),
+      ]),
+    );
+    expect(view.snapshot.planItems).toEqual(
+      expect.arrayContaining([expect.objectContaining({ realizedAmount: 1000 })]),
+    );
     expect(wallet.balance).toBe(1000);
   });
 
@@ -128,58 +201,114 @@ describe('database plan service', () => {
 
     const view = await getDatabasePlanView(database, '2026-09-10');
 
-    expect(view.plan.incomeItems).toEqual(expect.arrayContaining([
-      expect.objectContaining({ name: 'Saldo Awal' }),
-    ]));
-    expect(view.plan.expenseItems).toEqual(expect.arrayContaining([
-      expect.objectContaining({ name: 'Penyesuaian Saldo' }),
-    ]));
-    expect(view.snapshot.planItems).toEqual(expect.arrayContaining([
-      expect.objectContaining({ realizedAmount: 1000, progressPercent: 0 }),
-      expect.objectContaining({ realizedAmount: 500, progressPercent: 100 }),
-    ]));
+    expect(view.plan.incomeItems).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'Saldo Awal' })]),
+    );
+    expect(view.plan.expenseItems).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'Penyesuaian Saldo' })]),
+    );
+    expect(view.snapshot.planItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ realizedAmount: 1000, progressPercent: 0 }),
+        expect.objectContaining({ realizedAmount: 500, progressPercent: 100 }),
+      ]),
+    );
   });
 
   it('uses category as the unique identity of a plan item', async () => {
     await ensureActiveBudgetPlan(database, '2026-09-10');
-    const expense = (await getDatabaseTransactionCategories(database)).find((item) => item.name === 'Makan')!;
+    const expense = (await getDatabaseTransactionCategories(database)).find(
+      (item) => item.name === 'Makan',
+    )!;
 
-    await createDatabasePlanItem(database, { type: 'expense', categoryId: expense.id, targetAmount: 300 });
+    await createDatabasePlanItem(database, {
+      type: 'expense',
+      categoryId: expense.id,
+      targetAmount: 300,
+    });
     const item = (await getDatabasePlanView(database, '2026-09-10')).plan.expenseItems[0];
 
     expect(item).toMatchObject({ name: 'Makan', categoryId: expense.id, targetAmount: 300 });
-    await expect(createDatabasePlanItem(database, { type: 'expense', categoryId: expense.id, targetAmount: 500 })).rejects.toThrow(/sudah ada/);
+    await expect(
+      createDatabasePlanItem(database, {
+        type: 'expense',
+        categoryId: expense.id,
+        targetAmount: 500,
+      }),
+    ).rejects.toThrow(/sudah ada/);
   });
 
   it('starts an unplanned expense at 100 percent and recalculates after its target is raised', async () => {
     const wallet = await createWallet(database, 'BCA', 0);
-    const transport = (await getDatabaseTransactionCategories(database)).find((item) => item.name === 'Transport')!;
-    await saveDatabaseTransaction(database, { type: 'expense', walletId: wallet.id, toWalletId: null, categoryId: transport.id, amount: 20, date: '2026-09-03', time: '10:00', note: 'Ojek' });
+    const transport = (await getDatabaseTransactionCategories(database)).find(
+      (item) => item.name === 'Transport',
+    )!;
+    await saveDatabaseTransaction(database, {
+      type: 'expense',
+      walletId: wallet.id,
+      toWalletId: null,
+      categoryId: transport.id,
+      amount: 20,
+      date: '2026-09-03',
+      time: '10:00',
+      note: 'Ojek',
+    });
 
     let view = await getDatabasePlanView(database, '2026-09-10');
     const automatic = view.plan.expenseItems.find((item) => item.categoryId === transport.id)!;
     expect(automatic).toMatchObject({ isAutomatic: true, targetAmount: 20 });
-    expect(view.snapshot.planItems.find((state) => state.itemId === automatic.id)?.progressPercent).toBe(100);
+    expect(
+      view.snapshot.planItems.find((state) => state.itemId === automatic.id)?.progressPercent,
+    ).toBe(100);
 
-    await createDatabasePlanItem(database, { type: 'expense', categoryId: transport.id, targetAmount: 400 });
+    await createDatabasePlanItem(database, {
+      type: 'expense',
+      categoryId: transport.id,
+      targetAmount: 400,
+    });
     view = await getDatabasePlanView(database, '2026-09-10');
     const planned = view.plan.expenseItems.find((item) => item.categoryId === transport.id)!;
-    expect(view.snapshot.planItems.find((state) => state.itemId === planned.id)?.progressPercent).toBe(5);
+    expect(
+      view.snapshot.planItems.find((state) => state.itemId === planned.id)?.progressPercent,
+    ).toBe(5);
 
-    await saveDatabaseTransaction(database, { type: 'expense', walletId: wallet.id, toWalletId: null, categoryId: transport.id, amount: 20, date: '2026-09-04', time: '10:00', note: 'Ojek' });
+    await saveDatabaseTransaction(database, {
+      type: 'expense',
+      walletId: wallet.id,
+      toWalletId: null,
+      categoryId: transport.id,
+      amount: 20,
+      date: '2026-09-04',
+      time: '10:00',
+      note: 'Ojek',
+    });
     view = await getDatabasePlanView(database, '2026-09-10');
-    expect(view.snapshot.planItems.find((state) => state.itemId === planned.id)?.progressPercent).toBe(10);
+    expect(
+      view.snapshot.planItems.find((state) => state.itemId === planned.id)?.progressPercent,
+    ).toBe(10);
   });
 
   it('creates one expense transaction when the payment toggle is enabled', async () => {
     const wallet = await createWallet(database, 'BCA', 1000);
-    const category = (await getDatabaseTransactionCategories(database)).find((item) => item.name === 'Internet')!;
-    await createDatabasePlanItem(database, { type: 'expense', categoryId: category.id, targetAmount: 200 });
-    const item = (await getDatabasePlanView(database, '2026-09-10')).plan.expenseItems.find((candidate) => candidate.categoryId === category.id)!;
+    const category = (await getDatabaseTransactionCategories(database)).find(
+      (item) => item.name === 'Internet',
+    )!;
+    await createDatabasePlanItem(database, {
+      type: 'expense',
+      categoryId: category.id,
+      targetAmount: 200,
+    });
+    const item = (await getDatabasePlanView(database, '2026-09-10')).plan.expenseItems.find(
+      (candidate) => candidate.categoryId === category.id,
+    )!;
 
     await setDatabasePlanItemPaid(database, item, true, wallet.id, '2026-09-03');
     await setDatabasePlanItemPaid(database, item, true, wallet.id, '2026-09-03');
-    const transactions = await database.getAllAsync<{ amount: number; note: string }>(`SELECT amount, note FROM transactions WHERE category_id = ? AND note = ?;`, Number(category.id.replace('category-', '')), `Pembayaran Plan: ${item.name}`);
+    const transactions = await database.getAllAsync<{ amount: number; note: string }>(
+      `SELECT amount, note FROM transactions WHERE category_id = ? AND note = ?;`,
+      Number(category.id.replace('category-', '')),
+      `Pembayaran Plan: ${item.name}`,
+    );
 
     expect(transactions).toEqual([{ amount: 200, note: 'Pembayaran Plan: Internet' }]);
   });
@@ -188,8 +317,26 @@ describe('database plan service', () => {
     const active = await ensureActiveBudgetPlan(database, '2026-09-10');
     const wallet = await createWallet(database, 'BCA', 0);
     const secondWallet = await createWallet(database, 'Tunai', 0);
-    await saveDatabaseTransaction(database, { type: 'transfer', walletId: wallet.id, toWalletId: secondWallet.id, categoryId: null, amount: 100, date: '2026-09-02', time: '10:00', note: 'Pindah' });
-    await saveDatabaseTransaction(database, { type: 'income', walletId: wallet.id, toWalletId: null, categoryId: 'category-1', amount: 500, date: '2026-09-02', time: '11:00', note: 'Gaji' });
+    await saveDatabaseTransaction(database, {
+      type: 'transfer',
+      walletId: wallet.id,
+      toWalletId: secondWallet.id,
+      categoryId: null,
+      amount: 100,
+      date: '2026-09-02',
+      time: '10:00',
+      note: 'Pindah',
+    });
+    await saveDatabaseTransaction(database, {
+      type: 'income',
+      walletId: wallet.id,
+      toWalletId: null,
+      categoryId: 'category-1',
+      amount: 500,
+      date: '2026-09-02',
+      time: '11:00',
+      note: 'Gaji',
+    });
 
     const view = await getDatabasePlanView(database, '2026-09-10');
     expect(view.snapshot.totalTransferIn).toBe(100);
@@ -203,12 +350,22 @@ describe('database plan service', () => {
     const active = await ensureActiveBudgetPlan(database, '2026-09-10');
     const categories = await getDatabaseTransactionCategories(database);
     const expense = categories.find((item) => item.name === 'Makan')!;
-    await createDatabasePlanItem(database, { type: 'allocation', name: 'Makan fleksibel', categoryId: expense.id, targetAmount: 300 });
+    await createDatabasePlanItem(database, {
+      type: 'allocation',
+      name: 'Makan fleksibel',
+      categoryId: expense.id,
+      targetAmount: 300,
+    });
     let view = await getDatabasePlanView(database, '2026-09-10');
     const item = view.plan.allocationItems[0];
     expect(item).toMatchObject({ name: 'Makan', targetAmount: 300, categoryId: expense.id });
 
-    await updateDatabasePlanItem(database, item, { type: 'allocation', name: 'Makan harian', categoryId: expense.id, targetAmount: 500 });
+    await updateDatabasePlanItem(database, item, {
+      type: 'allocation',
+      name: 'Makan harian',
+      categoryId: expense.id,
+      targetAmount: 500,
+    });
     view = await getDatabasePlanView(database, '2026-09-10');
     expect(view.plan.allocationItems[0]).toMatchObject({ name: 'Makan', targetAmount: 500 });
     expect(active.planId).toBe(Number(view.plan.id.replace('plan-', '')));
@@ -216,32 +373,55 @@ describe('database plan service', () => {
 
   it('deletes an existing plan item through the public service seam', async () => {
     await ensureActiveBudgetPlan(database, '2026-09-10');
-    const expense = (await getDatabaseTransactionCategories(database)).find((item) => item.name === 'Makan')!;
-    await createDatabasePlanItem(database, { type: 'allocation', name: 'Makan fleksibel', categoryId: expense.id, targetAmount: 300 });
+    const expense = (await getDatabaseTransactionCategories(database)).find(
+      (item) => item.name === 'Makan',
+    )!;
+    await createDatabasePlanItem(database, {
+      type: 'allocation',
+      name: 'Makan fleksibel',
+      categoryId: expense.id,
+      targetAmount: 300,
+    });
     const item = (await getDatabasePlanView(database, '2026-09-10')).plan.allocationItems[0];
 
     await deleteDatabasePlanItem(database, item);
 
-    expect((await getDatabasePlanView(database, '2026-09-10')).plan.allocationItems).toHaveLength(0);
+    expect((await getDatabasePlanView(database, '2026-09-10')).plan.allocationItems).toHaveLength(
+      0,
+    );
   });
 
   it('applies an add_goal suggestion by creating a Wallet Goal when needed', async () => {
     const view = await getDatabasePlanView(database, '2026-09-10');
     const categories = await getDatabaseTransactionCategories(database);
 
-    await applyDatabaseBudgetSuggestion(database, {
-      action: 'add_goal',
-      title: 'Dana Darurat',
-      description: 'Bangun dana darurat.',
-      targetAmount: 12000000,
-      walletName: 'Tabungan Darurat',
-      monthlyContribution: 1000000,
-      amount: null,
-      categoryName: null,
-    }, { ...view, categories });
+    await applyDatabaseBudgetSuggestion(
+      database,
+      {
+        action: 'add_goal',
+        title: 'Dana Darurat',
+        description: 'Bangun dana darurat.',
+        targetAmount: 12000000,
+        walletName: 'Tabungan Darurat',
+        monthlyContribution: 1000000,
+        amount: null,
+        categoryName: null,
+      },
+      { ...view, categories },
+    );
 
     const nextView = await getDatabasePlanView(database, '2026-09-10');
-    expect(nextView.goals).toEqual([expect.objectContaining({ name: 'Dana Darurat', targetAmount: 12000000, monthlyContribution: 1000000 })]);
-    expect(nextView.wallets).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Tabungan Darurat', isSavings: true })]));
+    expect(nextView.goals).toEqual([
+      expect.objectContaining({
+        name: 'Dana Darurat',
+        targetAmount: 12000000,
+        monthlyContribution: 1000000,
+      }),
+    ]);
+    expect(nextView.wallets).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'Tabungan Darurat', isSavings: true }),
+      ]),
+    );
   });
 });

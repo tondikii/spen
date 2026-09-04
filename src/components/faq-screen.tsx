@@ -28,21 +28,26 @@ export default function FaqScreen({ onBack }: FaqScreenProps) {
   return (
     <ThemedView style={styles.page}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <Pressable
             accessibilityLabel="Kembali"
             accessibilityRole="button"
             hitSlop={8}
             onPress={onBack}
-            style={({ pressed }) => [styles.back, pressed && styles.pressed]}>
-            <ThemedText style={styles.backIcon} themeColor="pine">‹</ThemedText>
-            <ThemedText type="smallBold" themeColor="pine">Kembali</ThemedText>
+            style={({ pressed }) => [styles.back, pressed && styles.pressed]}
+          >
+            <ThemedText style={styles.backIcon} themeColor="pine">
+              ‹
+            </ThemedText>
+            <ThemedText type="smallBold" themeColor="pine">
+              Kembali
+            </ThemedText>
           </Pressable>
 
           <View style={styles.header}>
-            <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>BANTUAN</ThemedText>
+            <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
+              BANTUAN
+            </ThemedText>
             <ThemedText type="title">FAQ</ThemedText>
             <ThemedText type="small" themeColor="muted" style={styles.subtitle}>
               Jawaban singkat tentang cara kerja Spen.
@@ -55,18 +60,28 @@ export default function FaqScreen({ onBack }: FaqScreenProps) {
               return (
                 <ThemedView
                   key={entry.question}
-                  style={[styles.item, { backgroundColor: theme.card, borderColor: theme.line }]}>
+                  style={[styles.item, { backgroundColor: theme.card, borderColor: theme.line }]}
+                >
                   <Pressable
                     accessibilityLabel={entry.question}
                     accessibilityRole="button"
                     accessibilityState={{ expanded }}
                     onPress={() => toggleQuestion(entry.question)}
-                    style={({ pressed }) => [styles.question, pressed && styles.pressed]}>
-                    <ThemedText type="smallBold" style={styles.questionText}>{entry.question}</ThemedText>
-                    <ThemedText style={[styles.chevron, { color: theme.pine }]}>{expanded ? '⌃' : '⌄'}</ThemedText>
+                    style={({ pressed }) => [styles.question, pressed && styles.pressed]}
+                  >
+                    <ThemedText type="smallBold" style={styles.questionText}>
+                      {entry.question}
+                    </ThemedText>
+                    <ThemedText style={[styles.chevron, { color: theme.pine }]}>
+                      {expanded ? '⌃' : '⌄'}
+                    </ThemedText>
                   </Pressable>
                   {expanded && (
-                    <ThemedText type="small" themeColor="muted" style={[styles.answer, { borderTopColor: theme.line }]}>
+                    <ThemedText
+                      type="small"
+                      themeColor="muted"
+                      style={[styles.answer, { borderTopColor: theme.line }]}
+                    >
                       {entry.answer}
                     </ThemedText>
                   )}
@@ -91,16 +106,34 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.two,
     width: '100%',
   },
-  back: { alignItems: 'center', alignSelf: 'flex-start', flexDirection: 'row', gap: Spacing.one, minHeight: 32 },
+  back: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    gap: Spacing.one,
+    minHeight: 32,
+  },
   backIcon: { fontFamily: Fonts.sans, fontSize: 28, lineHeight: 28 },
   header: { marginBottom: Spacing.four, marginTop: Spacing.four },
   eyebrow: { ...Typography.eyebrow, marginBottom: Spacing.one },
   subtitle: { marginTop: Spacing.one },
   list: { gap: Spacing.two },
   item: { borderRadius: Radius.medium, borderWidth: 1, overflow: 'hidden' },
-  question: { alignItems: 'center', flexDirection: 'row', gap: Spacing.two, minHeight: 58, paddingHorizontal: Spacing.three, paddingVertical: Spacing.two },
+  question: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.two,
+    minHeight: 58,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+  },
   questionText: { flex: 1 },
   chevron: { fontFamily: Fonts.sans, fontSize: 22, lineHeight: 22 },
-  answer: { borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: Spacing.three, paddingBottom: Spacing.three, paddingTop: Spacing.two },
+  answer: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: Spacing.three,
+    paddingBottom: Spacing.three,
+    paddingTop: Spacing.two,
+  },
   pressed: { opacity: 0.7 },
 });

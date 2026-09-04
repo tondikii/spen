@@ -35,7 +35,9 @@ export async function seedDefaultCategories(database: SQLiteDatabase) {
       }
     }
 
-    const setting = await transaction.getFirstAsync<{ id: number }>('SELECT id FROM settings WHERE id = 1 LIMIT 1;');
+    const setting = await transaction.getFirstAsync<{ id: number }>(
+      'SELECT id FROM settings WHERE id = 1 LIMIT 1;',
+    );
     if (!setting) {
       await transaction.runAsync(
         `INSERT INTO settings (id, currency, theme_mode, budget_start_day) VALUES (1, 'IDR', 'light', 1);`,
@@ -43,7 +45,9 @@ export async function seedDefaultCategories(database: SQLiteDatabase) {
     }
   };
   if (typeof database.withExclusiveTransactionAsync === 'function') {
-    await database.withExclusiveTransactionAsync(async (transaction) => seed(transaction as unknown as SQLiteDatabase));
+    await database.withExclusiveTransactionAsync(async (transaction) =>
+      seed(transaction as unknown as SQLiteDatabase),
+    );
   } else {
     // Adapter minimal pada test/legacy runtime belum selalu punya API eksklusif.
     await seed(database);

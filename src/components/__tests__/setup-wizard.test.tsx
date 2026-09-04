@@ -5,7 +5,9 @@ import { SetupWizard } from '@/components/setup-wizard';
 describe('SetupWizard', () => {
   it('menampilkan tiga langkah tanpa periode atau tipe wallet', async () => {
     const onComplete = jest.fn();
-    const { getByLabelText, getByText, queryByText } = await render(<SetupWizard onComplete={onComplete} />);
+    const { getByLabelText, getByText, queryByText } = await render(
+      <SetupWizard onComplete={onComplete} />,
+    );
 
     expect(getByText('Buat rencana untuk uangmu.')).toBeTruthy();
     await fireEvent.press(getByLabelText('Mulai'));
@@ -28,7 +30,7 @@ describe('SetupWizard', () => {
     await fireEvent.press(getByLabelText('Masuk ke Spen'));
 
     await waitFor(() =>
-      expect(onComplete).toHaveBeenCalledWith([{name: 'BCA', initialBalance: 2000000}], 'USD'),
+      expect(onComplete).toHaveBeenCalledWith([{ name: 'BCA', initialBalance: 2000000 }], 'USD'),
     );
   });
 
@@ -48,8 +50,8 @@ describe('SetupWizard', () => {
     await waitFor(() =>
       expect(onComplete).toHaveBeenCalledWith(
         [
-          {name: 'BCA', initialBalance: 2000000},
-          {name: 'Tunai', initialBalance: 500000},
+          { name: 'BCA', initialBalance: 2000000 },
+          { name: 'Tunai', initialBalance: 500000 },
         ],
         'IDR',
       ),

@@ -22,20 +22,37 @@ type FinanceHeroCardProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-export function FinanceHeroCard({ label, amount, marker, amountColor, footer, style }: FinanceHeroCardProps) {
+export function FinanceHeroCard({
+  label,
+  amount,
+  marker,
+  amountColor,
+  footer,
+  style,
+}: FinanceHeroCardProps) {
   const theme = useTheme();
 
   return (
     <ThemedView style={[styles.card, { backgroundColor: theme.pine2 }, style]}>
       <ThemedText style={[styles.label, { color: theme.heroMuted }]}>
-        {label}{marker && <ThemedText style={{ color: theme.heroMuted }}> {marker}</ThemedText>}
+        {label}
+        {marker && <ThemedText style={{ color: theme.heroMuted }}> {marker}</ThemedText>}
       </ThemedText>
-      <ThemedText style={[styles.amount, { color: amountColor ?? theme.heroText }]}>{formatMoney(amount)}</ThemedText>
+      <ThemedText style={[styles.amount, { color: amountColor ?? theme.heroText }]}>
+        {formatMoney(amount)}
+      </ThemedText>
       <View style={[styles.footer, { borderTopColor: theme.heroDivider }]}>
         {footer.map((item, index) => (
-          <View key={item.label} style={[styles.footerItem, index === footer.length - 1 && styles.footerItemRight]}>
-            <ThemedText style={[styles.footerLabel, { color: theme.heroMuted }]}>{item.label}</ThemedText>
-            <ThemedText style={[styles.footerValue, { color: item.valueColor ?? theme.heroText }]}>{item.value}</ThemedText>
+          <View
+            key={item.label}
+            style={[styles.footerItem, index === footer.length - 1 && styles.footerItemRight]}
+          >
+            <ThemedText style={[styles.footerLabel, { color: theme.heroMuted }]}>
+              {item.label}
+            </ThemedText>
+            <ThemedText style={[styles.footerValue, { color: item.valueColor ?? theme.heroText }]}>
+              {item.value}
+            </ThemedText>
           </View>
         ))}
       </View>
@@ -47,7 +64,12 @@ const styles = StyleSheet.create({
   card: { borderRadius: Radius.hero, padding: Layout.pagePadding, ...Shadows.hero },
   label: { fontFamily: Fonts.sans, fontSize: 12, lineHeight: 18 },
   amount: { ...Typography.moneyHero, marginVertical: Spacing.two },
-  footer: { borderTopWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingTop: Spacing.two },
+  footer: {
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: Spacing.two,
+  },
   footerItem: { flex: 1 },
   footerItemRight: { alignItems: 'flex-end' },
   footerLabel: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },

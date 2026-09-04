@@ -13,7 +13,8 @@ async function retryDatabase(action: () => Promise<void>, attempts = 3) {
       return;
     } catch (error) {
       lastError = error;
-      if (attempt < attempts - 1) await new Promise((resolve) => setTimeout(resolve, 60 * 2 ** attempt));
+      if (attempt < attempts - 1)
+        await new Promise((resolve) => setTimeout(resolve, 60 * 2 ** attempt));
     }
   }
   throw lastError;

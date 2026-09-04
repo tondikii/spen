@@ -40,7 +40,8 @@ export default function AppTabs() {
         ],
         tabBarLabelStyle: styles.label,
         tabBarItemStyle: styles.tabItem,
-      }}>
+      }}
+    >
       {tabs.slice(0, 2).map((tab) => (
         <Tabs.Screen
           key={tab.name}
@@ -61,7 +62,12 @@ export default function AppTabs() {
               accessibilityLabel="Tambah transaksi"
               accessibilityRole="button"
               onPress={() => router.push({ pathname: '/create' } as never)}
-              style={({ pressed }) => [styles.addButton, { backgroundColor: theme.pine, borderColor: theme.background }, pressed && styles.pressed]}>
+              style={({ pressed }) => [
+                styles.addButton,
+                { backgroundColor: theme.pine, borderColor: theme.background },
+                pressed && styles.pressed,
+              ]}
+            >
               <Text style={styles.addIcon}>＋</Text>
             </Pressable>
           ),

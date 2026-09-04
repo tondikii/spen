@@ -7,17 +7,30 @@ import { seedDefaultCategories } from '../seed';
 describe('database foundation', () => {
   // Node 24's built-in SQLite gives Jest a real temporary database without
   // depending on a native Expo module that is unavailable in the test runner.
-  let sqlite: { exec(source: string): void; prepare(source: string): { get(...params: unknown[]): Record<string, unknown> | undefined; all(...params: unknown[]): Record<string, unknown>[]; run(...params: unknown[]): unknown }; close(): void };
+  let sqlite: {
+    exec(source: string): void;
+    prepare(source: string): {
+      get(...params: unknown[]): Record<string, unknown> | undefined;
+      all(...params: unknown[]): Record<string, unknown>[];
+      run(...params: unknown[]): unknown;
+    };
+    close(): void;
+  };
   let database: SQLiteDatabase;
 
   beforeEach(async () => {
-    const { DatabaseSync } = require('node:sqlite') as { DatabaseSync: new (path: string) => typeof sqlite };
+    const { DatabaseSync } = require('node:sqlite') as {
+      DatabaseSync: new (path: string) => typeof sqlite;
+    };
     sqlite = new DatabaseSync(':memory:');
     database = {
       execAsync: async (source: string) => sqlite.exec(source),
-      getFirstAsync: async <T>(source: string, ...params: unknown[]) => sqlite.prepare(source).get(...params) as T | undefined,
-      getAllAsync: async <T>(source: string, ...params: unknown[]) => sqlite.prepare(source).all(...params) as T[],
-      runAsync: async (source: string, ...params: unknown[]) => sqlite.prepare(source).run(...params),
+      getFirstAsync: async <T>(source: string, ...params: unknown[]) =>
+        sqlite.prepare(source).get(...params) as T | undefined,
+      getAllAsync: async <T>(source: string, ...params: unknown[]) =>
+        sqlite.prepare(source).all(...params) as T[],
+      runAsync: async (source: string, ...params: unknown[]) =>
+        sqlite.prepare(source).run(...params),
     } as unknown as SQLiteDatabase;
     await configureDatabase(database);
     for (const migration of Object.values(migrations.migrations)) {

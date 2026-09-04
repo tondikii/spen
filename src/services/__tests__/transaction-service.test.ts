@@ -1,5 +1,10 @@
 import mockData from '@/data/mock-data';
-import { archiveMockCategory, getAllocationLimit, getMockTransactions, saveMockTransaction } from '@/services/transaction-service';
+import {
+  archiveMockCategory,
+  getAllocationLimit,
+  getMockTransactions,
+  saveMockTransaction,
+} from '@/services/transaction-service';
 
 describe('transaction service', () => {
   it('mengambil limit alokasi dari kategori yang dipilih', () => {

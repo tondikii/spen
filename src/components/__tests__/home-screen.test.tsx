@@ -75,10 +75,7 @@ describe('HomeScreen', () => {
     };
     const onWalletRestore = jest.fn();
     const { getByLabelText, getByText, queryByLabelText } = await render(
-      <HomeScreen
-        archivedWallets={[archivedWallet]}
-        onWalletRestore={onWalletRestore}
-      />,
+      <HomeScreen archivedWallets={[archivedWallet]} onWalletRestore={onWalletRestore} />,
     );
 
     expect(getByText('Wallet diarsipkan')).toBeTruthy();

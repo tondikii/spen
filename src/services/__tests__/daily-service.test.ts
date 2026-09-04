@@ -1,4 +1,9 @@
-import { getDailyLabel, getDailyTotals, getDailyTransactions, shiftDate } from '@/services/daily-service';
+import {
+  getDailyLabel,
+  getDailyTotals,
+  getDailyTransactions,
+  shiftDate,
+} from '@/services/daily-service';
 import mockData from '@/data/mock-data';
 
 describe('daily service', () => {

@@ -1,4 +1,11 @@
-import { createContext, type PropsWithChildren, useCallback, useContext, useMemo, useState } from 'react';
+import {
+  createContext,
+  type PropsWithChildren,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
 import { StatusBar } from 'expo-status-bar';
 
 import { Colors, type ColorScheme, type Theme } from '@/constants/theme';
@@ -13,22 +20,34 @@ type ThemeContextValue = {
 
 export const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-export function AppThemeProvider({ children, initialMode = 'light', onModeChange }: PropsWithChildren<{ initialMode?: ThemeMode; onModeChange?: (mode: ThemeMode) => void | Promise<void> }>) {
+export function AppThemeProvider({
+  children,
+  initialMode = 'light',
+  onModeChange,
+}: PropsWithChildren<{
+  initialMode?: ThemeMode;
+  onModeChange?: (mode: ThemeMode) => void | Promise<void>;
+}>) {
   const [mode, setModeState] = useState<ThemeMode>(initialMode);
-  const setMode = useCallback((nextMode: ThemeMode) => {
-    setModeState(nextMode);
-    void onModeChange?.(nextMode);
-  }, [onModeChange]);
+  const setMode = useCallback(
+    (nextMode: ThemeMode) => {
+      setModeState(nextMode);
+      void onModeChange?.(nextMode);
+    },
+    [onModeChange],
+  );
   const colorScheme: ColorScheme = mode === 'dark' ? 'dark' : 'light';
   const value = useMemo(
     () => ({ theme: Colors[colorScheme], mode, colorScheme, setMode }),
     [colorScheme, mode, setMode],
   );
 
-  return <ThemeContext.Provider value={value}>
-    <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-    {children}
-  </ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      {children}
+    </ThemeContext.Provider>
+  );
 }
 
 export function useAppTheme() {

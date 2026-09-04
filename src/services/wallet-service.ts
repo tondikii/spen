@@ -56,9 +56,14 @@ const walletBalanceSql = `
   LEFT JOIN transactions t ON t.wallet_id = w.id OR t.to_wallet_id = w.id
 `;
 
-async function withExclusiveWrite<T>(database: SQLiteDatabase, action: (connection: SQLiteDatabase) => Promise<T>) {
+async function withExclusiveWrite<T>(
+  database: SQLiteDatabase,
+  action: (connection: SQLiteDatabase) => Promise<T>,
+) {
   const connection = database as SQLiteDatabase & {
-    withExclusiveTransactionAsync?: (task: (transaction: SQLiteDatabase) => Promise<void>) => Promise<void>;
+    withExclusiveTransactionAsync?: (
+      task: (transaction: SQLiteDatabase) => Promise<void>,
+    ) => Promise<void>;
   };
   let result: T;
   if (connection.withExclusiveTransactionAsync) {
@@ -80,14 +85,20 @@ async function getInternalCategoryId(database: SQLiteDatabase, categoryName: str
   return category.id;
 }
 
-export async function getWallets(database: SQLiteDatabase, includeArchived = false): Promise<Wallet[]> {
+export async function getWallets(
+  database: SQLiteDatabase,
+  includeArchived = false,
+): Promise<Wallet[]> {
   const rows = await database.getAllAsync<WalletRow>(
     `${walletBalanceSql} ${includeArchived ? '' : 'WHERE w.archived = 0'} GROUP BY w.id ORDER BY w.id;`,
   );
   return rows.map(toWallet);
 }
 
-export async function getWallet(database: SQLiteDatabase, walletId: string | number): Promise<Wallet | null> {
+export async function getWallet(
+  database: SQLiteDatabase,
+  walletId: string | number,
+): Promise<Wallet | null> {
   const id = databaseId(walletId);
   const row = await database.getFirstAsync<WalletRow>(
     `${walletBalanceSql} WHERE w.id = ? GROUP BY w.id LIMIT 1;`,
@@ -96,7 +107,11 @@ export async function getWallet(database: SQLiteDatabase, walletId: string | num
   return row ? toWallet(row) : null;
 }
 
-export async function createWallet(database: SQLiteDatabase, name: string, initialBalance: number): Promise<Wallet> {
+export async function createWallet(
+  database: SQLiteDatabase,
+  name: string,
+  initialBalance: number,
+): Promise<Wallet> {
   const cleanName = name.trim();
   if (!cleanName) throw new Error('Nama Wallet wajib diisi');
   if (!Number.isSafeInteger(initialBalance)) throw new Error('Saldo awal harus berupa angka bulat');
@@ -143,10 +158,14 @@ export async function updateWallet(
     await connection.runAsync('UPDATE wallets SET name = ? WHERE id = ?;', cleanName, id);
 
     if (targetBalance !== undefined) {
-      if (!Number.isSafeInteger(targetBalance)) throw new Error('Saldo Wallet harus berupa angka bulat');
+      if (!Number.isSafeInteger(targetBalance))
+        throw new Error('Saldo Wallet harus berupa angka bulat');
       const delta = targetBalance - current.balance;
       if (delta !== 0) {
-        const categoryId = await getInternalCategoryId(connection, BALANCE_ADJUSTMENT_CATEGORY_NAME);
+        const categoryId = await getInternalCategoryId(
+          connection,
+          BALANCE_ADJUSTMENT_CATEGORY_NAME,
+        );
         const now = new Date();
         await connection.runAsync(
           `INSERT INTO transactions (type, wallet_id, category_id, amount, date, time, note, is_initial)
@@ -168,7 +187,10 @@ export async function updateWallet(
   return wallet;
 }
 
-export async function archiveWallet(database: SQLiteDatabase, walletId: string | number): Promise<void> {
+export async function archiveWallet(
+  database: SQLiteDatabase,
+  walletId: string | number,
+): Promise<void> {
   await withExclusiveWrite(database, async (connection) => {
     const id = databaseId(walletId);
     const result = await connection.runAsync('UPDATE wallets SET archived = 1 WHERE id = ?;', id);
@@ -176,7 +198,10 @@ export async function archiveWallet(database: SQLiteDatabase, walletId: string |
   });
 }
 
-export async function restoreWallet(database: SQLiteDatabase, walletId: string | number): Promise<void> {
+export async function restoreWallet(
+  database: SQLiteDatabase,
+  walletId: string | number,
+): Promise<void> {
   await withExclusiveWrite(database, async (connection) => {
     const id = databaseId(walletId);
     const result = await connection.runAsync('UPDATE wallets SET archived = 0 WHERE id = ?;', id);
