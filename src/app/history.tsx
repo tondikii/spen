@@ -1,6 +1,6 @@
 import HistoryScreen from '@/components/history-screen';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import {
   getDatabaseTransactionCategories,
   getDatabaseTransactions,
@@ -8,37 +8,21 @@ import {
 import { getWallets } from '@/services/wallet-service';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 import { DataState } from '@/components/screen-skeleton';
-import { retryDatabaseRead } from '@/services/database-read-retry';
 import useAppDatabase from '@/hooks/use-app-database';
+import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function HistoryRoute() {
   const database = useAppDatabase();
-  const [data, setData] = useState<{
-    transactions: Transaction[];
-    categories: Category[];
-    wallets: Wallet[];
-  } | null>(null);
-  const [error, setError] = useState('');
-  const load = useCallback(async () => {
-    try {
-      const [transactions, categories, wallets] = await retryDatabaseRead(() =>
-        Promise.all([
-          getDatabaseTransactions(database),
-          getDatabaseTransactionCategories(database),
-          getWallets(database, true),
-        ]),
-      );
-      setData({ transactions, categories, wallets });
-      setError('');
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Riwayat tidak dapat dimuat.');
-    }
-  }, [database]);
-  useFocusEffect(
-    useCallback(() => {
-      void load();
-    }, [load]),
+  const read = useCallback(
+    () =>
+      Promise.all([
+        getDatabaseTransactions(database),
+        getDatabaseTransactionCategories(database),
+        getWallets(database, true),
+      ]),
+    [database],
   );
+  const { data, error, retry } = useFocusedRead(read, 'Riwayat tidak dapat dimuat.');
   if (error)
     return (
       <DataState
@@ -46,7 +30,7 @@ export default function HistoryRoute() {
         title="Riwayat belum siap"
         description={error}
         onRetry={() => {
-          void load();
+          retry();
         }}
       />
     );
@@ -58,11 +42,6 @@ export default function HistoryRoute() {
         description="Mengambil seluruh catatan transaksi."
       />
     );
-  return (
-    <HistoryScreen
-      transactions={data.transactions}
-      categories={data.categories}
-      wallets={data.wallets}
-    />
-  );
+  const [transactions, categories, wallets] = data;
+  return <HistoryScreen transactions={transactions} categories={categories} wallets={wallets} />;
 }
