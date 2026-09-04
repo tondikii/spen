@@ -1,3 +1,4 @@
+import * as Application from 'expo-application';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import type { SQLiteDatabase } from 'expo-sqlite';
@@ -61,7 +62,7 @@ export default function SettingsScreen({ database, onFaqPress }: { database?: SQ
     <ThemedView style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}><ActionRow icon="↓" title="Backup data" detail={busy ? 'Menyiapkan file…' : 'Simpan salinan data'} onPress={() => { void runBackup(); }} /><ActionRow icon="↑" title="Restore data" detail={busy ? 'Memproses file…' : 'Timpa dari file backup'} onPress={() => { void runRestore(); }} /></ThemedView>
     <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>BANTUAN</ThemedText>
     <ThemedView style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}><ActionRow icon="?" title="FAQ" detail="Jawaban singkat tentang Spen" onPress={onFaqPress ?? (() => undefined)} /><ActionRow icon="!" title="Aduan masalah" detail="Beri tahu kalau ada yang tidak beres" onPress={() => { void openLink('mailto:tondikiag30@gmail.com?subject=Aduan%20masalah%20Spen'); }} /><ActionRow icon="›" title="Syarat & Ketentuan" detail="Baca ketentuan penggunaan" onPress={() => { void openLink(getPublicDocumentUrl('/terms')); }} /><ActionRow icon="›" title="Kebijakan Privasi" detail="Baca cara data dipakai" onPress={() => { void openLink(getPublicDocumentUrl('/privacy')); }} /></ThemedView>
-    <View style={styles.footer}><SpenLogo size={42} /><ThemedText type="smallBold" themeColor="muted">Spen</ThemedText><ThemedText type="small" themeColor="muted">Versi {Constants.expoConfig?.version ?? '1.0.0'}</ThemedText></View>
+    <View style={styles.footer}><SpenLogo size={42} /><ThemedText type="smallBold" themeColor="muted">Spen</ThemedText><ThemedText type="small" themeColor="muted">Versi {Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '1.0.0'}</ThemedText></View>
     <ConfirmationModal visible={restoreFile !== null} title="Timpa semua data?" message="Restore akan mengganti seluruh data Spen saat ini." confirmLabel="Restore" destructive onCancel={() => setRestoreFile(null)} onConfirm={async () => {
       if (!database || !restoreFile) return;
       const file = restoreFile;

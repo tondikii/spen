@@ -1,19 +1,48 @@
 {
   "expo": {
+    "name": "Spen",
+    "slug": "spen",
+    "owner": "kizaruxds-team",
+    "scheme": "spen",
+    "description": "Budget planner mobile berbahasa Indonesia dengan AI, data lokal.",
     "version": "1.0.0",
+    "icon": "./assets/spen/icon.png",
+    "userInterfaceStyle": "automatic",
+    "orientation": "portrait",
+    "backgroundColor": "#F6F5F0",
+    "newArchEnabled": true,
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/spen/icon.png"
+    },
+    "android": {
+      "package": "com.spen",
+      "icon": "./assets/spen/icon.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/spen/adaptive-icon.png",
+        "backgroundColor": "#235B50"
+      }
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.spen",
+      "icon": "./assets/spen/icon.png"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/spen/adaptive-icon.png",
+          "imageWidth": 200,
+          "backgroundColor": "#F6F5F0"
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "0802f61b-3e43-499d-882f-fb6b9c22d359"
       }
-    },
-    "owner": "kizaruxds-team",
-    "scheme": "spen",
-    "web": {
-      "bundler": "metro",
-      "output": "static"
-    },
-    "android": {
-      "package": "com.spen"
     }
   }
 }

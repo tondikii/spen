@@ -62,4 +62,33 @@ describe('HomeScreen', () => {
 
     await waitFor(() => expect(queryByText('Buka Wallet Tunai')).toBeNull());
   });
+
+  it('menyembunyikan Wallet arsip sampai dibuka dan menyediakan aksi kembalikan', async () => {
+    const archivedWallet = {
+      id: 'wallet-arsip',
+      name: 'Dompet Lama',
+      initialBalance: 125000,
+      balance: 100000,
+      isSavings: false,
+      archived: true,
+      tint: 'gold' as const,
+    };
+    const onWalletRestore = jest.fn();
+    const { getByLabelText, getByText, queryByLabelText } = await render(
+      <HomeScreen
+        archivedWallets={[archivedWallet]}
+        onWalletRestore={onWalletRestore}
+      />,
+    );
+
+    expect(getByText('Wallet diarsipkan')).toBeTruthy();
+    expect(queryByLabelText('Kembalikan Wallet Dompet Lama')).toBeNull();
+
+    await fireEvent.press(getByLabelText('Buka Wallet diarsipkan'));
+    expect(getByLabelText('Kembalikan Wallet Dompet Lama')).toBeTruthy();
+    expect(getByText('Rp 100.000 · Terarsip')).toBeTruthy();
+
+    await fireEvent.press(getByLabelText('Kembalikan Wallet Dompet Lama'));
+    expect(onWalletRestore).toHaveBeenCalledWith(archivedWallet);
+  });
 });
