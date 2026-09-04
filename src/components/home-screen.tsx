@@ -58,12 +58,8 @@ function WalletCards({ wallets, archivedWallets, onSelect, onAdd, onRestore }: {
           <ThemedText type="smallBold" themeColor="pine" style={styles.quietAction}>Tambah</ThemedText>
         </Pressable>
       </View>
-      {wallets.length === 0 ? <View style={[styles.walletEmpty, { backgroundColor: theme.card, borderColor: theme.line }]}>
-        <ThemedText style={[styles.walletEmptyGlyph, { backgroundColor: theme.mint, color: theme.pine }]}>W</ThemedText>
-        <ThemedText type="smallBold">Belum ada Wallet aktif</ThemedText>
-        <ThemedText type="small" themeColor="muted" style={styles.walletEmptyCopy}>Buat Wallet untuk mulai mencatat saldo dan transaksi.</ThemedText>
-        <Pressable accessibilityRole="button" accessibilityLabel="Tambah Wallet" onPress={onAdd} style={[styles.emptyButton, { backgroundColor: theme.pine }]}><ThemedText type="smallBold" style={{ color: theme.heroText }}>Tambah Wallet</ThemedText></Pressable>
-      </View> : <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.walletRow}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.walletRow}>
+        {wallets.length === 0 && <View style={styles.walletEmpty}><ThemedText type="small" themeColor="muted">Belum ada Wallet.</ThemedText></View>}
         {wallets.map((wallet) => (
           <Pressable
             key={wallet.id}
@@ -84,7 +80,7 @@ function WalletCards({ wallets, archivedWallets, onSelect, onAdd, onRestore }: {
           <ThemedText type="subtitle" themeColor="pine" style={[styles.walletAddIcon, { backgroundColor: theme.mint }]}>＋</ThemedText>
           <ThemedText type="small" themeColor="muted" style={styles.walletAddLabel}>Tambah Wallet</ThemedText>
         */}
-      </ScrollView>}
+      </ScrollView>
       {archivedWallets.length > 0 && <View style={[styles.archivedWallets, { borderTopColor: theme.line }]}>
         <ThemedText type="smallBold">Wallet diarsipkan</ThemedText>
         {archivedWallets.map((wallet) => <View key={wallet.id} style={styles.archivedWalletRow}>
@@ -267,9 +263,7 @@ const styles = StyleSheet.create({
   balanceCard: { marginBottom: Layout.sectionGap },
   sectionTitle: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   walletSection: {},
-  walletEmpty: { alignItems: 'center', borderRadius: 18, borderWidth: 1, gap: 7, paddingHorizontal: 22, paddingVertical: 24 },
-  walletEmptyGlyph: { borderRadius: 12, fontFamily: Fonts.serif, fontSize: 18, height: 36, lineHeight: 36, textAlign: 'center', width: 36 },
-  walletEmptyCopy: { textAlign: 'center' },
+  walletEmpty: { alignItems: 'center', justifyContent: 'center', minHeight: Layout.walletHeight, paddingHorizontal: 18, width: Layout.walletWidth },
   archivedWallets: { borderTopWidth: StyleSheet.hairlineWidth, marginTop: 4, paddingTop: 14 },
   archivedWalletRow: { alignItems: 'center', flexDirection: 'row', minHeight: 48 },
   archivedWalletCopy: { flex: 1, gap: 2 },
