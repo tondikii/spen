@@ -4,6 +4,9 @@ Spen adalah aplikasi budget planner mobile berbahasa Indonesia dengan fitur AI (
 
 ## Language
 
+**Bahasa aplikasi (Locale)**:
+Spen mendukung Bahasa Indonesia dan English. Pengguna memilih bahasa secara manual dari Pengaturan; default tetap Bahasa Indonesia. Pilihan locale berlaku langsung ke seluruh UI, accessibility label, pesan status, FAQ, dokumen publik, dan output AI, lalu tersimpan sebagai pengaturan lokal dan ikut backup/restore. Locale mengubah format tanggal dan angka tampilan; currency tetap pilihan global tanpa konversi nilai. Nama Wallet, Category, Goal, dan catatan transaksi yang ditulis pengguna tidak diterjemahkan. Istilah domain `Wallet`, `Budget plan`, `Goal`, `Category`, dan `Transfer` tetap dipertahankan.
+
 **Wallet**:
 Tempat uang pengguna disimpan, diberi nama bebas (misal "Tunai", "BCA", "GoPay"); tidak memiliki tipe. Aplikasi ini multi-wallet — pengguna dapat memiliki banyak Wallet, dan uang dapat dipindahkan antar Wallet. Wallet adalah tempat penyimpanan; tidak memiliki Budget plan sendiri. Setiap mutasi saldo Wallet, termasuk saldo awal saat creation, selalu menjadi transaksi ledger: saldo bertambah memakai tipe income dan saldo berkurang memakai tipe expense. Wallet dapat diberi flag tabungan untuk dipasangkan ke Goal (wallet goal). Wallet yang sudah dipakai (punya transaksi) tidak bisa dihapus, hanya di-archive.
 _Avoid_: account, akun, rekening
