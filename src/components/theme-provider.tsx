@@ -1,4 +1,5 @@
 import { createContext, type PropsWithChildren, useCallback, useContext, useMemo, useState } from 'react';
+import { StatusBar } from 'expo-status-bar';
 
 import { Colors, type ColorScheme, type Theme } from '@/constants/theme';
 import type { ThemeMode } from '@/types/domain';
@@ -24,7 +25,10 @@ export function AppThemeProvider({ children, initialMode = 'light', onModeChange
     [colorScheme, mode, setMode],
   );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return <ThemeContext.Provider value={value}>
+    <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+    {children}
+  </ThemeContext.Provider>;
 }
 
 export function useAppTheme() {
