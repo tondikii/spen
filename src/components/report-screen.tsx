@@ -38,7 +38,7 @@ function ReportScreenContent({
   const [insightOpen, setInsightOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [insightText, setInsightText] = useState('');
-  const [, setInsightSource] = useState<'ai' | 'fallback'>('fallback');
+  const [insightSource, setInsightSource] = useState<'ai' | 'fallback'>('fallback');
   const [insightError, setInsightError] = useState('');
   const [rangeOpen, setRangeOpen] = useState(false);
   useEffect(() => {
@@ -200,7 +200,19 @@ function ReportScreenContent({
           ) : (
             <>
               <View style={[styles.chart, { borderBottomColor: theme.line }]}>
-                <Svg width="100%" height="120" viewBox="0 0 320 120" preserveAspectRatio="none">
+                <Svg
+                  accessible
+                  accessibilityLabel={`Tren Net saving: ${chartPoints
+                    .map(
+                      (point) =>
+                        `${formatMonthShort(point.period.startDate)} ${formatMoney(point.netSaving)}`,
+                    )
+                    .join(', ')}`}
+                  width="100%"
+                  height="120"
+                  viewBox="0 0 320 120"
+                  preserveAspectRatio="none"
+                >
                   <Path d={linePath(chartPoints)} fill="none" stroke={theme.pine} strokeWidth="3" />
                   <Path
                     d={`${linePath(chartPoints)} L318 120 L2 120Z`}
@@ -243,11 +255,29 @@ function ReportScreenContent({
               <>
                 <ThemedText type="sectionHeading">Insight bulan ini</ThemedText>
                 {insightError ? (
-                  <ThemedText accessibilityLiveRegion="polite" style={{ color: theme.expense }}>
-                    {insightError}
-                  </ThemedText>
+                  <View accessibilityLiveRegion="polite" style={styles.insightError}>
+                    <ThemedText style={{ color: theme.expense }}>{insightError}</ThemedText>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="Coba lagi"
+                      onPress={() => {
+                        setInsightError('');
+                        setInsightOpen(false);
+                        setTimeout(() => setInsightOpen(true), 0);
+                      }}
+                    >
+                      <ThemedText type="smallBold" themeColor="pine">
+                        Coba lagi
+                      </ThemedText>
+                    </Pressable>
+                  </View>
                 ) : (
-                  <ThemedText style={styles.insightText}>{insightText}</ThemedText>
+                  <>
+                    <ThemedText type="small" themeColor="muted">
+                      {insightSource === 'fallback' ? 'Insight lokal' : 'Insight AI'}
+                    </ThemedText>
+                    <ThemedText style={styles.insightText}>{insightText}</ThemedText>
+                  </>
                 )}
                 <Pressable
                   accessibilityRole="button"
@@ -351,7 +381,16 @@ function Donut({
   const circumference = 2 * Math.PI * radius;
   let offset = 0;
   return (
-    <Svg width={145} height={145} viewBox="0 0 145 145" style={styles.donut}>
+    <Svg
+      accessible
+      accessibilityLabel={`Pengeluaran total ${formatMoney(total)}; ${expenses
+        .map((item) => `${item.name} ${formatMoney(item.amount)}`)
+        .join(', ')}`}
+      width={145}
+      height={145}
+      viewBox="0 0 145 145"
+      style={styles.donut}
+    >
       <Circle cx="72.5" cy="72.5" r={radius} fill="none" stroke={theme.line} strokeWidth="28" />
       {expenses.map((item, index) => {
         const length = total > 0 ? (item.amount / total) * circumference : 0;
@@ -521,5 +560,6 @@ const styles = StyleSheet.create({
   loading: { alignItems: 'center', paddingVertical: 45 },
   loadingGlyph: { fontSize: 29, marginBottom: 12 },
   insightText: { fontSize: 13, lineHeight: 21, marginTop: 17 },
+  insightError: { gap: 12 },
   closeInsight: { alignItems: 'center', borderRadius: 13, padding: 13 },
 });

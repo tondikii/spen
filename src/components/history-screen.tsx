@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   chip: { borderRadius: Radius.pill, borderWidth: 1, paddingHorizontal: 11, paddingVertical: 8 },
   overlay: { flex: 1, justifyContent: 'flex-end' },
   filterSheet: { borderTopLeftRadius: 27, borderTopRightRadius: 27, gap: 4, padding: 21 },
-  filterOption: { borderTopWidth: 1, borderTopColor: '#E3E4DD', paddingVertical: 15 },
+  filterOption: { borderTopWidth: 1, paddingVertical: 15 },
   empty: { alignItems: 'center', gap: 8, paddingVertical: 58 },
   emptyGlyph: { fontSize: 38 },
 });

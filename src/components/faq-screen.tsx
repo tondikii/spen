@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { PageHeader } from '@/components/ui-primitives';
 import { Fonts, Layout, Radius, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { faqEntries } from '@/lib/faq';
@@ -45,10 +46,7 @@ export default function FaqScreen({ onBack }: FaqScreenProps) {
           </Pressable>
 
           <View style={styles.header}>
-            <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-              BANTUAN
-            </ThemedText>
-            <ThemedText type="title">FAQ</ThemedText>
+            <PageHeader eyebrow="BANTUAN" title="FAQ" />
             <ThemedText type="small" themeColor="muted" style={styles.subtitle}>
               Jawaban singkat tentang cara kerja Spen.
             </ThemedText>

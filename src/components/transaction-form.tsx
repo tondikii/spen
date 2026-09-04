@@ -607,7 +607,7 @@ export function TransactionForm({
               accessibilityRole="button"
               accessibilityLabel={`Edit kategori ${categoryActions?.name}`}
               onPress={() => categoryActions && editCategory(categoryActions)}
-              style={styles.sheetAction}
+              style={[styles.sheetAction, { borderTopColor: theme.line }]}
             >
               <ThemedText type="smallBold" themeColor="pine">
                 Edit kategori
@@ -632,7 +632,7 @@ export function TransactionForm({
                   },
                 });
               }}
-              style={styles.sheetAction}
+              style={[styles.sheetAction, { borderTopColor: theme.line }]}
             >
               <ThemedText type="smallBold" style={{ color: theme.expense }}>
                 Arsipkan kategori
@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
   },
   sheetAction: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E3E4DD',
+    borderTopColor: 'transparent',
     paddingVertical: 15,
   },
   amountInput: {

@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SpenLogo } from '@/components/brand-assets';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { PageHeader } from '@/components/ui-primitives';
 import { ConfirmationModal } from '@/components/confirmation-modal';
 import { useAppTheme } from '@/components/theme-provider';
 import { BottomTabInset, Fonts, Radius, Typography } from '@/constants/theme';
@@ -111,12 +112,7 @@ export default function SettingsScreen({
     <ThemedView style={styles.page}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-              PENGATURAN
-            </ThemedText>
-            <ThemedText type="title">Pengaturan</ThemedText>
-          </View>
+          <PageHeader eyebrow="PENGATURAN" title="Pengaturan" />
           <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
             TAMPILAN
           </ThemedText>

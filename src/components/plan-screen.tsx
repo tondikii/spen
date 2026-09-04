@@ -138,9 +138,6 @@ function PlanScreenContent({
   const periodLabel = formatPeriodLabel(period, startDay);
   const itemState = (item: BudgetPlanItem) =>
     snapshot.planItems.find((state) => state.itemId === item.id);
-  const expenseAction = (item: BudgetPlanItem) => {
-    return '';
-  };
   const handleItemAction = (item: BudgetPlanItem) => {
     const state = itemState(item);
     const amount =
@@ -268,7 +265,7 @@ function PlanScreenContent({
                 item={item}
                 category={categories.find((category) => category.id === item.categoryId)}
                 state={itemState(item)}
-                action={expenseAction(item)}
+                action="Bayar"
                 color={theme.expense}
                 theme={theme}
                 onAction={handleItemAction}
@@ -397,7 +394,7 @@ function PlanScreenContent({
               accessibilityRole="button"
               accessibilityLabel="Tutup saran"
               onPress={() => setAiOpen(false)}
-              style={styles.closeSheet}
+              style={[styles.closeSheet, { backgroundColor: theme.pine }]}
             >
               <ThemedText type="smallBold" style={{ color: theme.heroText }}>
                 Mengerti
@@ -1540,7 +1537,6 @@ const styles = StyleSheet.create({
   suggestionText: { flex: 1 },
   closeSheet: {
     alignItems: 'center',
-    backgroundColor: '#235B50',
     borderRadius: 13,
     marginTop: 8,
     padding: 13,
