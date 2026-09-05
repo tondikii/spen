@@ -1,5 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { TransactionForm } from '@/components/transaction-form';
 import { DataState } from '@/components/screen-skeleton';
@@ -15,6 +16,7 @@ import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function CreateTransactionScreen() {
+  const { t } = useTranslation();
   const {
     transactionId,
     goalId,
@@ -37,7 +39,7 @@ export default function CreateTransactionScreen() {
   const database = useAppDatabase();
   const read = useCallback(
     () => Promise.all([getTransactionEntryData(database, categoryId)]),
-    [database],
+    [categoryId, database],
   );
   const resourceKey = JSON.stringify({
     transactionId,
@@ -53,7 +55,7 @@ export default function CreateTransactionScreen() {
     data: loaded,
     error,
     retry,
-  } = useFocusedRead(read, 'Form transaksi tidak dapat dimuat.', resourceKey);
+  } = useFocusedRead(read, t('common.setupNotReady'), resourceKey);
   const data = loaded
     ? {
         ...loaded[0],
@@ -64,8 +66,8 @@ export default function CreateTransactionScreen() {
     return (
       <DataState
         kind="error"
-        title="Transaksi belum siap"
-        description={error}
+        title={t('common.transactionsNotReady')}
+        description={t('errors.unknown')}
         onRetry={() => {
           retry();
         }}
@@ -75,8 +77,8 @@ export default function CreateTransactionScreen() {
     return (
       <DataState
         kind="loading"
-        title="Memuat transaksi"
-        description="Menyiapkan Wallet dan kategori."
+        title={t('common.loadingTransactions')}
+        description={t('common.loadingTransactionsCopy')}
       />
     );
   const transaction = data.transactions.find((item) => item.id === transactionId);

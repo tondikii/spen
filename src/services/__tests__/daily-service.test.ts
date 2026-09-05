@@ -21,5 +21,7 @@ describe('daily service', () => {
     expect(shiftDate('2026-09-01', -1)).toBe('2026-08-31');
     expect(getDailyLabel('2026-09-01')).toBe('Hari Ini');
     expect(getDailyLabel('2026-08-31')).toBe('Kemarin');
+    expect(getDailyLabel('2026-09-01', '2026-09-01', 'en')).toBe('Today');
+    expect(getDailyLabel('2026-08-31', '2026-09-01', 'en')).toBe('Yesterday');
   });
 });

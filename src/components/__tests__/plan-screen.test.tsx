@@ -1,16 +1,18 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import PlanScreen from '@/components/plan-screen';
+import mockData from '@/data/mock-data';
 
 describe('PlanScreen', () => {
   it('menampilkan saldo tersedia, spare budget, dan seluruh section plan', async () => {
-    const { getByText } = await render(<PlanScreen />);
+    const { getByLabelText, getByText } = await render(<PlanScreen />);
 
     expect(getByText('SALDO TERSEDIA')).toBeTruthy();
-    expect(getByText('Spare budget')).toBeTruthy();
+    expect(getByText('SPARE BUDGET')).toBeTruthy();
     expect(getByText('Pendapatan')).toBeTruthy();
     expect(getByText('Pengeluaran')).toBeTruthy();
     expect(getByText('Goal')).toBeTruthy();
+    expect(getByLabelText('SPARE BUDGET 44%')).toBeTruthy();
     expect(() => getByText('Fixed expense')).toThrow();
     expect(() => getByText('Alokasi')).toThrow();
     expect(getByText('Tercapai')).toBeTruthy();
@@ -19,9 +21,9 @@ describe('PlanScreen', () => {
   it('mengubah Budget period dan menerapkan saran AI', async () => {
     const { getAllByText, getByLabelText, getByText } = await render(<PlanScreen />);
 
-    await fireEvent.press(getByLabelText('Ubah Budget period'));
-    await fireEvent.press(getByLabelText('Mulai tanggal 5'));
-    await waitFor(() => expect(getByText('5–30 Sep⌄')).toBeTruthy());
+    await fireEvent.press(getByLabelText('Pilih rentang Laporan'));
+    await fireEvent.press(getByLabelText('Tanggal 5'));
+    await waitFor(() => expect(getByText('5–30 Sep')).toBeTruthy());
     await fireEvent.press(getByLabelText('Saran AI'));
     await waitFor(() => expect(getByText('Membaca pola keuanganmu…')).toBeTruthy());
     await waitFor(() => expect(getAllByText('Terapkan').length).toBeGreaterThan(0));
@@ -40,22 +42,81 @@ describe('PlanScreen', () => {
     expect(onItemAction).not.toHaveBeenCalled();
   });
 
-  it('mengubah toggle pembayaran Pengeluaran tanpa membuka form transaksi', async () => {
-    const onItemPayment = jest.fn();
-    const { getByLabelText } = await render(<PlanScreen onItemPayment={onItemPayment} />);
-
-    await fireEvent.press(getByLabelText('Tandai sudah dibayar Internet'));
-
-    expect(onItemPayment).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'expense', name: 'Internet' }),
-      true,
+  it('menyimpan nominal item Pendapatan tanpa progress', async () => {
+    const onPlanItemSave = jest.fn();
+    const { getByLabelText } = await render(
+      <PlanScreen categories={mockData.categories} onPlanItemSave={onPlanItemSave} />,
     );
+
+    await fireEvent.press(getByLabelText('+ Tambah Pendapatan'));
+    await fireEvent.changeText(getByLabelText('Target item plan'), '14000000');
+    await fireEvent.press(getByLabelText('Simpan item plan'));
+
+    expect(onPlanItemSave).toHaveBeenCalledWith(
+      null,
+      expect.objectContaining({
+        type: 'income',
+        categoryId: 'category-gaji',
+        targetAmount: 14000000,
+        walletId: 'wallet-tunai',
+      }),
+    );
+  });
+
+  it('membuka dan menyimpan perubahan item Pengeluaran lewat Edit', async () => {
+    const onPlanItemSave = jest.fn();
+    const { getByLabelText } = await render(<PlanScreen onPlanItemSave={onPlanItemSave} />);
+
+    await fireEvent.press(getByLabelText('Aksi lainnya Internet'));
+    await fireEvent.press(getByLabelText('Edit Internet'));
+    await fireEvent.changeText(getByLabelText('Target item plan'), '500000');
+    await fireEvent.press(getByLabelText('Simpan item plan'));
+
+    expect(onPlanItemSave).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'expense-internet', name: 'Internet' }),
+      expect.objectContaining({
+        type: 'expense',
+        categoryId: 'category-internet',
+        targetAmount: 500000,
+      }),
+    );
+  });
+
+  it('tidak menampilkan toggle pembayaran terpisah pada Pengeluaran', async () => {
+    const { queryByLabelText } = await render(<PlanScreen />);
+
+    expect(queryByLabelText('Tandai sudah dibayar Internet')).toBeNull();
+  });
+
+  it('membuka pembayaran Pengeluaran dengan nominal dan Wallet', async () => {
+    const onItemAction = jest.fn();
+    const { getByLabelText } = await render(<PlanScreen onItemAction={onItemAction} />);
+
+    await fireEvent.press(getByLabelText('Aksi lainnya Internet'));
+    await fireEvent.press(getByLabelText('Bayar Internet'));
+    await fireEvent.changeText(getByLabelText('Nominal pembayaran'), '175000');
+    await fireEvent.press(getByLabelText('Simpan transaksi'));
+
+    expect(onItemAction).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'expense-internet' }),
+      175000,
+      'wallet-bca',
+    );
+  });
+
+  it('menyembunyikan aksi Bayar setelah progress Pengeluaran mencapai 100% dan tetap menyediakan Edit', async () => {
+    const { queryByLabelText, getByLabelText } = await render(<PlanScreen />);
+
+    expect(queryByLabelText('Bayar Sewa kamar')).toBeNull();
+    await fireEvent.press(getByLabelText('Aksi lainnya Sewa kamar'));
+    expect(getByLabelText('Edit Sewa kamar')).toBeTruthy();
   });
 
   it('menawarkan edit dan hapus untuk setiap item plan', async () => {
     const onPlanItemDelete = jest.fn();
     const { getByLabelText } = await render(<PlanScreen onPlanItemDelete={onPlanItemDelete} />);
 
+    await fireEvent.press(getByLabelText('Aksi lainnya Gaji'));
     await fireEvent.press(getByLabelText('Hapus Gaji'));
     await fireEvent.press(getByLabelText('Hapus'));
 
@@ -79,14 +140,19 @@ describe('PlanScreen', () => {
     );
   });
 
-  it('meneruskan aksi Nabung Goal ke route transaksi', async () => {
-    const onGoalSaveAction = jest.fn();
-    const { getByLabelText } = await render(<PlanScreen onGoalSaveAction={onGoalSaveAction} />);
+  it('mengirim nominal Tabung Goal tanpa membuat transaksi dari UI', async () => {
+    const onGoalAllocate = jest.fn();
+    const { getByLabelText } = await render(<PlanScreen onGoalAllocate={onGoalAllocate} />);
 
-    await fireEvent.press(getByLabelText('Nabung ke Goal Dana Nikah'));
+    await fireEvent.press(getByLabelText('Aksi lainnya Dana Nikah'));
+    await fireEvent.press(getByLabelText('Tabung Dana Nikah'));
+    await fireEvent.changeText(getByLabelText('Nominal pembayaran'), '250000');
+    await fireEvent.press(getByLabelText('Tabung'));
 
-    expect(onGoalSaveAction).toHaveBeenCalledWith(
+    expect(onGoalAllocate).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'goal-dana-nikah' }),
+      250000,
     );
   });
+
 });

@@ -150,4 +150,38 @@ describe('goal service', () => {
       }),
     ).rejects.toThrow('Wallet sudah dipakai Goal lain');
   });
+
+  it('clears the savings marker from the old Wallet when moving a Goal', async () => {
+    const firstWallet = await createWallet(database, 'Tabungan Lama', 0);
+    const secondWallet = await createWallet(database, 'Tabungan Baru', 0);
+    const goal = await createGoal(database, {
+      name: 'Liburan',
+      targetAmount: 1000,
+      targetDate: null,
+      walletId: firstWallet.id,
+      monthlyContribution: 100,
+    });
+
+    await updateGoal(database, goal.id, { ...goal, walletId: secondWallet.id });
+
+    expect((await getWallets(database)).map((wallet) => wallet.isSavings)).toEqual([false, true]);
+  });
+
+  it('does not allow Goals to use an archived Wallet', async () => {
+    const wallet = await createWallet(database, 'Wallet Lama', 0);
+    await database.runAsync(
+      'UPDATE wallets SET archived = 1 WHERE id = ?;',
+      Number(wallet.id.replace('wallet-', '')),
+    );
+
+    await expect(
+      createGoal(database, {
+        name: 'Goal',
+        targetAmount: 1000,
+        targetDate: null,
+        walletId: wallet.id,
+        monthlyContribution: 0,
+      }),
+    ).rejects.toThrow('Wallet Goal tidak ditemukan atau sudah diarsipkan');
+  });
 });

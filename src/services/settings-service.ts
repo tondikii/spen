@@ -24,13 +24,20 @@ export function setSelectedCurrency(currency: CurrencyCode) {
   selectedCurrency = currency;
   return selectedCurrency;
 }
-export function getSelectedLocale() { return selectedLocale; }
-export function setSelectedLocale(locale: Locale) { selectedLocale = locale; return locale; }
+export function getSelectedLocale() {
+  return selectedLocale;
+}
+export function setSelectedLocale(locale: Locale) {
+  selectedLocale = locale;
+  return locale;
+}
 
 export async function getDatabaseSettings(database: SQLiteDatabase) {
-  const row = await database.getFirstAsync<{ currency: string; theme_mode: string; locale: string }>(
-    'SELECT currency, theme_mode, locale FROM settings WHERE id = 1 LIMIT 1;',
-  );
+  const row = await database.getFirstAsync<{
+    currency: string;
+    theme_mode: string;
+    locale: string;
+  }>('SELECT currency, theme_mode, locale FROM settings WHERE id = 1 LIMIT 1;');
   return {
     currency: currencyOptions.includes(row?.currency as CurrencyCode)
       ? (row!.currency as CurrencyCode)

@@ -15,7 +15,7 @@ describe('SettingsScreen', () => {
     );
 
     expect(getByText('Tema gelap')).toBeTruthy();
-    expect(getByText('Mata uang')).toBeTruthy();
+    expect(getByText('Mata Uang')).toBeTruthy();
     expect(getByText('Backup data')).toBeTruthy();
     expect(getByText('Spen')).toBeTruthy();
   });
@@ -31,7 +31,7 @@ describe('SettingsScreen', () => {
     await fireEvent.press(getByLabelText('Pilih mata uang'));
     await fireEvent.press(getByLabelText('Pilih mata uang USD'));
 
-    await waitFor(() => expect(getByText('USD⌄')).toBeTruthy());
+    await waitFor(() => expect(getByText('USD')).toBeTruthy());
   });
 
   it('meneruskan aksi FAQ ke navigasi screen baru', async () => {

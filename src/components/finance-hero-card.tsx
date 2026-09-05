@@ -2,7 +2,7 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import type { ReactNode } from 'react';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { MotionAnimatedView, motionPresets } from '@/components/motion';
 import { Fonts, Layout, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
 import { useTheme } from '@/hooks/use-theme';
@@ -33,7 +33,11 @@ export function FinanceHeroCard({
   const theme = useTheme();
 
   return (
-    <ThemedView style={[styles.card, { backgroundColor: theme.pine2 }, style]}>
+    <MotionAnimatedView
+      entering={motionPresets.itemEntering}
+      layout={motionPresets.layout}
+      style={[styles.card, { backgroundColor: theme.pine2 }, style]}
+    >
       <ThemedText style={[styles.label, { color: theme.heroMuted }]}>
         {label}
         {marker && <ThemedText style={{ color: theme.heroMuted }}> {marker}</ThemedText>}
@@ -56,7 +60,7 @@ export function FinanceHeroCard({
           </View>
         ))}
       </View>
-    </ThemedView>
+    </MotionAnimatedView>
   );
 }
 

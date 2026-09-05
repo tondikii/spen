@@ -1,5 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
+import { AppError } from '@/lib/app-error';
 
 export default function useAppDatabase(): SQLiteDatabase {
-  throw new Error('Database lokal hanya tersedia di aplikasi native.');
+  throw new AppError('unknown');
 }

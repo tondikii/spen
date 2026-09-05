@@ -1,7 +1,8 @@
 import { DarkTheme, DefaultTheme, ThemeProvider, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { I18nextProvider, useTranslation } from 'react-i18next';
+import { StyleSheet, Text, View } from 'react-native';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
@@ -23,8 +24,8 @@ import { configureDatabase } from '../../db/database';
 import { seedDefaultCategories } from '../../db/seed';
 import migrations from '../../drizzle/migrations';
 import { privacyDocument, termsDocument } from '@/lib/public-documents';
-import i18n from '@/i18n';
-import { I18nextProvider } from 'react-i18next';
+import i18n, { changeLocale } from '@/i18n';
+import { MotionPressable } from '@/components/motion';
 
 function AppNavigation({ initialSetupComplete }: { initialSetupComplete: boolean }) {
   const { colorScheme } = useAppTheme();
@@ -47,7 +48,7 @@ function AppNavigation({ initialSetupComplete }: { initialSetupComplete: boolean
   );
 }
 
-function DatabaseGate({ onFatalError }: { onFatalError: (message: string) => void }) {
+function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
   const sqlite = useSQLiteContext();
   const database = useMemo(() => drizzle(sqlite), [sqlite]);
   const { success, error } = useMigrations(database, migrations);
@@ -67,16 +68,15 @@ function DatabaseGate({ onFatalError }: { onFatalError: (message: string) => voi
         );
         setSelectedCurrency(setup.currency);
         setSelectedLocale(settings.locale as 'id' | 'en');
-        void i18n.changeLanguage(settings.locale);
+        await changeLocale(settings.locale);
         setThemeMode(settings.themeMode as 'system' | 'light' | 'dark');
         if (!cancelled) {
           setSetupComplete(setup.hasWallet);
           setSeeded(true);
         }
       })
-      .catch((cause) => {
-        if (!cancelled)
-          onFatalError(cause instanceof Error ? cause.message : 'Database gagal disiapkan.');
+      .catch(() => {
+        if (!cancelled) onFatalError();
       });
     return () => {
       cancelled = true;
@@ -85,7 +85,7 @@ function DatabaseGate({ onFatalError }: { onFatalError: (message: string) => voi
 
   useEffect(() => {
     if (error) {
-      onFatalError(error.message);
+      onFatalError();
       return;
     }
     if (!success || !seeded) return;
@@ -105,25 +105,28 @@ function DatabaseGate({ onFatalError }: { onFatalError: (message: string) => voi
       initialMode={themeMode}
       onModeChange={(mode) => setDatabaseThemeMode(sqlite, mode)}
     >
-      <I18nextProvider i18n={i18n}><AppNavigation initialSetupComplete={setupComplete} /></I18nextProvider>
+      <I18nextProvider i18n={i18n}>
+        <AppNavigation initialSetupComplete={setupComplete} />
+      </I18nextProvider>
     </AppThemeProvider>
   );
 }
 
-function DatabaseErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+function DatabaseErrorState({ onRetry }: { onRetry: () => void }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.error}>
       <Text style={styles.errorGlyph}>!</Text>
-      <Text style={styles.errorTitle}>Spen belum siap</Text>
-      <Text style={styles.errorCopy}>{message}</Text>
-      <Pressable
+      <Text style={styles.errorTitle}>{t('common.databaseNotReady')}</Text>
+      <Text style={styles.errorCopy}>{t('errors.unknown')}</Text>
+      <MotionPressable
         accessibilityRole="button"
-        accessibilityLabel="Coba lagi database"
+        accessibilityLabel={t('common.retryDatabase')}
         onPress={onRetry}
         style={styles.retry}
       >
-        <Text style={styles.retryText}>Coba lagi</Text>
-      </Pressable>
+        <Text style={styles.retryText}>{t('common.retry')}</Text>
+      </MotionPressable>
     </View>
   );
 }
@@ -141,25 +144,25 @@ function PublicDocumentRoute() {
 export default function AppRuntime() {
   const pathname = usePathname();
   const [databaseAttempt, setDatabaseAttempt] = useState(0);
-  const [databaseError, setDatabaseError] = useState<string | null>(null);
-  const handleDatabaseError = useCallback((message: string) => {
+  const [databaseError, setDatabaseError] = useState(false);
+  const handleDatabaseError = useCallback(() => {
     void SplashScreen.hideAsync();
-    setDatabaseError(message);
+    setDatabaseError(true);
   }, []);
   const retryDatabase = useCallback(() => {
-    setDatabaseError(null);
+    setDatabaseError(false);
     setDatabaseAttempt((attempt) => attempt + 1);
   }, []);
 
   if (pathname === termsDocument.path || pathname === privacyDocument.path)
     return <PublicDocumentRoute />;
-  if (databaseError) return <DatabaseErrorState message={databaseError} onRetry={retryDatabase} />;
+  if (databaseError) return <DatabaseErrorState onRetry={retryDatabase} />;
   return (
     <SQLiteProvider
       key={databaseAttempt}
       databaseName="spen.db"
       onInit={configureDatabase}
-      onError={(error) => handleDatabaseError(error.message)}
+      onError={() => handleDatabaseError()}
     >
       <DatabaseGate onFatalError={handleDatabaseError} />
     </SQLiteProvider>

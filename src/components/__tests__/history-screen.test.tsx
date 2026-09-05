@@ -18,12 +18,12 @@ describe('HistoryScreen', () => {
   });
 
   it('membuka filter sheet dan menyaring kategori', async () => {
-    const { getByLabelText, getByText, queryByText } = await render(<HistoryScreen />);
+    const { getByLabelText, getAllByText, queryByText } = await render(<HistoryScreen />);
 
     await fireEvent.press(getByLabelText('Filter'));
-    await fireEvent.press(getByLabelText('Pilih filter Makan'));
+    await fireEvent.press(getByLabelText('Filter Kategori Makan'));
 
-    await waitFor(() => expect(getByText('Makan')).toBeTruthy());
+    await waitFor(() => expect(getAllByText('Makan').length).toBeGreaterThan(0));
     expect(queryByText('Gaji September')).toBeNull();
   });
 
@@ -54,7 +54,7 @@ describe('HistoryScreen', () => {
 
     expect(getByText(/BCA/)).toBeTruthy();
     await fireEvent.press(getByLabelText('Filter'));
-    await fireEvent.press(getByLabelText('Pilih filter Wallet BCA'));
+    await fireEvent.press(getByLabelText('Pilih Wallet BCA'));
     expect(getByText(/Lunch/)).toBeTruthy();
     await fireEvent.press(getByLabelText('Edit transaksi Makan'));
     expect(require('expo-router').router.push).toHaveBeenCalledWith({

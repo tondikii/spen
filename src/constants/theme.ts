@@ -1,3 +1,5 @@
+import { getCurrentLocale } from '@/i18n';
+import { getIntlLocale } from '@/i18n/format';
 import { getSelectedCurrency } from '@/services/settings-service';
 
 export const Colors = {
@@ -152,11 +154,17 @@ export const Typography = {
 } as const;
 
 export const Motion = {
+  pressDuration: 140,
+  pressScale: 0.97,
+  itemDuration: 220,
+  layoutDuration: 220,
+  screenDuration: 280,
   sheetDuration: 250,
   themeDuration: 300,
   walletDuration: 180,
   toggleDuration: 200,
   aiPulseDuration: 1000,
+  chartDuration: 1400,
 } as const;
 
 export const Layout = {
@@ -211,7 +219,7 @@ const CurrencySymbols: Record<string, string> = {
 
 export function formatMoney(amount: number, currency = getSelectedCurrency()) {
   const symbol = CurrencySymbols[currency] ?? currency;
-  const formattedAmount = new Intl.NumberFormat('id-ID', {
+  const formattedAmount = new Intl.NumberFormat(getIntlLocale(getCurrentLocale()), {
     maximumFractionDigits: 0,
   }).format(amount);
   return `${symbol} ${formattedAmount}`;

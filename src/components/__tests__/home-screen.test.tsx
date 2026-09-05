@@ -16,7 +16,7 @@ describe('HomeScreen', () => {
   it('membuka form edit langsung saat Wallet ditekan dan menyediakan archive', async () => {
     const { getByLabelText, getByText } = await render(<HomeScreen />);
 
-    await fireEvent.press(getByLabelText('Buka Wallet Tunai'));
+    await fireEvent.press(getByLabelText('Pilih Wallet Tunai'));
 
     await waitFor(() => expect(getByText('Edit Wallet')).toBeTruthy());
     expect(getByLabelText('Nama Wallet').props.value).toBe('Tunai');
@@ -40,7 +40,7 @@ describe('HomeScreen', () => {
   it('mengedit nama dan saldo Wallet melalui form yang sama', async () => {
     const { getByLabelText, getByText } = await render(<HomeScreen />);
 
-    await fireEvent.press(getByLabelText('Buka Wallet Tunai'));
+    await fireEvent.press(getByLabelText('Pilih Wallet Tunai'));
     await waitFor(() => expect(getByText('Edit Wallet')).toBeTruthy());
 
     expect(getByLabelText('Nama Wallet').props.value).toBe('Tunai');
@@ -56,7 +56,7 @@ describe('HomeScreen', () => {
   it('mengarsipkan Wallet dari detail dan menghapusnya dari daftar aktif', async () => {
     const { getByLabelText, queryByText } = await render(<HomeScreen />);
 
-    await fireEvent.press(getByLabelText('Buka Wallet Tunai'));
+    await fireEvent.press(getByLabelText('Pilih Wallet Tunai'));
     await fireEvent.press(getByLabelText('Arsipkan Wallet'));
     await fireEvent.press(getByLabelText('Arsipkan'));
 

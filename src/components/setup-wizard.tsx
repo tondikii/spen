@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   useWindowDimensions,
@@ -20,6 +19,7 @@ import { ThemedInput } from '@/components/themed-input';
 import type { SetupWalletDraft } from '@/services/setup-service';
 import type { CurrencyCode } from '@/types/domain';
 import { useTranslation } from 'react-i18next';
+import { MotionPressable as Pressable, MotionScreen } from '@/components/motion';
 
 const totalSteps = 3;
 
@@ -77,245 +77,264 @@ export function SetupWizard({
 
   return (
     <ThemedView style={styles.page}>
-      <KeyboardAvoidingView
-        style={styles.safeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-      >
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.screenContent}>
-            <View style={styles.top}>
-              <ThemedText type="code" themeColor="muted" accessibilityLabel="Nama aplikasi Spen">
-                SPEN
-              </ThemedText>
-              <ThemedText
-                type="code"
-                themeColor="muted"
-                accessibilityLabel={`Langkah ${step + 1} dari ${totalSteps}`}
-              >
-                {step + 1}/{totalSteps}
-              </ThemedText>
-            </View>
-
-            <View style={styles.dots} accessibilityRole="tablist">
-              {[0, 1, 2].map((dot) => {
-                const active = dot === step;
-
-                return (
-                  <Pressable
-                    accessible
-                    key={dot}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Buka langkah ${dot + 1}`}
-                    accessibilityState={{ selected: active }}
-                    onPress={() => goToStep(dot)}
-                    hitSlop={8}
-                    style={[
-                      styles.dot,
-                      {
-                        backgroundColor: dot <= step ? theme.pine : theme.line,
-                        opacity: active ? 1 : 0.6,
-                        transform: [{ scale: active ? 1.08 : 1 }],
-                      },
-                    ]}
-                  />
-                );
-              })}
-            </View>
-
-            <ScrollView
-              ref={carouselRef}
-              testID="setup-wizard-carousel"
-              horizontal
-              pagingEnabled
-              scrollEventThrottle={16}
-              showsHorizontalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              onMomentumScrollEnd={handleMomentumEnd}
-              contentContainerStyle={[
-                styles.carouselContent,
-                carouselWidth ? { width: carouselWidth * totalSteps } : undefined,
-              ]}
-            >
-              <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
+      <MotionScreen>
+        <KeyboardAvoidingView
+          style={styles.safeArea}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
+        >
+          <SafeAreaView style={styles.safeArea}>
+            <View style={styles.screenContent}>
+              <View style={styles.top}>
+                <ThemedText type="code" themeColor="muted" accessibilityLabel={t('common.appName')}>
+                  SPEN
+                </ThemedText>
                 <ThemedText
-                  style={[styles.orb, { backgroundColor: theme.mint, color: theme.pine }]}
+                  type="code"
+                  themeColor="muted"
+                  accessibilityLabel={t('common.stepOf', { current: step + 1, total: totalSteps })}
                 >
-                  ✦
-                </ThemedText>
-                <ThemedText type="title" style={styles.title}>
-                  {t('common.createPlan')}
-                </ThemedText>
-                <ThemedText type="small" themeColor="muted" style={styles.lead}>
-                  {t('common.recordAndSetAside')}
+                  {step + 1}/{totalSteps}
                 </ThemedText>
               </View>
 
-              <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
-                <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-                  {t('common.createWallet')}
-                </ThemedText>
-                <ThemedText type="title" style={styles.title}>
-                  {t('common.whereMoney')}
-                </ThemedText>
-                <ThemedText type="small" themeColor="muted" style={styles.lead}>
-                  {t('common.walletHint')}
-                </ThemedText>
-                <ScrollView
-                  style={styles.walletList}
-                  contentContainerStyle={styles.walletListContent}
-                  keyboardShouldPersistTaps="handled"
-                  automaticallyAdjustKeyboardInsets
-                  keyboardDismissMode="interactive"
-                >
-                  {wallets.map((wallet, index) => (
-                    <View key={index} style={styles.walletItem}>
-                      {index > 0 && (
-                        <View style={styles.walletItemActions}>
-                          <Pressable
-                            accessibilityRole="button"
-                            accessibilityLabel={`Hapus wallet ${index + 1}`}
-                            onPress={() =>
-                              setWallets((current) =>
-                                current.filter((_, itemIndex) => itemIndex !== index),
-                              )
-                            }
-                            hitSlop={8}
-                          >
-                            <ThemedText type="smallBold" style={{ color: theme.expense }}>
-                              {t('common.remove')}
-                            </ThemedText>
-                          </Pressable>
-                        </View>
-                      )}
-                      <ThemedText type="code" themeColor="muted">
-                        NAMA WALLET
-                      </ThemedText>
-                      <ThemedInput
-                        accessibilityLabel={
-                          index === 0 ? 'Nama wallet pertama' : `Nama wallet ${index + 1}`
-                        }
-                        placeholder={t('common.exampleCash')}
-                        placeholderTextColor={theme.muted}
-                        value={wallet.name}
-                        onChangeText={(name) =>
-                          setWallets((current) =>
-                            current.map((item, itemIndex) =>
-                              itemIndex === index ? { ...item, name } : item,
-                            ),
-                          )
-                        }
-                        style={[styles.input, { borderBottomColor: theme.line, color: theme.ink }]}
-                      />
-                      <ThemedText type="code" themeColor="muted" style={styles.balanceLabel}>
-                        {t('common.initialBalance').toUpperCase()}
-                      </ThemedText>
-                      <View style={styles.moneyInputRow}>
-                        <CurrencyMark />
+              <View style={styles.dots} accessibilityRole="tablist">
+                {[0, 1, 2].map((dot) => {
+                  const active = dot === step;
+
+                  return (
+                    <Pressable
+                      accessible
+                      key={dot}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('common.openStep', { step: dot + 1 })}
+                      accessibilityState={{ selected: active }}
+                      onPress={() => goToStep(dot)}
+                      hitSlop={8}
+                      style={[
+                        styles.dot,
+                        {
+                          backgroundColor: dot <= step ? theme.pine : theme.line,
+                          opacity: active ? 1 : 0.6,
+                          transform: [{ scale: active ? 1.08 : 1 }],
+                        },
+                      ]}
+                    />
+                  );
+                })}
+              </View>
+
+              <ScrollView
+                ref={carouselRef}
+                testID="setup-wizard-carousel"
+                horizontal
+                pagingEnabled
+                scrollEventThrottle={16}
+                showsHorizontalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                onMomentumScrollEnd={handleMomentumEnd}
+                contentContainerStyle={[
+                  styles.carouselContent,
+                  carouselWidth ? { width: carouselWidth * totalSteps } : undefined,
+                ]}
+              >
+                <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
+                  <ThemedText
+                    style={[styles.orb, { backgroundColor: theme.mint, color: theme.pine }]}
+                  >
+                    ✦
+                  </ThemedText>
+                  <ThemedText type="title" style={styles.title}>
+                    {t('common.createPlan')}
+                  </ThemedText>
+                  <ThemedText type="small" themeColor="muted" style={styles.lead}>
+                    {t('common.recordAndSetAside')}
+                  </ThemedText>
+                </View>
+
+                <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
+                  <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
+                    {t('common.createWallet')}
+                  </ThemedText>
+                  <ThemedText type="title" style={styles.title}>
+                    {t('common.whereMoney')}
+                  </ThemedText>
+                  <ThemedText type="small" themeColor="muted" style={styles.lead}>
+                    {t('common.walletHint')}
+                  </ThemedText>
+                  <ScrollView
+                    style={styles.walletList}
+                    contentContainerStyle={styles.walletListContent}
+                    keyboardShouldPersistTaps="handled"
+                    automaticallyAdjustKeyboardInsets
+                    keyboardDismissMode="interactive"
+                  >
+                    {wallets.map((wallet, index) => (
+                      <View key={index} style={styles.walletItem}>
+                        {index > 0 && (
+                          <View style={styles.walletItemActions}>
+                            <Pressable
+                              accessibilityRole="button"
+                              accessibilityLabel={t('common.removeWallet', { number: index + 1 })}
+                              onPress={() =>
+                                setWallets((current) =>
+                                  current.filter((_, itemIndex) => itemIndex !== index),
+                                )
+                              }
+                              hitSlop={8}
+                            >
+                              <ThemedText type="smallBold" style={{ color: theme.expense }}>
+                                {t('common.remove')}
+                              </ThemedText>
+                            </Pressable>
+                          </View>
+                        )}
+                        <ThemedText type="code" themeColor="muted">
+                          {t('common.walletName').toUpperCase()}
+                        </ThemedText>
                         <ThemedInput
                           accessibilityLabel={
                             index === 0
-                              ? 'Saldo awal wallet pertama'
-                              : `Saldo awal wallet ${index + 1}`
+                              ? t('common.walletNameFirst')
+                              : t('common.walletNameNumber', { number: index + 1 })
                           }
-                          keyboardType="numeric"
-                          placeholder="0"
+                          placeholder={t('common.exampleCash')}
                           placeholderTextColor={theme.muted}
-                          value={wallet.balance}
-                          onChangeText={(balance) =>
+                          value={wallet.name}
+                          onChangeText={(name) =>
                             setWallets((current) =>
                               current.map((item, itemIndex) =>
-                                itemIndex === index
-                                  ? {
-                                      ...item,
-                                      balance: formatMoneyInput(balance),
-                                    }
-                                  : item,
+                                itemIndex === index ? { ...item, name } : item,
                               ),
                             )
                           }
                           style={[
                             styles.input,
-                            styles.moneyInput,
                             { borderBottomColor: theme.line, color: theme.ink },
                           ]}
                         />
+                        <ThemedText type="code" themeColor="muted" style={styles.balanceLabel}>
+                          {t('common.initialBalance').toUpperCase()}
+                        </ThemedText>
+                        <View style={styles.moneyInputRow}>
+                          <CurrencyMark />
+                          <ThemedInput
+                            accessibilityLabel={
+                              index === 0
+                                ? t('common.startingBalanceWalletFirst')
+                                : t('common.startingBalanceWalletNumber', { number: index + 1 })
+                            }
+                            keyboardType="numeric"
+                            placeholder="0"
+                            placeholderTextColor={theme.muted}
+                            value={wallet.balance}
+                            onChangeText={(balance) =>
+                              setWallets((current) =>
+                                current.map((item, itemIndex) =>
+                                  itemIndex === index
+                                    ? {
+                                        ...item,
+                                        balance: formatMoneyInput(balance),
+                                      }
+                                    : item,
+                                ),
+                              )
+                            }
+                            style={[
+                              styles.input,
+                              styles.moneyInput,
+                              { borderBottomColor: theme.line, color: theme.ink },
+                            ]}
+                          />
+                        </View>
                       </View>
-                    </View>
-                  ))}
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Tambah Wallet"
-                    onPress={() => setWallets((current) => [...current, { name: '', balance: '' }])}
-                    style={[styles.addWallet, { borderBottomColor: theme.line }]}
-                  >
-                    <ThemedText type="smallBold" themeColor="pine">
-                      {t('common.addWallet')}
-                    </ThemedText>
-                  </Pressable>
-                </ScrollView>
-              </View>
-
-              <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
-                <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-                  {t('common.currency')}
-                </ThemedText>
-                <ThemedText type="title" style={styles.title}>
-                  {t('common.chooseCurrency')}
-                </ThemedText>
-                <ThemedText type="small" themeColor="muted" style={styles.lead}>
-                  {t('common.noConversion')}
-                </ThemedText>
-                <View style={styles.currencyGrid}>
-                  {(['IDR', 'USD', 'SGD', 'MYR'] as CurrencyCode[]).map((option) => (
+                    ))}
                     <Pressable
-                      key={option}
                       accessibilityRole="button"
-                      accessibilityLabel={`Pilih mata uang ${option}`}
-                      onPress={() => setCurrency(option)}
-                      style={[
-                        styles.currency,
-                        {
-                          borderColor: currency === option ? theme.pine : theme.line,
-                          backgroundColor: currency === option ? theme.mint : theme.card,
-                        },
-                      ]}
+                      accessibilityLabel={t('common.addWalletLabel')}
+                      onPress={() =>
+                        setWallets((current) => [...current, { name: '', balance: '' }])
+                      }
+                      style={[styles.addWallet, { borderBottomColor: theme.line }]}
                     >
-                      <ThemedText
-                        style={styles.currencySymbol}
-                        themeColor={currency === option ? 'pine' : 'muted'}
-                      >
-                        {CURRENCY_SYMBOLS[option]}
-                      </ThemedText>
-                      <ThemedText
-                        type="smallBold"
-                        themeColor={currency === option ? 'pine' : 'ink'}
-                      >
-                        {option}
+                      <ThemedText type="smallBold" themeColor="pine">
+                        {t('common.addWallet')}
                       </ThemedText>
                     </Pressable>
-                  ))}
+                  </ScrollView>
                 </View>
-              </View>
-            </ScrollView>
 
-            <Pressable
-              accessible
-              accessibilityRole="button"
-              accessibilityLabel={step === 0 ? t('common.start') : step === 2 ? t('common.enterSpen') : t('common.next')}
-              accessibilityHint="Membuka langkah berikutnya"
-              accessibilityState={{ busy: false }}
-              onPress={next}
-              style={[styles.primary, { backgroundColor: theme.pine }]}
-            >
-              <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-                {step === 0 ? t('common.start') : step === 1 ? t('common.next') : t('common.enterSpen')}{' '}
-                <ThemedText style={{ color: theme.heroText }}>→</ThemedText>
-              </ThemedText>
-            </Pressable>
-          </View>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+                <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
+                  <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
+                    {t('common.currency')}
+                  </ThemedText>
+                  <ThemedText type="title" style={styles.title}>
+                    {t('common.chooseCurrency')}
+                  </ThemedText>
+                  <ThemedText type="small" themeColor="muted" style={styles.lead}>
+                    {t('common.noConversion')}
+                  </ThemedText>
+                  <View style={styles.currencyGrid}>
+                    {(['IDR', 'USD', 'SGD', 'MYR'] as CurrencyCode[]).map((option) => (
+                      <Pressable
+                        key={option}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.chooseCurrencyOption', { currency: option })}
+                        onPress={() => setCurrency(option)}
+                        style={[
+                          styles.currency,
+                          {
+                            borderColor: currency === option ? theme.pine : theme.line,
+                            backgroundColor: currency === option ? theme.mint : theme.card,
+                          },
+                        ]}
+                      >
+                        <ThemedText
+                          style={styles.currencySymbol}
+                          themeColor={currency === option ? 'pine' : 'muted'}
+                        >
+                          {CURRENCY_SYMBOLS[option]}
+                        </ThemedText>
+                        <ThemedText
+                          type="smallBold"
+                          themeColor={currency === option ? 'pine' : 'ink'}
+                        >
+                          {option}
+                        </ThemedText>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              </ScrollView>
+
+              <Pressable
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel={
+                  step === 0
+                    ? t('common.start')
+                    : step === 2
+                      ? t('common.enterSpen')
+                      : t('common.next')
+                }
+                accessibilityHint={t('common.nextStep')}
+                accessibilityState={{ busy: false }}
+                onPress={next}
+                style={[styles.primary, { backgroundColor: theme.pine }]}
+              >
+                <ThemedText type="smallBold" style={{ color: theme.heroText }}>
+                  {step === 0
+                    ? t('common.start')
+                    : step === 1
+                      ? t('common.next')
+                      : t('common.enterSpen')}{' '}
+                  <ThemedText style={{ color: theme.heroText }}>→</ThemedText>
+                </ThemedText>
+              </Pressable>
+            </View>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
+      </MotionScreen>
     </ThemedView>
   );
 }

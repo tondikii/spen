@@ -6,7 +6,7 @@
     "scheme": "spen",
     "description": "Budget planner mobile berbahasa Indonesia dengan AI, data lokal.",
     "version": "1.0.0",
-    "icon": "./assets/spen/icon.png",
+    "icon": "./assets/spen/logo.png",
     "userInterfaceStyle": "automatic",
     "orientation": "portrait",
     "backgroundColor": "#F6F5F0",
@@ -14,11 +14,11 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/spen/icon.png"
+      "favicon": "./assets/spen/logo.png"
     },
     "android": {
       "package": "com.spen",
-      "icon": "./assets/spen/icon.png",
+      "icon": "./assets/spen/logo.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/spen/adaptive-icon.png",
         "backgroundColor": "#235B50"
@@ -27,7 +27,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.spen",
-      "icon": "./assets/spen/icon.png"
+      "icon": "./assets/spen/logo.png"
     },
     "plugins": [
       [

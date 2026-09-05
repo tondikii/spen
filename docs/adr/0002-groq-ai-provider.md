@@ -3,7 +3,7 @@
 Kita memakai Groq sebagai penyedia AI, dengan dua model open-weight `openai/gpt-oss`:
 
 - **Saran budget (JSON terstruktur):** `openai/gpt-oss-20b` dengan Structured Outputs (`response_format.type: "json_schema"`, `strict: true`) — murah, ~1000 tps, dan satu dari sedikit model yang menjamin output sesuai schema.
-- **Insight report (teks Bahasa Indonesia):** `openai/gpt-oss-120b` — skor MMMLU multilingual tertinggi di platform, cocok untuk teks Bahasa Indonesia yang alami.
+- **Insight report (teks mengikuti locale aktif):** `openai/gpt-oss-120b` — skor MMMLU multilingual tertinggi di platform, cocok untuk output Indonesia maupun English yang ringkas dan alami.
 
 Model lama (`llama-3.3-70b-versatile`, `llama-3.1-8b-instant`) di-shutdown untuk free tier pada 16 Agustus 2026; kita memakai penerus yang direkomendasikan Groq.
 

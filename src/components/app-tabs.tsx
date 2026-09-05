@@ -1,22 +1,23 @@
 import { Tabs, useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Fonts, Shadows, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from 'react-i18next';
+import { MotionPressable } from '@/components/motion';
 
 type TabItem = {
   name: 'index' | 'plan' | 'report' | 'settings';
-  label: string;
+  translationKey: 'home' | 'plan' | 'report' | 'settings';
   icon: string;
 };
 
 const tabs: TabItem[] = [
-  { name: 'index', label: 'Beranda', icon: '⌂' },
-  { name: 'plan', label: 'Rencana', icon: '▤' },
-  { name: 'report', label: 'Laporan', icon: '◔' },
-  { name: 'settings', label: 'Pengaturan', icon: '☼' },
+  { name: 'index', translationKey: 'home', icon: '⌂' },
+  { name: 'plan', translationKey: 'plan', icon: '▤' },
+  { name: 'report', translationKey: 'report', icon: '◔' },
+  { name: 'settings', translationKey: 'settings', icon: '☼' },
 ];
 
 export default function AppTabs() {
@@ -25,7 +26,10 @@ export default function AppTabs() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const localizedTabs = tabs.map((tab) => ({ ...tab, label: t(`common.${tab.name === 'index' ? 'home' : tab.name}`) }));
+  const localizedTabs = tabs.map((tab) => ({
+    ...tab,
+    label: t(`common.${tab.translationKey}`),
+  }));
   return (
     <Tabs
       screenOptions={{
@@ -50,7 +54,7 @@ export default function AppTabs() {
           key={tab.name}
           name={tab.name}
           options={{
-          title: tab.label,
+            title: tab.label,
             tabBarAccessibilityLabel: tab.label,
             tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>{tab.icon}</Text>,
           }}
@@ -60,21 +64,20 @@ export default function AppTabs() {
         name="create"
         options={{
           title: '',
-          tabBarAccessibilityLabel: 'Tambah transaksi',
+          tabBarAccessibilityLabel: t('common.addTransaction'),
           tabBarStyle: { display: 'none' },
           tabBarButton: () => (
-            <Pressable
-              accessibilityLabel="Tambah transaksi"
+            <MotionPressable
+              accessibilityLabel={t('common.addTransaction')}
               accessibilityRole="button"
               onPress={() => router.push({ pathname: '/create' } as never)}
-              style={({ pressed }) => [
+              style={[
                 styles.addButton,
                 { backgroundColor: theme.pine, borderColor: theme.background },
-                pressed && styles.pressed,
               ]}
             >
               <Text style={styles.addIcon}>＋</Text>
-            </Pressable>
+            </MotionPressable>
           ),
         }}
       />

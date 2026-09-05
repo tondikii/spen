@@ -20,12 +20,137 @@ export type PublicDocument = {
 
 export function getLocalizedPublicDocument(document: PublicDocument, locale: 'id' | 'en') {
   if (locale === 'id') return document;
-  const titles: Record<PublicDocumentPath, [string, string]> = {
-    '/terms': ['TERMS & CONDITIONS', 'Simple rules for using Spen safely and clearly.'],
-    '/privacy': ['PRIVACY POLICY', 'How Spen stores data and when it sends data to AI services.'],
+  const english: Record<
+    PublicDocumentPath,
+    Pick<PublicDocument, 'eyebrow' | 'title' | 'summary' | 'effectiveDate' | 'sections'>
+  > = {
+    '/terms': {
+      eyebrow: 'SPEN DOCUMENT',
+      title: 'Terms & Conditions',
+      summary: 'Simple rules for using Spen safely and clearly.',
+      effectiveDate: 'September 4, 2026',
+      sections: [
+        {
+          heading: '1. About Spen',
+          paragraphs: [
+            'Spen is a personal finance tracking and planning app. You can create a Budget plan, record Transactions, manage Wallets and Goals, and view financial summaries.',
+            'Spen is managed by Tondiki Andika in Indonesia. Spen does not create accounts or provide cloud synchronization.',
+          ],
+        },
+        {
+          heading: '2. Who may use Spen',
+          paragraphs: [
+            'Spen is intended for users aged 18 and over. By using Spen, you confirm that this information is accurate and that you can agree to these terms.',
+            'If you are under 18, do not use Spen without the permission and supervision of a parent or guardian. Spen does not currently provide a mechanism to verify that permission.',
+          ],
+        },
+        {
+          heading: '3. Financial data and records',
+          paragraphs: [
+            'You are responsible for the data you enter, including Wallet names, amounts, dates, Categories, and Goals. Make sure your records reflect your financial situation.',
+            'Spen helps you record and calculate. Spen is not a financial, investment, tax, or legal adviser. Do not use Spen results as the only basis for financial decisions.',
+          ],
+        },
+        {
+          heading: '4. AI features',
+          paragraphs: [
+            'Budget suggestions and report insights are assistance features that you trigger. AI does not change data without your action. When AI is unavailable, Spen may show a locally calculated fallback.',
+            'AI results may be wrong, incomplete, or unsuitable for your situation. Check every suggestion before using it and remain in control of your own decisions.',
+          ],
+        },
+        {
+          heading: '5. Backup and restore',
+          paragraphs: [
+            'You create and share backups manually. You are responsible for storing backup files safely because they may contain all of your Spen data.',
+            'Restore replaces existing local data after confirmation. Check the backup file and make a copy before restoring if you still need the current data.',
+          ],
+        },
+        {
+          heading: '6. Fair use',
+          paragraphs: [
+            "Use Spen for personal needs and in a lawful way. Do not attempt to disrupt, reverse engineer, misuse, or access another party's systems or data through Spen.",
+          ],
+        },
+        {
+          heading: '7. Availability and limitations',
+          paragraphs: [
+            'Spen is provided as is. We work to keep the app running, but we do not guarantee that it will always be available, error-free, or suitable for every need.',
+            'You should continue to keep transaction evidence and copies of important data outside Spen. To the extent permitted by law, Tondiki Andika is not responsible for decisions or losses arising solely from using Spen or its AI results.',
+          ],
+        },
+        {
+          heading: '8. Changes to these terms',
+          paragraphs: [
+            'These terms may be updated when features, behavior, or legal requirements change. The latest version will be shown on this page with its effective date.',
+            'Questions or complaints can be sent to tondikiag30@gmail.com.',
+          ],
+        },
+      ],
+    },
+    '/privacy': {
+      eyebrow: 'SPEN DOCUMENT',
+      title: 'Privacy Policy',
+      summary: 'How Spen stores data and when it sends data to AI services.',
+      effectiveDate: 'September 4, 2026',
+      sections: [
+        {
+          heading: '1. Data controller',
+          paragraphs: [
+            'Spen is managed by Tondiki Andika, Indonesia. For privacy questions or requests, contact tondikiag30@gmail.com.',
+          ],
+        },
+        {
+          heading: '2. Data stored locally',
+          paragraphs: [
+            'Spen data is stored locally on your device. This may include Wallet names and balances, Transactions, Categories, Budget plans, Budget periods, Goals, currency preferences, and theme settings.',
+            'Spen does not create accounts, store data on Spen servers, or provide cloud synchronization. Deleting app data from your device may delete local data that you have not backed up.',
+          ],
+        },
+        {
+          heading: '3. When you use AI features',
+          paragraphs: [
+            'When you trigger a Budget suggestion or report insight, Spen sends the required summary to Groq through its API service. The summary may contain financial figures, Category names, Wallets, and Goals.',
+            "Names you enter may be included if they are part of the summary. Do not put confidential information or another person's identity in Wallet, Category, or Goal names.",
+            "Groq processes requests under its own policies and terms. Spen does not control Groq's storage or processing policies. If you do not want a data summary sent, do not use AI features.",
+          ],
+        },
+        {
+          heading: '4. Backup and file sharing',
+          paragraphs: [
+            'A backup is created only when you choose to create one. A JSON backup file may contain all Spen data and may be shared through the share sheet. After sharing, its protection follows the app or service where you store it.',
+            'Restore reads the file you choose and replaces local data after confirmation. Spen does not upload backup files to Spen servers.',
+          ],
+        },
+        {
+          heading: '5. Access, changes, and deletion',
+          paragraphs: [
+            "You can view and update data through Spen features. You can delete local data through your device's app settings; create a backup first if you still need it.",
+            'For questions, corrections, or requests related to data sent through AI services, contact tondikiag30@gmail.com. We may ask for enough information to understand your request.',
+          ],
+        },
+        {
+          heading: '6. Security',
+          paragraphs: [
+            'Local storage reduces data sharing, but does not make data risk-free. Protect your device, backup files, and shared links. Do not use a shared device or storage for data you want to keep private.',
+          ],
+        },
+        {
+          heading: '7. User age',
+          paragraphs: [
+            'Spen is intended for users aged 18 and over. Spen does not currently provide a mechanism to verify parental or guardian consent for younger users.',
+          ],
+        },
+        {
+          heading: '8. Changes to this policy',
+          paragraphs: [
+            'This policy may be updated when features, third-party services, or legal requirements change. The latest version will be shown on this page with its effective date.',
+            'This policy is effective September 4, 2026.',
+          ],
+        },
+      ],
+    },
   };
-  const [title, summary] = titles[document.path];
-  return { ...document, eyebrow: 'SPEN DOCUMENT', title, summary };
+  return { ...document, ...english[document.path] };
 }
 
 export function getPublicDocumentUrl(

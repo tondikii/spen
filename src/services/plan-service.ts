@@ -1,6 +1,8 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import mockData from '@/data/mock-data';
+import i18n from '@/i18n';
+import { AppError } from '@/lib/app-error';
 import { getDatabaseTransactions } from '@/services/transaction-service';
 import { createWallet, getWallets } from '@/services/wallet-service';
 import { createGoal } from '@/services/goal-service';
@@ -25,6 +27,7 @@ export type PlanItemDraft = {
   type: PlanItemType;
   categoryId: string;
   targetAmount: number;
+  walletId?: string;
   name?: string;
 };
 
@@ -67,6 +70,7 @@ type ItemRow = {
   category_id: number;
   target_amount: number;
   is_paid?: number;
+  wallet_id?: number | null;
 };
 
 function dateOnly(date = new Date()) {
@@ -108,7 +112,12 @@ function toItem(row: ItemRow, type: PlanItemType): BudgetPlanItem {
     categoryId: `category-${row.category_id}`,
     targetAmount: row.target_amount,
   };
-  if (type === 'income') return { ...common, type: 'income' } satisfies IncomeItem;
+  if (type === 'income')
+    return {
+      ...common,
+      type: 'income',
+      ...(row.wallet_id ? { walletId: `wallet-${row.wallet_id}` } : {}),
+    } satisfies IncomeItem;
   if (type === 'fixedExpense')
     return { ...common, type: 'fixedExpense' } satisfies FixedExpenseItem;
   if (type === 'allocation') return { ...common, type: 'allocation' } satisfies AllocationItem;
@@ -134,9 +143,11 @@ function databaseId(value: string | number) {
       : Number(
           String(value)
             .replace(/^category-/, '')
+            .replace(/^wallet-/, '')
             .replace(/^(?:income|expense|fixed-expense|allocation)-item-/, ''),
         );
-  if (!Number.isInteger(id) || id < 1) throw new Error(`ID plan tidak valid: ${value}`);
+  if (!Number.isInteger(id) || id < 1)
+    throw new AppError('validation', undefined, `ID plan tidak valid: ${value}`);
   return id;
 }
 
@@ -157,8 +168,17 @@ function validatePlanItem(draft: PlanItemDraft) {
     draft.targetAmount < 0 ||
     (draft.type === 'expense' && draft.targetAmount <= 0)
   )
-    throw new Error('Nominal item plan harus berupa angka bulat positif');
+    throw new AppError(
+      'validation',
+      undefined,
+      'Nominal item plan harus berupa angka bulat positif',
+    );
   databaseId(draft.categoryId);
+  if (draft.type === 'income') {
+    if (!draft.walletId)
+      throw new AppError('validation', undefined, 'Wallet Pendapatan wajib dipilih');
+    databaseId(draft.walletId);
+  }
 }
 
 export async function createDatabasePlanItem(
@@ -173,24 +193,54 @@ export async function createDatabasePlanItem(
       databaseId(draft.categoryId),
       categoryTypeFor(draft.type),
     );
-    if (!category) throw new Error('Kategori item plan tidak sesuai atau sudah diarsipkan');
+    if (!category)
+      throw new AppError(
+        'notFound',
+        undefined,
+        'Kategori item plan tidak sesuai atau sudah diarsipkan',
+      );
     const duplicate = await transaction.getFirstAsync<{ id: number }>(
       `SELECT id FROM ${tableFor(draft.type)} WHERE budget_plan_id = ? AND category_id = ? LIMIT 1;`,
       active.planId,
       category.id,
     );
-    if (duplicate) throw new Error('Kategori itu sudah ada di Budget plan');
+    if (duplicate)
+      throw new AppError('validation', undefined, 'Kategori itu sudah ada di Budget plan');
     const categoryName = await transaction.getFirstAsync<{ name: string }>(
       'SELECT name FROM categories WHERE id = ? LIMIT 1;',
       category.id,
     );
-    await transaction.runAsync(
+    const itemResult = await transaction.runAsync(
       `INSERT INTO ${tableFor(draft.type)} (budget_plan_id, name, category_id, target_amount${draft.type === 'expense' ? ', is_paid' : ''}) VALUES (?, ?, ?, ?${draft.type === 'expense' ? ', 0' : ''});`,
       active.planId,
-      categoryName?.name ?? 'Tanpa kategori',
+      categoryName?.name ?? i18n.t('common.uncategorized'),
       category.id,
       draft.targetAmount,
     );
+    if (draft.type === 'income') {
+      const wallet = await transaction.getFirstAsync<{ id: number }>(
+        'SELECT id FROM wallets WHERE id = ? AND archived = 0 LIMIT 1;',
+        databaseId(draft.walletId!),
+      );
+      if (!wallet)
+        throw new AppError(
+          'notFound',
+          undefined,
+          'Wallet Pendapatan tidak ditemukan atau sudah diarsipkan',
+        );
+      await transaction.runAsync(
+        `INSERT INTO transactions (type, wallet_id, to_wallet_id, category_id, amount, date, time, note, admin_fee, source_income_item_id)
+         VALUES ('income', ?, NULL, ?, ?, ?, '', ?, 0, ?);`,
+        wallet.id,
+        category.id,
+        draft.targetAmount,
+        active.period.start_date,
+        i18n.t('common.planIncomeNote', {
+          name: categoryName?.name ?? i18n.t('common.uncategorized'),
+        }),
+        itemResult.lastInsertRowId,
+      );
+    }
   });
 }
 
@@ -200,33 +250,66 @@ export async function updateDatabasePlanItem(
   draft: PlanItemDraft,
 ): Promise<void> {
   validatePlanItem(draft);
-  if (item.type !== draft.type) throw new Error('Tipe item plan tidak dapat diubah');
+  if (item.type !== draft.type)
+    throw new AppError('validation', undefined, 'Tipe item plan tidak dapat diubah');
   await database.withExclusiveTransactionAsync(async (transaction) => {
     const category = await transaction.getFirstAsync<{ id: number }>(
       'SELECT id FROM categories WHERE id = ? AND type = ? AND archived = 0 LIMIT 1;',
       databaseId(draft.categoryId),
       categoryTypeFor(draft.type),
     );
-    if (!category) throw new Error('Kategori item plan tidak sesuai atau sudah diarsipkan');
+    if (!category)
+      throw new AppError(
+        'notFound',
+        undefined,
+        'Kategori item plan tidak sesuai atau sudah diarsipkan',
+      );
     const duplicate = await transaction.getFirstAsync<{ id: number }>(
       `SELECT id FROM ${tableFor(item.type)} WHERE budget_plan_id = (SELECT budget_plan_id FROM ${tableFor(item.type)} WHERE id = ? LIMIT 1) AND category_id = ? AND id <> ? LIMIT 1;`,
       databaseId(item.id),
       category.id,
       databaseId(item.id),
     );
-    if (duplicate) throw new Error('Kategori itu sudah ada di Budget plan');
+    if (duplicate)
+      throw new AppError('validation', undefined, 'Kategori itu sudah ada di Budget plan');
     const categoryName = await transaction.getFirstAsync<{ name: string }>(
       'SELECT name FROM categories WHERE id = ? LIMIT 1;',
       category.id,
     );
     const result = await transaction.runAsync(
       `UPDATE ${tableFor(item.type)} SET name = ?, category_id = ?, target_amount = ? WHERE id = ?;`,
-      categoryName?.name ?? 'Tanpa kategori',
+      categoryName?.name ?? i18n.t('common.uncategorized'),
       category.id,
       draft.targetAmount,
       databaseId(item.id),
     );
-    if (result.changes === 0) throw new Error('Item plan tidak ditemukan');
+    if (result.changes === 0)
+      throw new AppError('notFound', undefined, 'Item plan tidak ditemukan');
+    if (item.type === 'income') {
+      const walletId = databaseId(draft.walletId ?? item.walletId ?? '');
+      const wallet = await transaction.getFirstAsync<{ id: number }>(
+        'SELECT id FROM wallets WHERE id = ? AND archived = 0 LIMIT 1;',
+        walletId,
+      );
+      if (!wallet)
+        throw new AppError(
+          'notFound',
+          undefined,
+          'Wallet Pendapatan tidak ditemukan atau sudah diarsipkan',
+        );
+      await transaction.runAsync(
+        `UPDATE transactions
+         SET wallet_id = ?, category_id = ?, amount = ?, note = ?
+         WHERE source_income_item_id = ?;`,
+        wallet.id,
+        category.id,
+        draft.targetAmount,
+        i18n.t('common.planIncomeNote', {
+          name: categoryName?.name ?? i18n.t('common.uncategorized'),
+        }),
+        databaseId(item.id),
+      );
+    }
   });
 }
 
@@ -234,11 +317,21 @@ export async function deleteDatabasePlanItem(
   database: SQLiteDatabase,
   item: BudgetPlanItem,
 ): Promise<void> {
-  const result = await database.runAsync(
-    `DELETE FROM ${tableFor(item.type)} WHERE id = ?;`,
-    databaseId(item.id),
-  );
-  if (result.changes === 0) throw new Error('Item plan tidak ditemukan');
+  const itemId = databaseId(item.id);
+  await database.withExclusiveTransactionAsync(async (transaction) => {
+    if (item.type === 'income') {
+      await transaction.runAsync(
+        'DELETE FROM transactions WHERE source_income_item_id = ?;',
+        itemId,
+      );
+    }
+    const result = await transaction.runAsync(
+      `DELETE FROM ${tableFor(item.type)} WHERE id = ?;`,
+      itemId,
+    );
+    if (result.changes === 0)
+      throw new AppError('notFound', undefined, 'Item plan tidak ditemukan');
+  });
 }
 
 export async function setDatabasePlanItemPaid(
@@ -249,17 +342,22 @@ export async function setDatabasePlanItemPaid(
   today = dateOnly(),
 ): Promise<void> {
   if (item.type !== 'expense' || item.isAutomatic)
-    throw new Error('Pengeluaran otomatis belum memiliki target pembayaran manual');
+    throw new AppError(
+      'validation',
+      undefined,
+      'Pengeluaran otomatis belum memiliki target pembayaran manual',
+    );
   const numericWalletId = Number(walletId.replace(/^wallet-/, ''));
   if (!Number.isInteger(numericWalletId) || numericWalletId < 1)
-    throw new Error('Wallet pembayaran tidak valid');
+    throw new AppError('validation', undefined, 'Wallet pembayaran tidak valid');
   const numericItemId = databaseId(item.id);
   await database.withExclusiveTransactionAsync(async (transaction) => {
     const wallet = await transaction.getFirstAsync<{ id: number }>(
       'SELECT id FROM wallets WHERE id = ? AND archived = 0 LIMIT 1;',
       numericWalletId,
     );
-    if (!wallet) throw new Error('Belum ada Wallet aktif untuk pembayaran');
+    if (!wallet)
+      throw new AppError('notFound', undefined, 'Belum ada Wallet aktif untuk pembayaran');
     const current = await transaction.getFirstAsync<{
       category_id: number;
       target_amount: number;
@@ -268,26 +366,27 @@ export async function setDatabasePlanItemPaid(
       'SELECT category_id, target_amount, is_paid FROM expense_items WHERE id = ? LIMIT 1;',
       numericItemId,
     );
-    if (!current) throw new Error('Item Pengeluaran tidak ditemukan');
-    const note = `Pembayaran Plan: ${item.name}`;
+    if (!current) throw new AppError('notFound', undefined, 'Item Pengeluaran tidak ditemukan');
+    const note = i18n.t('common.planPaymentNote', { name: item.name });
     if (paid && !current.is_paid) {
       const now = new Date();
       await transaction.runAsync(
-        `INSERT INTO transactions (type, wallet_id, category_id, amount, date, time, note, is_initial) VALUES ('expense', ?, ?, ?, ?, ?, ?, 0);`,
+        `INSERT INTO transactions (type, wallet_id, category_id, amount, date, time, note, is_initial, source_expense_item_id) VALUES ('expense', ?, ?, ?, ?, ?, ?, 0, ?);`,
         numericWalletId,
         current.category_id,
         current.target_amount,
         today,
         now.toTimeString().slice(0, 5),
         note,
+        numericItemId,
       );
     } else if (!paid && current.is_paid) {
       await transaction.runAsync(
-        "DELETE FROM transactions WHERE id = (SELECT id FROM transactions WHERE type = 'expense' AND wallet_id = ? AND category_id = ? AND amount = ? AND date = ? AND note = ? ORDER BY id DESC LIMIT 1);",
+        "DELETE FROM transactions WHERE id = (SELECT id FROM transactions WHERE type = 'expense' AND ((source_expense_item_id = ?) OR (source_expense_item_id IS NULL AND wallet_id = ? AND category_id = ? AND amount = ? AND note = ?)) ORDER BY id DESC LIMIT 1);",
+        numericItemId,
         numericWalletId,
         current.category_id,
         current.target_amount,
-        today,
         note,
       );
     }
@@ -319,7 +418,11 @@ export async function applyDatabaseBudgetSuggestion(
       !Number.isSafeInteger(targetAmount) ||
       targetAmount <= 0
     )
-      throw new Error('Saran Goal belum memiliki target nominal yang valid.');
+      throw new AppError(
+        'validation',
+        undefined,
+        'Saran Goal belum memiliki target nominal yang valid.',
+      );
     const existingGoalWalletIds = new Set(context.goals.map((goal) => goal.walletId));
     const requestedWalletName = suggestion.walletName?.trim().toLowerCase();
     let wallet = context.wallets.find(
@@ -341,7 +444,11 @@ export async function applyDatabaseBudgetSuggestion(
       );
     const monthlyContribution = suggestion.monthlyContribution ?? 0;
     if (!Number.isSafeInteger(monthlyContribution) || monthlyContribution < 0)
-      throw new Error('Saran Goal memiliki kontribusi bulanan yang tidak valid.');
+      throw new AppError(
+        'validation',
+        undefined,
+        'Saran Goal memiliki kontribusi bulanan yang tidak valid.',
+      );
     await createGoal(database, {
       name: suggestion.title.trim(),
       targetAmount,
@@ -367,7 +474,11 @@ export async function applyDatabaseBudgetSuggestion(
     !Number.isSafeInteger(suggestion.amount) ||
     suggestion.amount <= 0
   )
-    throw new Error('Saran belum memiliki kategori atau nominal yang bisa diterapkan.');
+    throw new AppError(
+      'validation',
+      undefined,
+      'Saran belum memiliki kategori atau nominal yang bisa diterapkan.',
+    );
   if (suggestion.action === 'increase_allocation') {
     const existing = context.plan.expenseItems.find((item) => item.categoryId === category.id);
     if (existing)
@@ -447,7 +558,7 @@ export async function ensureActiveBudgetPlan(database: SQLiteDatabase, today = d
     'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE id = ?;',
     periodId,
   );
-  if (!period) throw new Error('Budget period gagal dibuat');
+  if (!period) throw new AppError('storage', undefined, 'Budget period gagal dibuat');
   return { period, planId };
 }
 
@@ -518,7 +629,11 @@ export async function getDatabasePlanView(database: SQLiteDatabase, today = date
     categories,
   ] = await Promise.all([
     database.getAllAsync<ItemRow>(
-      'SELECT id, budget_plan_id, name, category_id, target_amount FROM income_items WHERE budget_plan_id = ? ORDER BY id;',
+      `SELECT i.id, i.budget_plan_id, i.name, i.category_id, i.target_amount,
+              t.wallet_id
+       FROM income_items i
+       LEFT JOIN transactions t ON t.source_income_item_id = i.id
+       WHERE i.budget_plan_id = ? ORDER BY i.id;`,
       active.planId,
     ),
     database.getAllAsync<ItemRow>(
@@ -588,7 +703,7 @@ export async function getDatabasePlanView(database: SQLiteDatabase, today = date
           return {
             id: `${itemType}-category-${categoryId.replace('category-', '')}`,
             type: itemType,
-            name: categoryNames.get(categoryId) ?? 'Tanpa kategori',
+            name: categoryNames.get(categoryId) ?? i18n.t('common.uncategorized'),
             categoryId,
             targetAmount: itemType === 'expense' ? realizedAmount : 0,
             isAutomatic: true,
@@ -628,9 +743,11 @@ export async function getDatabasePlanView(database: SQLiteDatabase, today = date
     items.map((item) => {
       const realizedAmount = realizedFor(item.categoryId, type);
       const progressPercent =
-        type === 'expense' && item.targetAmount > 0
-          ? (realizedAmount / item.targetAmount) * 100
-          : 0;
+        type === 'income'
+          ? 100
+          : item.targetAmount > 0
+            ? (realizedAmount / item.targetAmount) * 100
+            : 0;
       return {
         itemId: item.id,
         realizedAmount,

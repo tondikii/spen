@@ -48,14 +48,14 @@ Checklist ini memetakan 48 user story pada `docs/spec.md` ke implementasi yang a
 | 38 | ✅ | Tap kategori pie melakukan drill-down ke Riwayat berfilter. |
 | 39 | ✅ | Line chart net saving default 3 periode dan pilihan rentang. |
 | 40 | ✅ | Agregasi Report mengikuti Budget period custom. |
-| 41 | ✅ | AI insight on-demand, satu-shot, dan Bahasa Indonesia. |
+| 41 | ✅ | AI insight on-demand, satu-shot, dan mengikuti locale aktif (Indonesia/English). |
 | 42 | ✅ | AI insight memiliki fallback deterministik lokal. |
 | 43 | ✅ | Theme light/dark tersimpan melalui Settings. |
 | 44 | ✅ | Backup seluruh data menjadi JSON berversi via share sheet. |
 | 45 | ✅ | Restore mengganti data dengan konfirmasi dan validasi version. |
 | 46 | ✅ | Currency default IDR dan tanpa konversi. |
 | 47 | ✅ | Pilihan currency lain tersedia dan tersimpan global. |
-| 48 | ✅ | UI, prompt, fallback, dan output AI menggunakan Bahasa Indonesia. |
+| 48 | ✅ | UI, accessibility, status/error, FAQ, dokumen publik, format tanggal/angka, prompt, fallback, dan output AI mengikuti locale aktif Indonesia/English. |
 
 ## Automated acceptance
 

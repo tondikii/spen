@@ -1,14 +1,26 @@
 import { Link, usePathname } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import PublicDocumentScreen from '@/components/public-document-screen';
 import { AppThemeProvider } from '@/components/theme-provider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { privacyDocument, termsDocument } from '@/lib/public-documents';
+import { getWebLocale } from '@/i18n/web';
+import { changeLocale } from '@/i18n';
 
 export default function AppRuntime() {
   const pathname = usePathname();
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    const locale = getWebLocale();
+    void changeLocale(locale).then(() => {
+      if (typeof document !== 'undefined') document.documentElement.lang = locale;
+    });
+  }, []);
 
   if (pathname === termsDocument.path || pathname === privacyDocument.path) {
     const document = pathname === termsDocument.path ? termsDocument : privacyDocument;
@@ -24,20 +36,20 @@ export default function AppRuntime() {
       <ThemedView style={styles.page}>
         <View style={styles.content}>
           <ThemedText type="code" themeColor="muted">
-            SPEN WEB
+            {t('common.appWebEyebrow')}
           </ThemedText>
           <ThemedText type="title" style={styles.title}>
-            Ruang untuk uangmu.
+            {t('common.appWebTitle')}
           </ThemedText>
           <ThemedText type="default" themeColor="muted" style={styles.copy}>
-            Spen Web saat ini menyediakan dokumen publik. Data keuangan tetap dikelola di aplikasi.
+            {t('common.appWebCopy')}
           </ThemedText>
           <View style={styles.links}>
             <Link href="/terms">
-              <ThemedText type="linkPrimary">Syarat &amp; Ketentuan</ThemedText>
+              <ThemedText type="linkPrimary">{t('common.terms')}</ThemedText>
             </Link>
             <Link href="/privacy">
-              <ThemedText type="linkPrimary">Kebijakan Privasi</ThemedText>
+              <ThemedText type="linkPrimary">{t('common.privacy')}</ThemedText>
             </Link>
           </View>
         </View>

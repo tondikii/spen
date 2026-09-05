@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Layout, MaxContentWidth, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { MotionAnimatedView, MotionPressable, motionPresets } from '@/components/motion';
 
 /** Shared page frame for native screens. Keeps safe-area and content width in one place. */
 export function ScreenFrame({
@@ -73,17 +74,17 @@ export function SectionHeader({
     <View style={styles.sectionHeader}>
       <ThemedText type="sectionHeading">{title}</ThemedText>
       {action && onPress && (
-        <Pressable
+        <MotionPressable
           accessibilityRole="button"
           accessibilityLabel={action}
           hitSlop={8}
           onPress={onPress}
-          style={({ pressed }) => [styles.quietAction, pressed && styles.pressed]}
+          style={styles.quietAction}
         >
           <ThemedText type="smallBold" style={{ color: theme.pine }}>
             {action}
           </ThemedText>
-        </Pressable>
+        </MotionPressable>
       )}
     </View>
   );
@@ -102,23 +103,18 @@ export function PrimaryButton({
 }) {
   const theme = useTheme();
   return (
-    <Pressable
+    <MotionPressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.primary,
-        { backgroundColor: theme.pine },
-        disabled && styles.disabled,
-        pressed && !disabled && styles.pressed,
-      ]}
+      style={[styles.primary, { backgroundColor: theme.pine }, disabled && styles.disabled]}
     >
       <ThemedText type="smallBold" style={{ color: theme.heroText }}>
         {label}
       </ThemedText>
-    </Pressable>
+    </MotionPressable>
   );
 }
 
@@ -154,11 +150,13 @@ export function StatusBadge({
 export function Card({ children, style }: { children: ReactNode; style?: object }) {
   const theme = useTheme();
   return (
-    <ThemedView
+    <MotionAnimatedView
+      entering={motionPresets.itemEntering}
+      layout={motionPresets.layout}
       style={[styles.card, { backgroundColor: theme.card, borderColor: theme.line }, style]}
     >
       {children}
-    </ThemedView>
+    </MotionAnimatedView>
   );
 }
 

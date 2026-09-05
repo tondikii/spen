@@ -3,7 +3,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import migrations from '../../../drizzle/migrations';
 import { configureDatabase } from '../../../db/database';
 import { seedDefaultCategories } from '../../../db/seed';
-import { createWallet, updateWallet } from '@/services/wallet-service';
+import { createWallet, getWallets, updateWallet } from '@/services/wallet-service';
 import {
   getDatabaseTransactionCategories,
   saveDatabaseTransaction,
@@ -209,7 +209,7 @@ describe('database plan service', () => {
     );
     expect(view.snapshot.planItems).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ realizedAmount: 1000, progressPercent: 0 }),
+        expect.objectContaining({ realizedAmount: 1000, progressPercent: 100 }),
         expect.objectContaining({ realizedAmount: 500, progressPercent: 100 }),
       ]),
     );
@@ -236,6 +236,37 @@ describe('database plan service', () => {
         targetAmount: 500,
       }),
     ).rejects.toThrow(/sudah ada/);
+  });
+
+  it('creates an income plan item and credits its selected Wallet', async () => {
+    const wallet = await createWallet(database, 'BCA', 0);
+    const category = (await getDatabaseTransactionCategories(database)).find(
+      (item) => item.name === 'Gaji',
+    )!;
+
+    await createDatabasePlanItem(database, {
+      type: 'income',
+      categoryId: category.id,
+      targetAmount: 14000000,
+      walletId: wallet.id,
+    });
+
+    const view = await getDatabasePlanView(database, '2026-09-10');
+    expect(view.wallets.find((item) => item.id === wallet.id)?.balance).toBe(14000000);
+    expect(view.snapshot.planItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ realizedAmount: 14000000, progressPercent: 100 }),
+      ]),
+    );
+
+    const item = view.plan.incomeItems.find((candidate) => candidate.categoryId === category.id)!;
+    await deleteDatabasePlanItem(database, item);
+
+    const afterDelete = await getDatabasePlanView(database, '2026-09-10');
+    expect(afterDelete.wallets.find((candidate) => candidate.id === wallet.id)?.balance).toBe(0);
+    expect(afterDelete.plan.incomeItems).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: item.id })]),
+    );
   });
 
   it('starts an unplanned expense at 100 percent and recalculates after its target is raised', async () => {
@@ -311,6 +342,69 @@ describe('database plan service', () => {
     );
 
     expect(transactions).toEqual([{ amount: 200, note: 'Pembayaran Plan: Internet' }]);
+  });
+
+  it('removes the payment transaction even when unchecking on a later date', async () => {
+    const wallet = await createWallet(database, 'BCA', 1000);
+    const category = (await getDatabaseTransactionCategories(database)).find(
+      (item) => item.name === 'Internet',
+    )!;
+    await createDatabasePlanItem(database, {
+      type: 'expense',
+      categoryId: category.id,
+      targetAmount: 200,
+    });
+    const item = (await getDatabasePlanView(database, '2026-09-10')).plan.expenseItems.find(
+      (candidate) => candidate.categoryId === category.id,
+    )!;
+
+    await setDatabasePlanItemPaid(database, item, true, wallet.id, '2026-09-03');
+    await setDatabasePlanItemPaid(database, item, false, wallet.id, '2026-09-10');
+
+    expect(
+      (await getWallets(database)).find((candidate) => candidate.id === wallet.id)?.balance,
+    ).toBe(1000);
+    expect(
+      await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM transactions WHERE note = 'Pembayaran Plan: Internet';",
+      ),
+    ).toEqual({ count: 0 });
+  });
+
+  it('updates the generated income transaction when an income Plan item changes', async () => {
+    const wallet = await createWallet(database, 'BCA', 0);
+    const otherWallet = await createWallet(database, 'Tunai', 0);
+    const categories = await getDatabaseTransactionCategories(database);
+    const salary = categories.find((item) => item.name === 'Gaji')!;
+    const bonus = categories.find((item) => item.name === 'Bonus')!;
+    await createDatabasePlanItem(database, {
+      type: 'income',
+      categoryId: salary.id,
+      targetAmount: 1000,
+      walletId: wallet.id,
+    });
+    const item = (await getDatabasePlanView(database, '2026-09-10')).plan.incomeItems.find(
+      (candidate) => candidate.categoryId === salary.id,
+    )!;
+
+    await updateDatabasePlanItem(database, item, {
+      type: 'income',
+      categoryId: bonus.id,
+      targetAmount: 2500,
+      walletId: otherWallet.id,
+    });
+
+    expect((await getWallets(database)).map((candidate) => candidate.balance)).toEqual([0, 2500]);
+    expect(
+      await database.getFirstAsync<{ amount: number; wallet_id: number; category_id: number }>(
+        'SELECT amount, wallet_id, category_id FROM transactions WHERE source_income_item_id = ?;',
+        Number(item.id.replace('income-item-', '')),
+      ),
+    ).toEqual({
+      amount: 2500,
+      wallet_id: Number(otherWallet.id.replace('wallet-', '')),
+      category_id: Number(bonus.id.replace('category-', '')),
+    });
   });
 
   it('includes transfer directions in net saving without changing total wealth', async () => {

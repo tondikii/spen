@@ -1,5 +1,6 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
+import { AppError } from '@/lib/app-error';
 import { retryDatabaseRead } from '@/services/database-read-retry';
 
 type FocusedReadState<T> = { data: T | null; error: string; retry: () => void };
@@ -14,8 +15,7 @@ export async function settleFocusedRead<T>(
     const data = await read;
     if (isCurrent()) onData(data);
   } catch (cause) {
-    if (isCurrent())
-      onError(cause instanceof Error ? cause : new Error('Data tidak dapat dimuat.'));
+    if (isCurrent()) onError(cause instanceof Error ? cause : new AppError('unknown'));
   }
 }
 

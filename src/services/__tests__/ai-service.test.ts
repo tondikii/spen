@@ -125,4 +125,22 @@ describe('AIService', () => {
       text: expect.stringContaining('Makan'),
     });
   });
+
+  it('uses English for the local fallback when the active locale is English', async () => {
+    const service = new AIService({ apiKey: '' });
+
+    await expect(service.suggestBudget({ ...input, locale: 'en' })).resolves.toMatchObject({
+      source: 'fallback',
+      suggestions: [
+        expect.objectContaining({
+          title: 'Set aside half of your spare budget',
+          description: 'Build an emergency fund for unexpected needs.',
+        }),
+      ],
+    });
+    await expect(service.generateInsight({ ...input, locale: 'en' })).resolves.toMatchObject({
+      source: 'fallback',
+      text: expect.stringContaining('Largest expense'),
+    });
+  });
 });

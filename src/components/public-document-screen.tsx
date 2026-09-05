@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Head from 'expo-router/head';
 
@@ -8,11 +8,16 @@ import { useTheme } from '@/hooks/use-theme';
 import { BottomTabInset, MaxContentWidth, Radius, Spacing, Typography } from '@/constants/theme';
 import type { PublicDocument } from '@/lib/public-documents';
 import { getLocalizedPublicDocument } from '@/lib/public-documents';
-import i18n from '@/i18n';
+import { MotionScreen } from '@/components/motion';
+import { useTranslation } from 'react-i18next';
 
 export default function PublicDocumentScreen({ document }: { document: PublicDocument }) {
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
-  const localizedDocument = getLocalizedPublicDocument(document, i18n.language === 'en' ? 'en' : 'id');
+  const localizedDocument = getLocalizedPublicDocument(
+    document,
+    i18n.language === 'en' ? 'en' : 'id',
+  );
 
   return (
     <ThemedView style={styles.page}>
@@ -22,54 +27,56 @@ export default function PublicDocumentScreen({ document }: { document: PublicDoc
         <meta property="og:title" content={`${localizedDocument.title} | Spen`} />
         <meta property="og:description" content={localizedDocument.summary} />
       </Head>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-              {localizedDocument.eyebrow}
-            </ThemedText>
-            <ThemedText type="title" style={styles.title}>
-              {localizedDocument.title}
-            </ThemedText>
-            <ThemedText type="default" themeColor="muted" style={styles.summary}>
-              {localizedDocument.summary}
-            </ThemedText>
-          </View>
-          <View
-            style={[styles.draftNotice, { backgroundColor: theme.mint, borderColor: theme.line }]}
-          >
-            <ThemedText type="smallBold" themeColor="pine">
-              Draf untuk ditinjau
-            </ThemedText>
-            <ThemedText type="small" themeColor="muted" style={styles.draftCopy}>
-              Teks ini perlu ditinjau dan disetujui pemilik Spen sebelum rilis production.
-            </ThemedText>
-          </View>
-          {document.sections.map((section) => (
-            <View key={section.heading} style={styles.section}>
-              <ThemedText type="sectionHeading" style={styles.sectionTitle}>
-                {section.heading}
+      <MotionScreen>
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+            <View style={styles.header}>
+              <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
+                {localizedDocument.eyebrow}
               </ThemedText>
-              {section.paragraphs.map((paragraph) => (
-                <ThemedText key={paragraph} type="default" style={styles.paragraph}>
-                  {paragraph}
-                </ThemedText>
-              ))}
+              <ThemedText type="title" style={styles.title}>
+                {localizedDocument.title}
+              </ThemedText>
+              <ThemedText type="default" themeColor="muted" style={styles.summary}>
+                {localizedDocument.summary}
+              </ThemedText>
             </View>
-          ))}
-          <View style={[styles.meta, { borderTopColor: theme.line }]}>
-            <ThemedText type="small" themeColor="muted">
-              Pemilik: {document.owner}
-            </ThemedText>
-            <ThemedText type="small" themeColor="muted">
-              Kontak: {document.contact}
-            </ThemedText>
-            <ThemedText type="small" themeColor="muted">
-              Berlaku sejak {document.effectiveDate}
-            </ThemedText>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+            <View
+              style={[styles.draftNotice, { backgroundColor: theme.mint, borderColor: theme.line }]}
+            >
+              <ThemedText type="smallBold" themeColor="pine">
+                {t('common.draftForReview')}
+              </ThemedText>
+              <ThemedText type="small" themeColor="muted" style={styles.draftCopy}>
+                {t('common.draftCopy')}
+              </ThemedText>
+            </View>
+            {document.sections.map((section) => (
+              <View key={section.heading} style={styles.section}>
+                <ThemedText type="sectionHeading" style={styles.sectionTitle}>
+                  {section.heading}
+                </ThemedText>
+                {section.paragraphs.map((paragraph) => (
+                  <ThemedText key={paragraph} type="default" style={styles.paragraph}>
+                    {paragraph}
+                  </ThemedText>
+                ))}
+              </View>
+            ))}
+            <View style={[styles.meta, { borderTopColor: theme.line }]}>
+              <ThemedText type="small" themeColor="muted">
+                {t('common.owner')}: {document.owner}
+              </ThemedText>
+              <ThemedText type="small" themeColor="muted">
+                {t('common.contact')}: {document.contact}
+              </ThemedText>
+              <ThemedText type="small" themeColor="muted">
+                {t('common.effectiveSince')} {document.effectiveDate}
+              </ThemedText>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </MotionScreen>
     </ThemedView>
   );
 }

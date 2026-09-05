@@ -3,6 +3,10 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { normalizeLocale } from '@/i18n';
+import { AppError } from '@/lib/app-error';
+import type { Locale } from '@/types/domain';
+
 export const BACKUP_VERSION = 1;
 
 type WalletRow = {
@@ -15,6 +19,7 @@ type WalletRow = {
 type CategoryRow = {
   id: number;
   name: string;
+  system_key?: string | null;
   type: string;
   is_adjustment: number;
   icon: string;
@@ -32,6 +37,8 @@ type TransactionRow = {
   note: string | null;
   is_initial: number;
   admin_fee: number;
+  source_income_item_id: number | null;
+  source_expense_item_id: number | null;
 };
 type BudgetPeriodRow = {
   id: number;
@@ -57,7 +64,13 @@ type GoalRow = {
   monthly_contribution: number;
   archived: number;
 };
-type SettingsRow = { id: number; currency: string; theme_mode: string; locale: string; budget_start_day: number };
+type SettingsRow = {
+  id: number;
+  currency: string;
+  theme_mode: string;
+  locale: string;
+  budget_start_day: number;
+};
 
 export type BackupPayload = {
   version: number;
@@ -105,11 +118,15 @@ export function parseBackupPayload(value: string | unknown): BackupPayload {
     try {
       parsed = JSON.parse(value) as unknown;
     } catch {
-      throw new Error('File backup bukan JSON yang valid');
+      throw new AppError('backupInvalid', undefined, 'File backup bukan JSON yang valid');
     }
   }
   if (!isRecord(parsed) || parsed.version !== BACKUP_VERSION || !isRecord(parsed.data)) {
-    throw new Error(`Versi backup tidak didukung. Gunakan backup Spen versi ${BACKUP_VERSION}.`);
+    throw new AppError(
+      'backupInvalid',
+      { version: BACKUP_VERSION },
+      `Versi backup tidak didukung. Gunakan backup Spen versi ${BACKUP_VERSION}.`,
+    );
   }
   const data = parsed.data;
   const keys = [
@@ -126,7 +143,7 @@ export function parseBackupPayload(value: string | unknown): BackupPayload {
     'settings',
   ];
   if (!keys.every((key) => isArrayOfRecords(data[key]))) {
-    throw new Error('Struktur file backup tidak lengkap atau rusak');
+    throw new AppError('backupInvalid', undefined, 'Struktur file backup tidak lengkap atau rusak');
   }
   return parsed as unknown as BackupPayload;
 }
@@ -149,10 +166,10 @@ export async function exportDatabase(database: SQLiteDatabase): Promise<BackupPa
       'SELECT id, name, initial_balance, is_savings, archived FROM wallets ORDER BY id;',
     ),
     database.getAllAsync<CategoryRow>(
-      'SELECT id, name, type, is_adjustment, icon, archived FROM categories ORDER BY id;',
+      'SELECT id, name, system_key, type, is_adjustment, icon, archived FROM categories ORDER BY id;',
     ),
     database.getAllAsync<TransactionRow>(
-      'SELECT id, type, wallet_id, to_wallet_id, category_id, amount, date, time, note, is_initial, admin_fee FROM transactions ORDER BY id;',
+      'SELECT id, type, wallet_id, to_wallet_id, category_id, amount, date, time, note, is_initial, admin_fee, source_income_item_id, source_expense_item_id FROM transactions ORDER BY id;',
     ),
     database.getAllAsync<BudgetPeriodRow>(
       'SELECT id, start_date, end_date, duration_months FROM budget_periods ORDER BY id;',
@@ -211,9 +228,10 @@ async function insertRows(database: SQLiteDatabase, payload: BackupPayload) {
     );
   for (const row of data.categories)
     await database.runAsync(
-      'INSERT INTO categories (id, name, type, is_adjustment, icon, archived) VALUES (?, ?, ?, ?, ?, ?);',
+      'INSERT INTO categories (id, name, system_key, type, is_adjustment, icon, archived) VALUES (?, ?, ?, ?, ?, ?, ?);',
       row.id,
       row.name,
+      row.system_key ?? null,
       row.type,
       row.is_adjustment,
       row.icon,
@@ -292,7 +310,7 @@ async function insertRows(database: SQLiteDatabase, payload: BackupPayload) {
     );
   for (const row of data.transactions)
     await database.runAsync(
-      'INSERT INTO transactions (id, type, wallet_id, to_wallet_id, category_id, amount, date, time, note, is_initial, admin_fee) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
+      'INSERT INTO transactions (id, type, wallet_id, to_wallet_id, category_id, amount, date, time, note, is_initial, admin_fee, source_income_item_id, source_expense_item_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);',
       row.id,
       row.type,
       row.wallet_id,
@@ -304,22 +322,26 @@ async function insertRows(database: SQLiteDatabase, payload: BackupPayload) {
       row.note,
       row.is_initial ?? 0,
       row.admin_fee ?? 0,
+      row.source_income_item_id ?? null,
+      row.source_expense_item_id ?? null,
     );
 }
 
 export async function restoreDatabase(
   database: SQLiteDatabase,
   value: BackupPayload | string,
-): Promise<void> {
+): Promise<Locale> {
   const payload = parseBackupPayload(value);
   await database.withExclusiveTransactionAsync(async (transaction) => {
     for (const table of TABLES) await transaction.runAsync(`DELETE FROM ${table};`);
     await insertRows(transaction as unknown as SQLiteDatabase, payload);
   });
+  return normalizeLocale(payload.data.settings[0]?.locale);
 }
 
 export async function createBackupFile(database: SQLiteDatabase): Promise<string> {
-  if (!FileSystem.documentDirectory) throw new Error('Penyimpanan file tidak tersedia');
+  if (!FileSystem.documentDirectory)
+    throw new AppError('storage', undefined, 'Penyimpanan file tidak tersedia');
   const payload = await exportDatabase(database);
   const fileUri = `${FileSystem.documentDirectory}spen-backup-${payload.exportedAt.replace(/[:.]/g, '-')}.json`;
   await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(payload, null, 2), {
@@ -330,7 +352,7 @@ export async function createBackupFile(database: SQLiteDatabase): Promise<string
 
 export async function shareBackupFile(fileUri: string): Promise<void> {
   if (!(await Sharing.isAvailableAsync()))
-    throw new Error('Share sheet tidak tersedia di perangkat ini');
+    throw new AppError('storage', undefined, 'Share sheet tidak tersedia di perangkat ini');
   await Sharing.shareAsync(fileUri, {
     mimeType: 'application/json',
     dialogTitle: 'Bagikan backup Spen',

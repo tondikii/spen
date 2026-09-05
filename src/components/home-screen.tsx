@@ -1,13 +1,5 @@
 import { useMemo, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CategoryIcon } from '@/components/category-icon';
@@ -19,17 +11,29 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { SectionHeader } from '@/components/ui-primitives';
 import {
+  MotionAnimatedView,
+  MotionChevron,
+  MotionCollapsible,
+  MotionPressable,
+  MotionPressable as Pressable,
+  MotionProgressBar,
+  MotionScreen,
+  motionPresets,
+} from '@/components/motion';
+import {
   BottomTabInset,
   Fonts,
   Layout,
   MaxContentWidth,
   Radius,
-  Shadows,
   Spacing,
   Typography,
 } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
+import { getCategoryLabel } from '@/i18n/categories';
+import { getIntlLocale } from '@/i18n/format';
 import { formatMoney } from '@/lib/money';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import {
@@ -60,17 +64,9 @@ function walletGlyph(wallet: Wallet) {
   return 'D';
 }
 
-function walletTintColor(wallet: Wallet, theme: ReturnType<typeof useTheme>) {
-  return {
-    pine: theme.walletPine,
-    coral: theme.walletCoral,
-    gold: theme.walletGold,
-    goal: theme.walletGoal,
-  }[wallet.tint];
-}
-
 function HomeHeader({ today = new Date() }: { today?: Date }) {
-  const label = new Intl.DateTimeFormat('id-ID', {
+  const { i18n } = useTranslation();
+  const label = new Intl.DateTimeFormat(getIntlLocale(i18n.language === 'en' ? 'en' : 'id'), {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -95,8 +91,8 @@ function BalanceCard({ total, period }: { total: number; period?: BudgetPeriod }
       amount={total}
       footer={[
         {
-          label: 'Budget period',
-          value: period ? formatPeriod(period) : 'Budget period',
+          label: t('common.budgetPeriod'),
+          value: period ? formatPeriod(period) : t('common.budgetPeriod'),
         },
       ]}
       style={styles.balanceCard}
@@ -118,29 +114,27 @@ function WalletCards({
   onRestore: (wallet: Wallet) => void;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [archivedOpen, setArchivedOpen] = useState(false);
   return (
     <View style={styles.walletSection}>
-      <SectionHeader title="Wallet" action="Tambah Wallet" onPress={onAdd} />
+      <SectionHeader
+        title={t('common.walletSection')}
+        action={t('common.addWalletLabel')}
+        onPress={onAdd}
+      />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.walletRow}
       >
         {wallets.map((wallet) => (
-          <Pressable
+          <MotionPressable
             key={wallet.id}
             accessibilityRole="button"
-            accessibilityLabel={`Buka Wallet ${wallet.name}`}
+            accessibilityLabel={t('common.selectWallet', { name: wallet.name })}
             onPress={() => onSelect(wallet)}
-            style={({ pressed }) => [
-              styles.walletCard,
-              {
-                backgroundColor: theme.card,
-                borderColor: walletTintColor(wallet, theme),
-              },
-              pressed && styles.pressed,
-            ]}
+            style={[styles.walletCard, { backgroundColor: theme.card, borderColor: theme.line }]}
           >
             <ThemedText
               style={[styles.walletGlyph, { backgroundColor: theme.mint, color: theme.pine }]}
@@ -149,27 +143,23 @@ function WalletCards({
             </ThemedText>
             <ThemedText style={styles.walletName}>{wallet.name}</ThemedText>
             <ThemedText style={styles.walletBalance}>{formatMoney(wallet.balance)}</ThemedText>
-          </Pressable>
+          </MotionPressable>
         ))}
         {wallets.length === 0 && (
           <View style={[styles.walletEmpty, { backgroundColor: theme.mint }]}>
             <ThemedText type="smallBold" themeColor="pine">
-              Belum ada Wallet aktif
+              {t('common.activeWalletEmpty')}
             </ThemedText>
             <ThemedText type="small" themeColor="muted">
-              Tambahkan tempat uangmu disimpan.
+              {t('common.activeWalletEmptyCopy')}
             </ThemedText>
           </View>
         )}
-        <Pressable
+        <MotionPressable
           accessibilityRole="button"
-          accessibilityLabel="Tambah Wallet"
+          accessibilityLabel={t('common.addWalletLabel')}
           onPress={onAdd}
-          style={({ pressed }) => [
-            styles.walletAdd,
-            { borderColor: theme.line },
-            pressed && styles.pressed,
-          ]}
+          style={[styles.walletAdd, { borderColor: theme.line }]}
         >
           <ThemedText
             type="subtitle"
@@ -179,24 +169,22 @@ function WalletCards({
             ＋
           </ThemedText>
           <ThemedText type="small" themeColor="muted" style={styles.walletAddLabel}>
-            Tambah Wallet
+            {t('common.addWalletLabel')}
           </ThemedText>
-        </Pressable>
-        {/*
-          <ThemedText type="subtitle" themeColor="pine" style={[styles.walletAddIcon, { backgroundColor: theme.mint }]}>＋</ThemedText>
-          <ThemedText type="small" themeColor="muted" style={styles.walletAddLabel}>Tambah Wallet</ThemedText>
-        */}
+        </MotionPressable>
       </ScrollView>
       {archivedWallets.length > 0 && (
         <View
           style={[styles.archivedWallets, { backgroundColor: theme.card, borderColor: theme.line }]}
         >
-          <Pressable
+          <MotionPressable
             accessibilityRole="button"
-            accessibilityLabel={archivedOpen ? 'Tutup Wallet diarsipkan' : 'Buka Wallet diarsipkan'}
-            accessibilityHint="Menampilkan Wallet yang tidak ada di daftar aktif"
+            accessibilityLabel={
+              archivedOpen ? t('common.closeArchivedWallets') : t('common.openArchivedWallets')
+            }
+            accessibilityHint={t('common.archivedWalletsHint')}
             onPress={() => setArchivedOpen((open) => !open)}
-            style={({ pressed }) => [styles.archivedHeader, pressed && styles.pressed]}
+            style={styles.archivedHeader}
           >
             <ThemedText
               type="smallBold"
@@ -206,55 +194,53 @@ function WalletCards({
               □
             </ThemedText>
             <View style={styles.archivedHeaderCopy}>
-              <ThemedText type="smallBold">Wallet diarsipkan</ThemedText>
+              <ThemedText type="smallBold">{t('common.archivedWallets')}</ThemedText>
               <ThemedText type="small" themeColor="muted">
-                {archivedWallets.length} Wallet tersimpan · tidak tampil di daftar aktif
+                {t('common.archivedCount', { count: archivedWallets.length })}
               </ThemedText>
             </View>
             <ThemedText type="subtitle" themeColor="muted">
-              {archivedOpen ? '⌃' : '⌄'}
+              <MotionChevron expanded={archivedOpen} color={theme.muted} />
             </ThemedText>
-          </Pressable>
+          </MotionPressable>
           {archivedOpen && (
-            <View style={[styles.archivedList, { borderTopColor: theme.line }]}>
-              {archivedWallets.map((wallet) => (
-                <View
-                  key={wallet.id}
-                  style={[styles.archivedWalletRow, { borderBottomColor: theme.line }]}
-                >
-                  <ThemedText
-                    type="smallBold"
-                    themeColor="pine"
-                    style={[styles.archivedWalletGlyph, { backgroundColor: theme.mint }]}
+            <MotionCollapsible>
+              <View style={[styles.archivedList, { borderTopColor: theme.line }]}>
+                {archivedWallets.map((wallet) => (
+                  <View
+                    key={wallet.id}
+                    style={[styles.archivedWalletRow, { borderBottomColor: theme.line }]}
                   >
-                    {walletGlyph(wallet)}
-                  </ThemedText>
-                  <View style={styles.archivedWalletCopy}>
-                    <ThemedText type="smallBold" numberOfLines={1}>
-                      {wallet.name}
+                    <ThemedText
+                      type="smallBold"
+                      themeColor="pine"
+                      style={[styles.archivedWalletGlyph, { backgroundColor: theme.mint }]}
+                    >
+                      {walletGlyph(wallet)}
                     </ThemedText>
-                    <ThemedText type="small" themeColor="muted">
-                      {formatMoney(wallet.balance)} · Terarsip
-                    </ThemedText>
+                    <View style={styles.archivedWalletCopy}>
+                      <ThemedText type="smallBold" numberOfLines={1}>
+                        {wallet.name}
+                      </ThemedText>
+                      <ThemedText type="small" themeColor="muted">
+                        {formatMoney(wallet.balance)} · {t('common.archived')}
+                      </ThemedText>
+                    </View>
+                    <MotionPressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t('common.restoreWallet', { name: wallet.name })}
+                      accessibilityHint={t('common.restoreWalletHint')}
+                      onPress={() => onRestore(wallet)}
+                      style={[styles.restoreButton, { borderColor: theme.pine }]}
+                    >
+                      <ThemedText type="smallBold" themeColor="pine">
+                        {t('common.restore')}
+                      </ThemedText>
+                    </MotionPressable>
                   </View>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`Kembalikan Wallet ${wallet.name}`}
-                    accessibilityHint="Wallet akan muncul kembali di daftar aktif"
-                    onPress={() => onRestore(wallet)}
-                    style={({ pressed }) => [
-                      styles.restoreButton,
-                      { borderColor: theme.pine },
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <ThemedText type="smallBold" themeColor="pine">
-                      Kembalikan
-                    </ThemedText>
-                  </Pressable>
-                </View>
-              ))}
-            </View>
+                ))}
+              </View>
+            </MotionCollapsible>
           )}
         </View>
       )}
@@ -265,14 +251,12 @@ function WalletCards({
 function ProgressBar({ progress }: { progress: number }) {
   const theme = useTheme();
   return (
-    <View style={[styles.progressTrack, { backgroundColor: theme.line }]}>
-      <View
-        style={[
-          styles.progressFill,
-          { width: `${Math.min(progress, 100)}%`, backgroundColor: theme.pine },
-        ]}
-      />
-    </View>
+    <MotionProgressBar
+      value={progress}
+      color={theme.pine}
+      trackColor={theme.line}
+      style={styles.progressTrack}
+    />
   );
 }
 
@@ -284,44 +268,51 @@ function PlanSnapshot({
   snapshot?: MockBudgetSnapshot;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const snapshot = snapshotProp ?? getHomeSnapshot();
   const progress =
     snapshot.totalIncome > 0 ? (snapshot.totalExpense / snapshot.totalIncome) * 100 : 0;
   return (
-    <ThemedView type="card" style={[styles.planSnapshot, { borderColor: theme.line }]}>
-      <View>
+    <MotionAnimatedView
+      entering={motionPresets.itemEntering}
+      layout={motionPresets.layout}
+      style={[styles.planSnapshot, { backgroundColor: theme.card, borderColor: theme.line }]}
+    >
+      <View style={styles.planHeader}>
         <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-          SPARE BUDGET
+          {t('common.spareBudget')}
         </ThemedText>
+        <MotionPressable
+          accessibilityRole="button"
+          accessibilityLabel={t('common.viewPlan')}
+          onPress={onPress}
+          style={styles.planLink}
+        >
+          <ThemedText type="smallBold" themeColor="pine" style={styles.planLinkText}>
+            {t('common.viewPlan')} →
+          </ThemedText>
+        </MotionPressable>
+      </View>
+      <View>
         <ThemedText type="subtitle" style={styles.planAmount}>
           {formatMoney(snapshot.spareBudget)}
         </ThemedText>
         <ThemedText type="small" themeColor="muted" style={styles.planCaption}>
-          masih bisa dialokasikan
+          {t('common.stillAllocatable')}
         </ThemedText>
       </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Lihat Rencana"
-        onPress={onPress}
-        style={styles.planLink}
-      >
-        <ThemedText type="smallBold" themeColor="pine" style={styles.planLinkText}>
-          Lihat Rencana →
-        </ThemedText>
-      </Pressable>
       <ProgressBar progress={progress} />
       <View style={styles.miniStats}>
         <ThemedText type="small" themeColor="muted" style={styles.miniStat}>
-          Pendapatan{' '}
+          {t('common.income')}{' '}
           <ThemedText style={styles.miniStatValue}>{formatMoney(snapshot.totalIncome)}</ThemedText>
         </ThemedText>
         <ThemedText type="small" themeColor="muted" style={styles.miniStat}>
-          Terpakai{' '}
+          {t('common.expense')}{' '}
           <ThemedText style={styles.miniStatValue}>{formatMoney(snapshot.totalExpense)}</ThemedText>
         </ThemedText>
       </View>
-    </ThemedView>
+    </MotionAnimatedView>
   );
 }
 
@@ -337,7 +328,10 @@ function RecentTransaction({
   onPress?: () => void;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const presentation = getTransactionPresentation(transaction, categories, wallets);
+  const category = categories?.find((item) => item.id === transaction.categoryId);
+  const categoryName = category ? getCategoryLabel(category) : presentation.categoryName;
   const typeColor =
     transaction.type === 'income' ? 'income' : transaction.type === 'expense' ? 'expense' : 'gold';
   const iconBackground =
@@ -348,9 +342,9 @@ function RecentTransaction({
         : theme.transferBackground;
   const sign = transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '−' : '↔';
   return (
-    <Pressable
+    <MotionPressable
       accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={onPress ? `Edit transaksi ${presentation.categoryName}` : undefined}
+      accessibilityLabel={onPress ? t('common.editTransaction', { name: categoryName }) : undefined}
       onPress={onPress}
       style={[styles.transactionRow, { borderBottomColor: theme.line }]}
     >
@@ -359,7 +353,7 @@ function RecentTransaction({
       </ThemedView>
       <View style={styles.transactionDescription}>
         <ThemedText type="smallBold" style={styles.transactionName}>
-          {presentation.categoryName}
+          {categoryName}
         </ThemedText>
         <ThemedText
           type="small"
@@ -378,7 +372,7 @@ function RecentTransaction({
           {transaction.time}
         </ThemedText>
       </View>
-    </Pressable>
+    </MotionPressable>
   );
 }
 
@@ -398,6 +392,7 @@ type WalletFormProps =
 
 function WalletForm(props: WalletFormProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const wallet = props.mode === 'edit' ? props.wallet : undefined;
   const [name, setName] = useState(wallet?.name ?? '');
   const [amount, setAmount] = useState(wallet ? formatMoneyInput(wallet.balance) : '');
@@ -405,29 +400,31 @@ function WalletForm(props: WalletFormProps) {
     <Modal animationType="slide" visible onRequestClose={props.onClose}>
       <ThemedView style={styles.formPage}>
         <View style={[styles.formHeader, { borderBottomColor: theme.line }]}>
-          <Pressable
+          <MotionPressable
             accessibilityRole="button"
-            accessibilityLabel="Tutup form Wallet"
+            accessibilityLabel={t('common.closeWalletForm')}
             onPress={props.onClose}
             style={styles.headerButton}
           >
             <ThemedText type="subtitle" themeColor="pine">
               ×
             </ThemedText>
-          </Pressable>
+          </MotionPressable>
           <ThemedText type="sectionHeading">
-            {props.mode === 'edit' ? 'Edit Wallet' : 'Wallet baru'}
+            {props.mode === 'edit' ? t('common.editWallet') : t('common.newWallet')}
           </ThemedText>
-          <Pressable
+          <MotionPressable
             accessibilityRole="button"
-            accessibilityLabel="Simpan Wallet"
-            onPress={() => props.onSave(name.trim() || 'Wallet baru', parseMoneyInput(amount))}
+            accessibilityLabel={t('common.saveWallet')}
+            onPress={() =>
+              props.onSave(name.trim() || t('common.newWallet'), parseMoneyInput(amount))
+            }
             style={styles.headerButton}
           >
             <ThemedText type="smallBold" themeColor="pine">
-              Simpan
+              {t('common.save')}
             </ThemedText>
-          </Pressable>
+          </MotionPressable>
         </View>
         <KeyboardAvoidingView
           style={styles.formBody}
@@ -440,24 +437,30 @@ function WalletForm(props: WalletFormProps) {
             automaticallyAdjustKeyboardInsets
           >
             <ThemedText type="small" themeColor="muted" style={styles.formNote}>
-              Wallet adalah tempat uangmu disimpan.
+              {t('common.walletFormNote')}
             </ThemedText>
             <ThemedText type="code" themeColor="muted" style={styles.formLabel}>
-              NAMA WALLET
+              {t('common.walletName').toUpperCase()}
             </ThemedText>
             <ThemedInput
-              accessibilityLabel="Nama Wallet"
-              placeholder="Mis. Jago, Tunai, GoPay"
+              accessibilityLabel={t('common.walletName')}
+              placeholder={t('common.walletNamePlaceholder')}
               value={name}
               onChangeText={setName}
             />
             <ThemedText type="code" themeColor="muted" style={styles.formLabel}>
-              {props.mode === 'edit' ? 'SALDO SAAT INI' : 'SALDO AWAL'}
+              {props.mode === 'edit'
+                ? t('common.currentBalanceLabel')
+                : t('common.startingBalanceLabel')}
             </ThemedText>
             <View style={styles.moneyInputRow}>
               <CurrencyMark />
               <ThemedInput
-                accessibilityLabel={props.mode === 'edit' ? 'Saldo Wallet' : 'Saldo awal'}
+                accessibilityLabel={
+                  props.mode === 'edit'
+                    ? t('common.walletBalance')
+                    : t('common.walletInitialBalance')
+                }
                 keyboardType="numeric"
                 placeholder="0"
                 value={amount}
@@ -466,9 +469,9 @@ function WalletForm(props: WalletFormProps) {
               />
             </View>
             {props.mode === 'edit' && (
-              <Pressable
+              <MotionPressable
                 accessibilityRole="button"
-                accessibilityLabel="Arsipkan Wallet"
+                accessibilityLabel={t('common.archiveWalletLabel')}
                 onPress={props.onArchive}
                 style={[styles.archiveAction, { borderTopColor: theme.line }]}
               >
@@ -485,16 +488,16 @@ function WalletForm(props: WalletFormProps) {
                 </ThemedText>
                 <View style={styles.archiveCopy}>
                   <ThemedText type="smallBold" style={{ color: theme.expense }}>
-                    Arsipkan Wallet
+                    {t('common.archiveWalletLabel')}
                   </ThemedText>
                   <ThemedText type="small" themeColor="muted">
-                    Transaksi tetap tersimpan
+                    {t('common.walletArchiveTransactionCopy')}
                   </ThemedText>
                 </View>
                 <ThemedText type="subtitle" themeColor="muted">
                   ›
                 </ThemedText>
-              </Pressable>
+              </MotionPressable>
             )}
           </ScrollView>
         </KeyboardAvoidingView>
@@ -533,6 +536,7 @@ export default function HomeScreen({
   onWalletRestore,
 }: HomeScreenProps = {}) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [wallets, setWallets] = useState<Wallet[]>(walletsProp ?? getHomeWallets);
   const [archivedWallets, setArchivedWallets] = useState<Wallet[]>(archivedWalletsProp ?? []);
   const [formWallet, setFormWallet] = useState<Wallet | 'new' | null>(null);
@@ -560,69 +564,71 @@ export default function HomeScreen({
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <HomeHeader />
-          <BalanceCard total={total} period={period} />
-          <WalletCards
-            wallets={wallets}
-            archivedWallets={archivedWallets}
-            onSelect={(wallet) => setFormWallet(wallet)}
-            onAdd={() => setFormWallet('new')}
-            onRestore={(wallet) => {
-              if (onWalletRestore) void onWalletRestore(wallet);
-              else {
-                setArchivedWallets((current) => current.filter((item) => item.id !== wallet.id));
-                setWallets((current) => restoreMockWallet([...current, wallet], wallet.id));
-              }
-            }}
-          />
-          <PlanSnapshot snapshot={snapshot} onPress={onPlanPress ?? (() => undefined)} />
-          <View style={styles.recent}>
-            <View style={styles.sectionTitle}>
-              <ThemedText type="sectionHeading">Terbaru</ThemedText>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Lihat Semua Transaksi"
-                onPress={onDailyPress ?? (() => undefined)}
-              >
-                <ThemedText type="smallBold" themeColor="pine">
-                  Lihat Semua
-                </ThemedText>
-              </Pressable>
-            </View>
-            {recentTransactions.length === 0 ? (
-              <View style={styles.empty}>
-                <ThemedText style={styles.emptyGlyph}>◌</ThemedText>
-                <ThemedText type="smallBold">Belum ada catatan</ThemedText>
-                <ThemedText type="small" themeColor="muted">
-                  Tambahkan transaksi pertama untuk melihat ringkasanmu.
-                </ThemedText>
+      <MotionScreen>
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+            <HomeHeader />
+            <BalanceCard total={total} period={period} />
+            <WalletCards
+              wallets={wallets}
+              archivedWallets={archivedWallets}
+              onSelect={(wallet) => setFormWallet(wallet)}
+              onAdd={() => setFormWallet('new')}
+              onRestore={(wallet) => {
+                if (onWalletRestore) void onWalletRestore(wallet);
+                else {
+                  setArchivedWallets((current) => current.filter((item) => item.id !== wallet.id));
+                  setWallets((current) => restoreMockWallet([...current, wallet], wallet.id));
+                }
+              }}
+            />
+            <PlanSnapshot snapshot={snapshot} onPress={onPlanPress ?? (() => undefined)} />
+            <View style={styles.recent}>
+              <View style={styles.sectionTitle}>
+                <ThemedText type="sectionHeading">{t('common.recent')}</ThemedText>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Tambah transaksi"
-                  onPress={onDailyPress}
-                  style={[styles.emptyButton, { backgroundColor: theme.pine }]}
+                  accessibilityLabel={t('common.viewAllTransactions')}
+                  onPress={onDailyPress ?? (() => undefined)}
                 >
-                  <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-                    Tambah transaksi
+                  <ThemedText type="smallBold" themeColor="pine">
+                    {t('common.viewAll')}
                   </ThemedText>
                 </Pressable>
               </View>
-            ) : (
-              recentTransactions.map((transaction) => (
-                <RecentTransaction
-                  key={transaction.id}
-                  transaction={transaction}
-                  wallets={wallets}
-                  categories={categoriesProp}
-                  onPress={onTransactionPress ? () => onTransactionPress(transaction) : undefined}
-                />
-              ))
-            )}
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+              {recentTransactions.length === 0 ? (
+                <View style={styles.empty}>
+                  <ThemedText style={styles.emptyGlyph}>◌</ThemedText>
+                  <ThemedText type="smallBold">{t('common.noRecords')}</ThemedText>
+                  <ThemedText type="small" themeColor="muted">
+                    {t('common.firstTransactionCopy')}
+                  </ThemedText>
+                  <MotionPressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.addTransaction')}
+                    onPress={onDailyPress}
+                    style={[styles.emptyButton, { backgroundColor: theme.pine }]}
+                  >
+                    <ThemedText type="smallBold" style={{ color: theme.heroText }}>
+                      {t('common.addTransaction')}
+                    </ThemedText>
+                  </MotionPressable>
+                </View>
+              ) : (
+                recentTransactions.map((transaction) => (
+                  <RecentTransaction
+                    key={transaction.id}
+                    transaction={transaction}
+                    wallets={wallets}
+                    categories={categoriesProp}
+                    onPress={onTransactionPress ? () => onTransactionPress(transaction) : undefined}
+                  />
+                ))
+              )}
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </MotionScreen>
       {formWallet === 'new' && (
         <WalletForm mode="create" onClose={() => setFormWallet(null)} onSave={saveWallet} />
       )}
@@ -637,13 +643,11 @@ export default function HomeScreen({
       )}
       <ConfirmationModal
         visible={walletToArchive !== null}
-        title="Arsipkan Wallet?"
+        title={t('common.archiveWallet')}
         message={
-          walletToArchive
-            ? `${walletToArchive.name} tidak akan tampil di daftar Wallet aktif. Transaksi tetap tersimpan.`
-            : ''
+          walletToArchive ? t('common.archiveConfirmCopy', { name: walletToArchive.name }) : ''
         }
-        confirmLabel="Arsipkan"
+        confirmLabel={t('common.archive')}
         destructive
         onCancel={() => setWalletToArchive(null)}
         onConfirm={async () => {
@@ -664,7 +668,10 @@ export default function HomeScreen({
 function formatPeriod(period: BudgetPeriod) {
   const start = new Date(`${period.startDate}T12:00:00`);
   const end = new Date(`${period.endDate}T12:00:00`);
-  return `${start.getDate()} — ${end.getDate()} ${new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(end)}`;
+  return `${start.getDate()} — ${end.getDate()} ${new Intl.DateTimeFormat(
+    getIntlLocale(i18n.language === 'en' ? 'en' : 'id'),
+    { month: 'short' },
+  ).format(end)}`;
 }
 
 const styles = StyleSheet.create({
@@ -758,7 +765,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 12,
     width: Layout.walletWidth,
-    ...Shadows.card,
   },
   walletEmpty: {
     borderRadius: 18,
@@ -811,7 +817,12 @@ const styles = StyleSheet.create({
     marginBottom: Layout.sectionGap,
     padding: 17,
   },
-  planLink: { position: 'absolute', right: Spacing.three, top: Spacing.three },
+  planHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  planLink: { minHeight: 32, justifyContent: 'center', paddingLeft: Spacing.two },
   planAmount: { fontSize: 25, lineHeight: 28 },
   planCaption: { fontSize: 11, lineHeight: 14 },
   planLinkText: { fontSize: 11, lineHeight: 14 },

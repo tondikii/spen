@@ -13,6 +13,7 @@ export const wallets = sqliteTable('wallets', {
 export const categories = sqliteTable('categories', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
+  systemKey: text('system_key'),
   type: text('type', { enum: ['income', 'expense', 'transfer'] }).notNull(),
   isAdjustment: integer('is_adjustment', { mode: 'boolean' }).notNull().default(false),
   icon: text('icon').notNull().default('◇'),
@@ -33,6 +34,8 @@ export const transactions = sqliteTable(
     note: text('note'),
     isInitial: integer('is_initial', { mode: 'boolean' }).notNull().default(false),
     adminFee: integer('admin_fee').notNull().default(0),
+    sourceIncomeItemId: integer('source_income_item_id'),
+    sourceExpenseItemId: integer('source_expense_item_id'),
   },
   (table) => ({
     dateIndex: index('transactions_date_idx').on(table.date),
@@ -150,7 +153,9 @@ export const settings = sqliteTable('settings', {
   themeMode: text('theme_mode', { enum: ['system', 'light', 'dark'] })
     .notNull()
     .default('light'),
-  locale: text('locale', { enum: ['id', 'en'] }).notNull().default('id'),
+  locale: text('locale', { enum: ['id', 'en'] })
+    .notNull()
+    .default('id'),
   budgetStartDay: integer('budget_start_day').notNull().default(1),
 });
 

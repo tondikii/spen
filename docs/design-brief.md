@@ -9,7 +9,7 @@ Dokumen ini adalah sumber kebenaran desain untuk **Spen**, aplikasi mobile AI bu
 Spen adalah aplikasi mobile budget planner dengan AI, semua data lokal di perangkat (tanpa akun server). Pengguna mengelola beberapa **Wallet** (tempat uang: cash, bank, e-wallet — dinamai bebas), menyusun satu **Budget plan** global per periode (pendapatan, fixed expense, goal), mencatat transaksi harian (income/expense/transfer), dan melihat **report** (pie chart expense per kategori, line chart net saving per periode) dengan AI insight.
 
 - **Platform**: mobile (iOS + Android native-first), via React Native / Expo.
-- **Bahasa**: seluruh UI dan output AI dalam **Bahasa Indonesia**.
+- **Bahasa**: seluruh UI dan output AI mengikuti locale aktif; **Bahasa Indonesia** menjadi default dan English menjadi alternatif.
 - **Target user**: individu yang ingin merencanakan keuangan bulanan secara terstruktur; gajian bisa di tanggal berapa pun.
 
 ---
@@ -77,7 +77,7 @@ Gaya visual komponen (kartu, progress bar, chart, sheet, modal, tab bar, ikon) a
 - **Form wallet** — full-screen modal (keyboard-heavy): nama, saldo awal. (Tanpa tipe.)
 - **Setup wizard** (saat pertama buka) — **3 langkah**: Welcome (branding + value prop) → buat wallet pertama (nama + saldo awal) → pilih currency (default IDR). **Tidak ada** step periode budget (diubah langsung dari layar Rencana) dan **tidak ada** tipe wallet.
 - **Detail & form lainnya** — form fixed expense, form goal, form kategori. (Detail transaksi = form edit transaksi, bukan layar terpisah.)
-- **AI Suggestion sheet** — hasil saran AI berupa **daftar saran terstruktur** (read-only dari AI), tiap saran punya tombol **"Terapkan"** (mengubah Budget plan; eksekusi oleh user). Dipicu manual, Bahasa Indonesia.
+- **AI Suggestion sheet** — hasil saran AI berupa **daftar saran terstruktur** (read-only dari AI), tiap saran punya tombol **"Terapkan"** (mengubah Budget plan; eksekusi oleh user). Dipicu manual dan mengikuti locale aktif.
 - **AI Insight sheet** — hasil analisis AI report (read-only, dipicu manual).
 
 ---
@@ -91,7 +91,7 @@ Gaya visual komponen (kartu, progress bar, chart, sheet, modal, tab bar, ikon) a
 4. **Lihat transaksi**: di Beranda → "Lihat Semua" → **view transaksi harian** (daily + stepper): `‹` `›` geser hari, tap label tanggal → **calendar picker** (lompat), lihat ringkasan & list transaksi hari itu. "Lihat Semua Transaksi" (di bagian bawah) → **layar riwayat** (grouped by day, infinite scroll, filter chips; ciut ke tombol "Filter" jika penuh).
 5. **Tambah fixed expense**: buka Rencana → tambah fixed expense → pilih kategori → isi nominal → simpan. (Progress terisi dari transaksi kategori; tombol "Bayar" untuk bayar langsung.)
 6. **Tambah goal**: buka Rencana → tambah goal → isi nama, target nominal, jangka waktu, pilih/buat wallet tabungan (wallet goal) → simpan. Menabung = transaksi transfer ke wallet goal; progress = saldo wallet goal.
-7. **AI Suggestion**: buka Rencana → tap "AI Suggestion" → (loading) → lihat saran alokasi spare budget dalam Bahasa Indonesia.
+7. **AI Suggestion**: buka Rencana → tap "AI Suggestion" → (loading) → lihat saran alokasi spare budget dalam locale aktif.
 8. **Lihat report**: buka Report → pilih periode → lihat ringkasan, pie chart, line chart → tap kategori di pie → drill-down transaksi (layar riwayat dengan filter kategori + scope periode) → tap "AI Insight" → lihat analisis.
 9. **Transfer**: tap **+** → pilih tipe transfer → pilih wallet asal & tujuan → isi nominal → simpan. Netral terhadap total kekayaan.
 10. **Settings**: ganti tema light/dark; backup semua data ke file JSON; restore dari file.
@@ -108,7 +108,7 @@ Gaya visual komponen (kartu, progress bar, chart, sheet, modal, tab bar, ikon) a
 - Goal: target + jangka waktu (opsional) + wallet tabungan sendiri (wallet goal, flag tabungan) → progress = saldo wallet goal; menabung = transaksi transfer ke wallet goal (saldo asal turun, saldo goal naik); penarikan darurat diperbolehkan dengan konfirmasi. Saat saldo wallet goal ≥ target ditandai "Tercapai" dan berhenti dihitung di spare.
 - Net saving negatif = "Defisit" (merah).
 - Report: ringkasan (income/expense/net saving), pie expense per kategori (urutan terbesar, drill-down), line chart net saving per periode (default 3 bulan, pilih rentang), AI insight.
-- AI (Groq): suggestion & insight dipicu manual, satu-shot, read-only, Bahasa Indonesia; fallback deterministik saat offline.
+- AI (Groq): suggestion & insight dipicu manual, satu-shot, read-only, mengikuti locale aktif; fallback deterministik saat offline.
 - Backup: seluruh data → file JSON (export/share sheet) & restore.
 - Currency: global, default IDR, bisa pilih mata uang lain (tampilan saja, tanpa konversi).
 

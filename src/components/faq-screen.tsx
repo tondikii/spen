@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -8,13 +9,19 @@ import { PageHeader } from '@/components/ui-primitives';
 import { Fonts, Layout, Radius, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getFaqEntries } from '@/lib/faq';
-import i18n from '@/i18n';
+import {
+  MotionChevron,
+  MotionCollapsible,
+  MotionPressable as Pressable,
+  MotionScreen,
+} from '@/components/motion';
 
 type FaqScreenProps = {
   onBack: () => void;
 };
 
 export default function FaqScreen({ onBack }: FaqScreenProps) {
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const [openQuestions, setOpenQuestions] = useState<Set<string>>(new Set());
 
@@ -29,67 +36,69 @@ export default function FaqScreen({ onBack }: FaqScreenProps) {
 
   return (
     <ThemedView style={styles.page}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <Pressable
-            accessibilityLabel="Kembali"
-            accessibilityRole="button"
-            hitSlop={8}
-            onPress={onBack}
-            style={({ pressed }) => [styles.back, pressed && styles.pressed]}
-          >
-            <ThemedText style={styles.backIcon} themeColor="pine">
-              ‹
-            </ThemedText>
-            <ThemedText type="smallBold" themeColor="pine">
-              Kembali
-            </ThemedText>
-          </Pressable>
+      <MotionScreen>
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+            <Pressable
+              accessibilityLabel={t('common.back')}
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={onBack}
+              style={({ pressed }) => [styles.back, pressed && styles.pressed]}
+            >
+              <ThemedText style={styles.backIcon} themeColor="pine">
+                ‹
+              </ThemedText>
+              <ThemedText type="smallBold" themeColor="pine">
+                {t('common.back')}
+              </ThemedText>
+            </Pressable>
 
-          <View style={styles.header}>
-            <PageHeader eyebrow="BANTUAN" title="FAQ" />
-            <ThemedText type="small" themeColor="muted" style={styles.subtitle}>
-              Jawaban singkat tentang cara kerja Spen.
-            </ThemedText>
-          </View>
+            <View style={styles.header}>
+              <PageHeader eyebrow={t('common.faqEyebrow')} title={t('common.faq')} />
+              <ThemedText type="small" themeColor="muted" style={styles.subtitle}>
+                {t('common.faqSubtitle')}
+              </ThemedText>
+            </View>
 
-          <View style={styles.list}>
-            {getFaqEntries(i18n.language === 'en' ? 'en' : 'id').map((entry) => {
-              const expanded = openQuestions.has(entry.question);
-              return (
-                <ThemedView
-                  key={entry.question}
-                  style={[styles.item, { backgroundColor: theme.card, borderColor: theme.line }]}
-                >
-                  <Pressable
-                    accessibilityLabel={entry.question}
-                    accessibilityRole="button"
-                    accessibilityState={{ expanded }}
-                    onPress={() => toggleQuestion(entry.question)}
-                    style={({ pressed }) => [styles.question, pressed && styles.pressed]}
+            <View style={styles.list}>
+              {getFaqEntries(i18n.language === 'en' ? 'en' : 'id').map((entry) => {
+                const expanded = openQuestions.has(entry.question);
+                return (
+                  <ThemedView
+                    key={entry.question}
+                    style={[styles.item, { backgroundColor: theme.card, borderColor: theme.line }]}
                   >
-                    <ThemedText type="smallBold" style={styles.questionText}>
-                      {entry.question}
-                    </ThemedText>
-                    <ThemedText style={[styles.chevron, { color: theme.pine }]}>
-                      {expanded ? '⌃' : '⌄'}
-                    </ThemedText>
-                  </Pressable>
-                  {expanded && (
-                    <ThemedText
-                      type="small"
-                      themeColor="muted"
-                      style={[styles.answer, { borderTopColor: theme.line }]}
+                    <Pressable
+                      accessibilityLabel={entry.question}
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded }}
+                      onPress={() => toggleQuestion(entry.question)}
+                      style={({ pressed }) => [styles.question, pressed && styles.pressed]}
                     >
-                      {entry.answer}
-                    </ThemedText>
-                  )}
-                </ThemedView>
-              );
-            })}
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+                      <ThemedText type="smallBold" style={styles.questionText}>
+                        {entry.question}
+                      </ThemedText>
+                      <MotionChevron expanded={expanded} color={theme.pine} />
+                    </Pressable>
+                    {expanded && (
+                      <MotionCollapsible>
+                        <ThemedText
+                          type="small"
+                          themeColor="muted"
+                          style={[styles.answer, { borderTopColor: theme.line }]}
+                        >
+                          {entry.answer}
+                        </ThemedText>
+                      </MotionCollapsible>
+                    )}
+                  </ThemedView>
+                );
+              })}
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </MotionScreen>
     </ThemedView>
   );
 }

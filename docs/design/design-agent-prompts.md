@@ -32,7 +32,7 @@ KONTEKS PRODUK (baca file terlampir: design-brief.md, spec.md, CONTEXT.md):
 - Goal = wallet tabungan: menabung = transaksi transfer ke wallet goal; progress = saldo wallet goal.
 - Koreksi saldo = transaksi penyesuaian (kategori "Penyesuaian Saldo"); tidak mengubah target plan.
 - Report: pie chart expense per kategori, line chart net saving, AI insight.
-- AI suggestion & insight dipicu manual, Bahasa Indonesia.
+- AI suggestion & insight dipicu manual, mengikuti locale aktif.
 - Settings: theme light/dark, backup JSON, currency (default IDR, bisa pilih mata uang lain).
 
 ARAHAN TEMA (bukan spesifikasi visual — visual exact terserah kamu, konsisten):
@@ -51,9 +51,9 @@ LAYAR YANG HARUS DIHASILKAN (frame mobile, light + dark):
 6. View transaksi harian (DAILY + STEPPER: stepper ‹ › geser hari + label relatif "Hari Ini"/"Kemarin"/"Sen, 1 Sep" + tap label → calendar picker lompat tanggal + ringkasan hari "Masuk/Keluar" + list transaksi hari itu dengan jam. TANPA filter & TANPA infinite scroll — data per hari sedikit. Empty state: "Tidak ada transaksi pada {tanggal}" + CTA tambah)
 7. Layar riwayat transaksi (dari "Lihat Semua Transaksi": grouped by day + section header sticky (tanggal + total hari) + infinite scroll + filter chips di atas; ciut ke tombol "Filter" jika penuh)
 8. Rencana (struktur: header "Rencana" + label periode "[1–30 Sep ▾]" (tap → ubah tanggal mulai) + tombol ✨ AI Suggestion di header; HERO: saldo tersedia yang dipecah menjadi "Tersedia bebas" (total saldo − saldo wallet goal) dan "Terikat goal", plus spare budget (angka rencana) sebagai elemen terpisah; SECTION CARDS: Pendapatan (item target + realisasi dari transaksi income + tombol "Catat" yang membuat transaksi income), Fixed Expense (item: progress + status bayar "Lunas ✓"/"x/y dibayar"/"Belum dibayar" + tombol "Bayar"; fixed expense = alokasi, progress dari transaksi kategori, TANPA transaksi otomatis), Goal (progress saldo wallet goal / target + kontribusi bulanan; "Tercapai" saat penuh), Alokasi (progress + over-budget "Melebihi Budget" jika >100%); tiap section ada tombol "+ Tambah"; kategori picker dengan inline create/update/delete + filter sesuai tipe)
-9. AI Suggestion sheet (hasil DAFTAR SARAN TERSTRUKTUR, bukan teks bebas — tiap saran punya tombol "Terapkan" yang mengubah plan; read-only dari AI, eksekusi oleh user; Bahasa Indonesia; fallback deterministik saat offline)
+9. AI Suggestion sheet (hasil DAFTAR SARAN TERSTRUKTUR, bukan teks bebas — tiap saran punya tombol "Terapkan" yang mengubah plan; read-only dari AI, eksekusi oleh user; mengikuti locale aktif; fallback deterministik saat offline)
 10. Report (ringkasan + pie chart expense per kategori + line chart net saving + tombol "AI Insight")
-11. AI Insight sheet (analisis Bahasa Indonesia)
+11. AI Insight sheet (analisis dalam locale aktif)
 12. Settings (theme, currency — default IDR + pilihan mata uang lain, backup/restore)
 
 NAVIGASI & TAB BAR:
@@ -69,7 +69,7 @@ INTERAKTIVITAS (penting untuk prototype fungsional):
 - "Lihat Semua" transaksi → view transaksi harian (daily + stepper): ‹ › geser hari, tap label tanggal → calendar picker, ringkasan hari (Masuk/Keluar), list transaksi hari itu.
 - "Lihat Semua Transaksi" (di bawah view harian) → layar riwayat (grouped by day, infinite scroll, filter chips).
 - Tap kategori di pie chart → drill-down transaksi kategori itu (layar riwayat dengan filter kategori + scope periode).
-- Tap "AI Suggestion" → buka sheet hasil: daftar saran terstruktur, tiap saran punya tombol "Terapkan" (mengubah plan); loading state dulu, lalu hasil Bahasa Indonesia.
+- Tap "AI Suggestion" → buka sheet hasil: daftar saran terstruktur, tiap saran punya tombol "Terapkan" (mengubah plan); loading state dulu, lalu hasil dalam locale aktif.
 - Theme toggle light/dark → seluruh layar berubah.
 
 STATE PENTING: empty state (belum ada transaksi), loading (AI), over-budget (>100%), defisit (net saving negatif), goal tercapai, error.
@@ -80,7 +80,7 @@ Gunakan istilah domain: Wallet, Budget plan, Fixed expense, Goal, Spare budget, 
 
 ```
 Baca file terlampir: design-brief.md, spec.md, CONTEXT.md.
-Buat prototype fungsional mobile app "Spen" — AI budget planner Bahasa Indonesia.
+Buat prototype fungsional mobile app "Spen" — AI budget planner dengan Bahasa Indonesia sebagai default dan English sebagai alternatif.
 Kamu design lead-nya: keputusan visual spesifik (font, warna exact, radius, dsb.) kamu yang tentukan,
 konsisten di semua layar — aku cuma kasih arah tema (calm finance, angka menonjol, income/expense/transfer
 dibedakan warna semantik, light + dark). LANGSUNG build semua layar dari brief bagian 4 dalam satu shot

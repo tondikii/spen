@@ -170,6 +170,56 @@ describe('database transaction service', () => {
     ]);
   });
 
+  it('preserves Plan source relations when editing a generated transaction', async () => {
+    await database.runAsync(
+      "INSERT INTO budget_periods (start_date, end_date, duration_months) VALUES ('2026-09-01', '2026-09-30', 1);",
+    );
+    const plan = await database.runAsync('INSERT INTO budget_plans (budget_period_id) VALUES (1);');
+    const sourceItem = await database.runAsync(
+      'INSERT INTO income_items (budget_plan_id, name, category_id, target_amount) VALUES (?, ?, ?, ?);',
+      plan.lastInsertRowId,
+      'Gaji',
+      Number(incomeCategoryId.replace('category-', '')),
+      500,
+    );
+    await database.runAsync(
+      `INSERT INTO transactions (type, wallet_id, category_id, amount, date, time, note, source_income_item_id)
+       VALUES ('income', ?, ?, ?, ?, ?, ?, ?);`,
+      Number(walletId.replace('wallet-', '')),
+      Number(incomeCategoryId.replace('category-', '')),
+      500,
+      '2026-09-02',
+      '08:00',
+      'Pendapatan Plan: Gaji',
+      sourceItem.lastInsertRowId,
+    );
+    const generated = (await getDatabaseTransactions(database)).find(
+      (item) => item.note === 'Pendapatan Plan: Gaji',
+    )!;
+
+    await saveDatabaseTransaction(
+      database,
+      {
+        type: 'income',
+        walletId,
+        toWalletId: null,
+        categoryId: incomeCategoryId,
+        amount: 700,
+        date: '2026-09-03',
+        time: '09:00',
+        note: 'Gaji diperbarui',
+      },
+      generated.id,
+    );
+
+    expect(
+      await database.getFirstAsync<{ source_income_item_id: number }>(
+        'SELECT source_income_item_id FROM transactions WHERE note = ?;',
+        'Gaji diperbarui',
+      ),
+    ).toEqual({ source_income_item_id: sourceItem.lastInsertRowId });
+  });
+
   it('archives a used category instead of deleting its history', async () => {
     await saveDatabaseTransaction(database, {
       type: 'expense',

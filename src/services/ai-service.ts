@@ -108,7 +108,9 @@ function fallbackSuggestions(input: BudgetAIInput): BudgetSuggestion[] {
       {
         action: 'allocate_spare',
         title: en ? 'Set aside half of your spare budget' : 'Sisihkan setengah spare budget',
-        description: en ? 'Build an emergency fund for unexpected needs.' : 'Jadikan dana darurat untuk kebutuhan tak terduga.',
+        description: en
+          ? 'Build an emergency fund for unexpected needs.'
+          : 'Jadikan dana darurat untuk kebutuhan tak terduga.',
         amount: Math.floor(input.spareBudget / 2),
       },
     ];
@@ -119,7 +121,9 @@ function fallbackSuggestions(input: BudgetAIInput): BudgetSuggestion[] {
       {
         action: 'review_expense',
         title: en ? `Review ${largest.name} spending` : `Tinjau pengeluaran ${largest.name}`,
-        description: en ? `${largest.name} is your largest expense. Review its transactions and allocation.` : `Pengeluaran ${largest.name} paling besar. Cek transaksi dan alokasinya.`,
+        description: en
+          ? `${largest.name} is your largest expense. Review its transactions and allocation.`
+          : `Pengeluaran ${largest.name} paling besar. Cek transaksi dan alokasinya.`,
         categoryName: largest.name,
       },
     ];
@@ -127,7 +131,9 @@ function fallbackSuggestions(input: BudgetAIInput): BudgetSuggestion[] {
     {
       action: 'review_expense',
       title: en ? 'Organize your Budget plan' : 'Rapikan Budget plan',
-      description: en ? 'Record income and expenses so future suggestions are more useful.' : 'Catat pendapatan dan pengeluaran agar saran berikutnya lebih tepat.',
+      description: en
+        ? 'Record income and expenses so future suggestions are more useful.'
+        : 'Catat pendapatan dan pengeluaran agar saran berikutnya lebih tepat.',
     },
   ];
 }
@@ -136,12 +142,20 @@ function fallbackInsight(input: BudgetAIInput): string {
   const en = input.locale === 'en';
   const largest = input.topExpenses?.[0];
   const expenseText = largest
-    ? (en ? `Largest expense: ${largest.name} at ${largest.amount.toLocaleString('en-US')}.` : `Pengeluaran terbesar: kategori ${largest.name} sebesar ${largest.amount.toLocaleString('id-ID')}.`)
-    : (en ? 'No spending category stands out yet.' : 'Belum ada kategori pengeluaran yang dominan.');
+    ? en
+      ? `Largest expense: ${largest.name} at ${largest.amount.toLocaleString('en-US')}.`
+      : `Pengeluaran terbesar: kategori ${largest.name} sebesar ${largest.amount.toLocaleString('id-ID')}.`
+    : en
+      ? 'No spending category stands out yet.'
+      : 'Belum ada kategori pengeluaran yang dominan.';
   const savingText =
     input.netSaving >= 0
-      ? (en ? 'Net saving is positive — there is room to increase allocations.' : 'Net saving masih positif — masih ada ruang untuk menambah alokasi.')
-      : (en ? 'Net saving is negative — review your largest expenses and allocations.' : 'Net saving sedang negatif — cek pengeluaran terbesar dan alokasinya.');
+      ? en
+        ? 'Net saving is positive — there is room to increase allocations.'
+        : 'Net saving masih positif — masih ada ruang untuk menambah alokasi.'
+      : en
+        ? 'Net saving is negative — review your largest expenses and allocations.'
+        : 'Net saving sedang negatif — cek pengeluaran terbesar dan alokasinya.';
   return `${expenseText} ${savingText}`;
 }
 
@@ -170,8 +184,9 @@ export class AIService {
           messages: [
             {
               role: 'system',
-              content:
-                en ? 'You are Spen’s Budget plan assistant. Reply briefly and calmly in English with actionable suggestions. Do not change user data.' : 'Kamu asisten Budget plan Spen. Jawab ringkas dan tenang dalam Bahasa Indonesia, langsung ke saran. Jangan mengubah data pengguna.',
+              content: en
+                ? 'You are Spen’s Budget plan assistant. Reply briefly and calmly in English with actionable suggestions. Do not change user data.'
+                : 'Kamu asisten Budget plan Spen. Jawab ringkas dan tenang dalam Bahasa Indonesia, langsung ke saran. Jangan mengubah data pengguna.',
             },
             { role: 'user', content: JSON.stringify(input) },
           ],
@@ -207,8 +222,9 @@ export class AIService {
           messages: [
             {
               role: 'system',
-              content:
-                en ? 'You are Spen’s financial analyst. Write a brief, clear, calm insight in English, focused on facts and direction without judgment.' : 'Kamu analis keuangan Spen. Tulis insight ringkas, jelas, dan tenang dalam Bahasa Indonesia, langsung ke fakta dan arahnya, tanpa menghakimi.',
+              content: en
+                ? 'You are Spen’s financial analyst. Write a brief, clear, calm insight in English, focused on facts and direction without judgment.'
+                : 'Kamu analis keuangan Spen. Tulis insight ringkas, jelas, dan tenang dalam Bahasa Indonesia, langsung ke fakta dan arahnya, tanpa menghakimi.',
             },
             { role: 'user', content: JSON.stringify(input) },
           ],

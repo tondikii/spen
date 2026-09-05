@@ -5,10 +5,16 @@ import {
   getDatabaseTransactionCategories,
   getDatabaseTransactions,
 } from '@/services/transaction-service';
-import { ensureActiveBudgetPlan } from '@/services/plan-service';
-import type { BudgetPeriod, MockBudgetSnapshot } from '@/types/domain';
+import { ensureActiveBudgetPlan, getDatabasePlanView } from '@/services/plan-service';
+import type { BudgetPeriod, MockBudgetSnapshot, SystemCategoryKey } from '@/types/domain';
 
-export type ReportExpense = { categoryId: string; name: string; icon: string; amount: number };
+export type ReportExpense = {
+  categoryId: string;
+  name: string;
+  systemKey?: SystemCategoryKey | null;
+  icon: string;
+  amount: number;
+};
 export type ReportPeriodPoint = { period: BudgetPeriod; netSaving: number };
 
 export type ReportView = {
@@ -25,6 +31,7 @@ export function getReportView() {
     .map((category) => ({
       categoryId: category.id,
       name: category.name,
+      systemKey: category.systemKey,
       icon: category.icon,
       amount: mockData.transactions
         .filter(
@@ -73,6 +80,7 @@ export async function getDatabaseReportView(
       Math.max(1, Math.trunc(rangeMonths)),
     ),
   ]);
+  const planView = await getDatabasePlanView(database, today);
   const categoryMap = new Map(categories.map((category) => [category.id, category]));
   const activeTransactions = transactions.filter(
     (transaction) => transaction.date >= period.startDate && transaction.date <= period.endDate,
@@ -91,6 +99,7 @@ export async function getDatabaseReportView(
             {
               categoryId: transaction.categoryId!,
               name: category?.name ?? 'Kategori',
+              systemKey: category?.systemKey ?? null,
               icon: category?.icon ?? '◇',
               amount: 0,
             },
@@ -143,11 +152,11 @@ export async function getDatabaseReportView(
     totalTransferIn: totals.transferIn,
     totalTransferOut: totals.transferOut,
     netSaving: totals.income - totals.expense - totals.transferOut + totals.transferIn,
-    spareBudget: 0,
-    availableBalance: 0,
-    freeBalance: 0,
-    goalBalance: 0,
-    planItems: [],
+    spareBudget: planView.snapshot.spareBudget,
+    availableBalance: planView.snapshot.availableBalance,
+    freeBalance: planView.snapshot.freeBalance,
+    goalBalance: planView.snapshot.goalBalance,
+    planItems: planView.snapshot.planItems,
   };
   return { snapshot, expenses, period, netSavingByPeriod };
 }

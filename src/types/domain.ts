@@ -4,6 +4,19 @@ export type WalletTint = 'pine' | 'coral' | 'gold' | 'goal';
 export type PlanItemType = 'income' | 'expense' | 'fixedExpense' | 'allocation';
 export type ThemeMode = 'system' | 'light' | 'dark';
 export type Locale = 'id' | 'en';
+export type SystemCategoryKey =
+  | 'salary'
+  | 'freelance'
+  | 'bonus'
+  | 'food'
+  | 'transport'
+  | 'shopping'
+  | 'rent'
+  | 'internet'
+  | 'entertainment'
+  | 'transfer'
+  | 'openingBalance'
+  | 'balanceAdjustment';
 export type CurrencyCode =
   'IDR' | 'USD' | 'SGD' | 'MYR' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'SAR' | 'AED';
 export type PaymentStatus =
@@ -24,6 +37,7 @@ export type Wallet = {
 export type Category = {
   id: string;
   name: string;
+  systemKey?: SystemCategoryKey | null;
   type: CategoryType;
   icon: string;
   archived: boolean;
@@ -43,6 +57,8 @@ export type Transaction = {
   note: string;
   isInitial?: boolean;
   isAdjustment?: boolean;
+  sourceIncomeItemId?: string | null;
+  sourceExpenseItemId?: string | null;
 };
 
 export type TransactionDraft = Omit<Transaction, 'id'>;
@@ -60,6 +76,7 @@ export type IncomeItem = {
   name: string;
   categoryId: string;
   targetAmount: number;
+  walletId?: string;
   isAutomatic?: boolean;
 };
 

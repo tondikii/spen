@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,6 +18,14 @@ import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
+import { getCategoryLabel } from '@/i18n/categories';
+import { getIntlLocale } from '@/i18n/format';
+import {
+  MotionChevron,
+  MotionCollapsible,
+  MotionPressable as Pressable,
+  MotionScreen,
+} from '@/components/motion';
 
 export default function DailyTransactionsScreen({
   transactions: transactionsProp,
@@ -43,141 +51,163 @@ export default function DailyTransactionsScreen({
 
   return (
     <ThemedView style={styles.page}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.content}>
-          <View style={styles.header}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Kembali"
-              onPress={() => router.back()}
-            >
-              <ThemedText style={styles.back}>‹</ThemedText>
-            </Pressable>
-            <View style={styles.headerCenter}>
-              <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-                {t('common.daily')}
-              </ThemedText>
+      <MotionScreen>
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView contentContainerStyle={styles.content}>
+            <View style={styles.header}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Pilih tanggal"
+                accessibilityLabel={t('common.back')}
+                onPress={() => router.back()}
+              >
+                <ThemedText style={styles.back}>‹</ThemedText>
+              </Pressable>
+              <View style={styles.headerCenter}>
+                <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
+                  {t('common.daily')}
+                </ThemedText>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.selectDate')}
+                  onPress={() => setCalendarOpen((open) => !open)}
+                >
+                  <View style={styles.datePickerLabel}>
+                    <ThemedText type="sectionHeading">{formatDateLabel(date)}</ThemedText>
+                    <MotionChevron expanded={calendarOpen} color={theme.ink} size={18} />
+                  </View>
+                </Pressable>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.openCalendar')}
                 onPress={() => setCalendarOpen((open) => !open)}
               >
-                <ThemedText type="sectionHeading">{formatDateLabel(date)}⌄</ThemedText>
+                <ThemedText style={[styles.calendarButton, { color: theme.pine }]}>▦</ThemedText>
               </Pressable>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Buka kalender"
-              onPress={() => setCalendarOpen((open) => !open)}
-            >
-              <ThemedText style={[styles.calendarButton, { color: theme.pine }]}>▦</ThemedText>
-            </Pressable>
-          </View>
-          <View style={styles.dayStepper}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Hari sebelumnya"
-              onPress={() => setDate((current) => shiftDate(current, -1))}
-              style={[
-                styles.stepperButton,
-                { borderColor: theme.line, backgroundColor: theme.card },
-              ]}
-            >
-              <ThemedText type="subtitle" themeColor="pine">
-                ‹
-              </ThemedText>
-            </Pressable>
-            <ThemedText type="smallBold">{getDailyLabel(date, today)}</ThemedText>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Hari berikutnya"
-              onPress={() => setDate((current) => shiftDate(current, 1))}
-              style={[
-                styles.stepperButton,
-                { borderColor: theme.line, backgroundColor: theme.card },
-              ]}
-            >
-              <ThemedText type="subtitle" themeColor="pine">
-                ›
-              </ThemedText>
-            </Pressable>
-          </View>
-          {calendarOpen && (
-            <View
-              style={[styles.calendar, { borderColor: theme.line, backgroundColor: theme.card }]}
-            >
-              {calendarDates.map((calendarDate) => (
-                <Pressable
-                  key={calendarDate}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Tanggal ${calendarDate}`}
-                  onPress={() => {
-                    setDate(calendarDate);
-                    setCalendarOpen(false);
-                  }}
-                  style={[
-                    styles.calendarDay,
-                    calendarDate === date && { backgroundColor: theme.pine },
-                  ]}
-                >
-                  <ThemedText
-                    type="small"
-                    style={calendarDate === date ? { color: theme.heroText } : undefined}
-                  >
-                    {calendarDate.slice(8)}
-                  </ThemedText>
-                </Pressable>
-              ))}
-            </View>
-          )}
-          <View style={[styles.summary, { borderColor: theme.line, backgroundColor: theme.card }]}>
-            <SummaryItem label={t('common.income')} value={totals.income} color={theme.income} sign="+" />
-            <SummaryItem label={t('common.expense')} value={totals.expense} color={theme.expense} sign="−" />
-          </View>
-          {transactions.length > 0 ? (
-            <View style={[styles.list, { borderTopColor: theme.line }]}>
-              {transactions.map((transaction) => (
-                <DailyTransaction
-                  key={transaction.id}
-                  transaction={transaction}
-                  categories={categories}
-                  wallets={wallets}
-                />
-              ))}
-            </View>
-          ) : (
-            <View style={styles.empty}>
-              <ThemedText style={[styles.emptyGlyph, { color: theme.pine }]}>◌</ThemedText>
-              <ThemedText type="subtitle" style={styles.emptyTitle}>
-                {t('common.noRecords')}
-              </ThemedText>
-              <ThemedText type="small" themeColor="muted" style={styles.emptyDescription}>
-                Tidak ada transaksi pada {formatDateLabel(date)}.
-              </ThemedText>
+            <View style={styles.dayStepper}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Tambah transaksi"
-                onPress={() => router.push('/create')}
-                style={[styles.primary, { backgroundColor: theme.pine }]}
+                accessibilityLabel={t('common.previousDay')}
+                onPress={() => setDate((current) => shiftDate(current, -1))}
+                style={[
+                  styles.stepperButton,
+                  { borderColor: theme.line, backgroundColor: theme.card },
+                ]}
               >
-                <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-                  {t('common.addTransaction')} →
+                <ThemedText type="subtitle" themeColor="pine">
+                  ‹
+                </ThemedText>
+              </Pressable>
+              <ThemedText type="smallBold">{getDailyLabel(date, today)}</ThemedText>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.nextDay')}
+                onPress={() => setDate((current) => shiftDate(current, 1))}
+                style={[
+                  styles.stepperButton,
+                  { borderColor: theme.line, backgroundColor: theme.card },
+                ]}
+              >
+                <ThemedText type="subtitle" themeColor="pine">
+                  ›
                 </ThemedText>
               </Pressable>
             </View>
-          )}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Lihat Semua Transaksi"
-            onPress={() => router.push('/history')}
-            style={styles.allHistory}
-          >
-            <ThemedText type="smallBold" themeColor="pine">
-              {t('common.allTransactions')} →
-            </ThemedText>
-          </Pressable>
-        </ScrollView>
-      </SafeAreaView>
+            {calendarOpen && (
+              <MotionCollapsible>
+                <View
+                  style={[
+                    styles.calendar,
+                    { borderColor: theme.line, backgroundColor: theme.card },
+                  ]}
+                >
+                  {calendarDates.map((calendarDate) => (
+                    <Pressable
+                      key={calendarDate}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('common.date', { date: calendarDate })}
+                      onPress={() => {
+                        setDate(calendarDate);
+                        setCalendarOpen(false);
+                      }}
+                      style={[
+                        styles.calendarDay,
+                        calendarDate === date && { backgroundColor: theme.pine },
+                      ]}
+                    >
+                      <ThemedText
+                        type="small"
+                        style={calendarDate === date ? { color: theme.heroText } : undefined}
+                      >
+                        {calendarDate.slice(8)}
+                      </ThemedText>
+                    </Pressable>
+                  ))}
+                </View>
+              </MotionCollapsible>
+            )}
+            <View
+              style={[styles.summary, { borderColor: theme.line, backgroundColor: theme.card }]}
+            >
+              <SummaryItem
+                label={t('common.income')}
+                value={totals.income}
+                color={theme.income}
+                sign="+"
+              />
+              <SummaryItem
+                label={t('common.expense')}
+                value={totals.expense}
+                color={theme.expense}
+                sign="−"
+              />
+            </View>
+            {transactions.length > 0 ? (
+              <View style={[styles.list, { borderTopColor: theme.line }]}>
+                {transactions.map((transaction) => (
+                  <DailyTransaction
+                    key={transaction.id}
+                    transaction={transaction}
+                    categories={categories}
+                    wallets={wallets}
+                  />
+                ))}
+              </View>
+            ) : (
+              <View style={styles.empty}>
+                <ThemedText style={[styles.emptyGlyph, { color: theme.pine }]}>◌</ThemedText>
+                <ThemedText type="subtitle" style={styles.emptyTitle}>
+                  {t('common.noRecords')}
+                </ThemedText>
+                <ThemedText type="small" themeColor="muted" style={styles.emptyDescription}>
+                  {t('common.noTransactionsOn', { date: formatDateLabel(date) })}
+                </ThemedText>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.addTransaction')}
+                  onPress={() => router.push('/create')}
+                  style={[styles.primary, { backgroundColor: theme.pine }]}
+                >
+                  <ThemedText type="smallBold" style={{ color: theme.heroText }}>
+                    {t('common.addTransaction')} →
+                  </ThemedText>
+                </Pressable>
+              </View>
+            )}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('common.viewAllTransactions')}
+              onPress={() => router.push('/history')}
+              style={styles.allHistory}
+            >
+              <ThemedText type="smallBold" themeColor="pine">
+                {t('common.allTransactions')} →
+              </ThemedText>
+            </Pressable>
+          </ScrollView>
+        </SafeAreaView>
+      </MotionScreen>
     </ThemedView>
   );
 }
@@ -215,6 +245,8 @@ function DailyTransaction({
 }) {
   const theme = useTheme();
   const presentation = getTransactionPresentation(transaction, categories, wallets);
+  const category = categories?.find((item) => item.id === transaction.categoryId);
+  const categoryName = category ? getCategoryLabel(category) : presentation.categoryName;
   const isIncome = transaction.type === 'income';
   const isTransfer = transaction.type === 'transfer';
   const color = isIncome ? theme.income : isTransfer ? theme.gold : theme.expense;
@@ -226,7 +258,7 @@ function DailyTransaction({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Edit transaksi ${presentation.categoryName}`}
+      accessibilityLabel={i18n.t('common.editTransaction', { name: categoryName })}
       onPress={() =>
         router.push({ pathname: '/create', params: { transactionId: transaction.id } })
       }
@@ -236,7 +268,7 @@ function DailyTransaction({
         <ThemedText style={{ color }}>{presentation.categoryIcon}</ThemedText>
       </ThemedView>
       <View style={styles.transactionCopy}>
-        <ThemedText type="smallBold">{presentation.categoryName}</ThemedText>
+        <ThemedText type="smallBold">{categoryName}</ThemedText>
         <ThemedText type="small" themeColor="muted" numberOfLines={1}>
           {presentation.walletName} · {transaction.note}
         </ThemedText>
@@ -253,9 +285,10 @@ function DailyTransaction({
   );
 }
 function formatDateLabel(date: string) {
-  return new Intl.DateTimeFormat(i18n.language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'short' }).format(
-    new Date(`${date}T12:00:00`),
-  );
+  return new Intl.DateTimeFormat(getIntlLocale(i18n.language === 'en' ? 'en' : 'id'), {
+    day: 'numeric',
+    month: 'short',
+  }).format(new Date(`${date}T12:00:00`));
 }
 
 const styles = StyleSheet.create({
@@ -272,6 +305,7 @@ const styles = StyleSheet.create({
   header: { alignItems: 'center', flexDirection: 'row', marginBottom: 20 },
   back: { fontSize: 26, lineHeight: 30, padding: 6 },
   headerCenter: { alignItems: 'center', flex: 1 },
+  datePickerLabel: { alignItems: 'center', flexDirection: 'row', gap: 3 },
   calendarButton: { fontSize: 21, lineHeight: 29, padding: 6, width: 41 },
   eyebrow: { ...Typography.eyebrow, marginBottom: Spacing.one },
   dayStepper: {

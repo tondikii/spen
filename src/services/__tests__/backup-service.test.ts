@@ -81,10 +81,18 @@ describe('backup service', () => {
       "INSERT INTO wallets (name, initial_balance, is_savings, archived) VALUES ('Tambahan', 2, 0, 0);",
     );
 
-    await restoreDatabase(database, payload);
+    const restoredLocale = await restoreDatabase(database, payload);
 
     expect(
       await database.getAllAsync<{ name: string }>('SELECT name FROM wallets ORDER BY id;'),
     ).toEqual([{ name: 'Hasil Restore' }]);
+    expect(restoredLocale).toBe('id');
+  });
+
+  it('returns the locale stored in the restored backup', async () => {
+    const payload = await exportDatabase(database);
+    payload.data.settings[0].locale = 'en';
+
+    await expect(restoreDatabase(database, payload)).resolves.toBe('en');
   });
 });

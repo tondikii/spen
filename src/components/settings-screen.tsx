@@ -3,7 +3,8 @@ import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SpenLogo } from '@/components/brand-assets';
@@ -30,8 +31,16 @@ import {
   setSelectedCurrency,
 } from '@/services/settings-service';
 import type { CurrencyCode, Locale } from '@/types/domain';
-import i18n from '@/i18n';
+import { changeLocale } from '@/i18n';
 import { getPublicDocumentUrl } from '@/lib/public-documents';
+import { getErrorTranslationKey } from '@/lib/app-error';
+import {
+  MotionChevron,
+  MotionCollapsible,
+  MotionPressable,
+  MotionScreen,
+  MotionSwitch,
+} from '@/components/motion';
 
 const currencySymbols: Record<CurrencyCode, string> = {
   IDR: 'Rp',
@@ -50,6 +59,7 @@ export default function SettingsScreen({
   database,
   onFaqPress,
 }: { database?: SQLiteDatabase; onFaqPress?: () => void } = {}) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { mode, setMode } = useAppTheme();
   const [currency, setCurrency] = useState<CurrencyCode>(getSelectedCurrency());
@@ -70,35 +80,37 @@ export default function SettingsScreen({
         database ? await setDatabaseCurrency(database, option) : setSelectedCurrency(option),
       );
       setCurrencyOpen(false);
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : 'Mata uang gagal disimpan.');
+    } catch {
+      showToast(t('errors.storage'));
     }
   };
   const chooseLocale = async (option: Locale) => {
     try {
       const next = database ? await setDatabaseLocale(database, option) : setSelectedLocale(option);
       setLocale(next);
-      await i18n.changeLanguage(next);
-    } catch (error) { showToast(error instanceof Error ? error.message : 'Bahasa gagal disimpan.'); }
+      await changeLocale(next);
+    } catch {
+      showToast(t('errors.storage'));
+    }
   };
   const runBackup = async () => {
     if (!database) {
-      showToast('Backup tersedia di aplikasi utama.');
+      showToast(t('common.backupAvailableInMainApp'));
       return;
     }
     setBusy(true);
     try {
       await shareBackupFile(await createBackupFile(database));
-      showToast('Backup siap dibagikan.');
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : 'Backup gagal dibuat.');
+      showToast(t('common.backupReady'));
+    } catch {
+      showToast(t('errors.storage'));
     } finally {
       setBusy(false);
     }
   };
   const runRestore = async () => {
     if (!database) {
-      showToast('Restore tersedia di aplikasi utama.');
+      showToast(t('common.restoreAvailableInMainApp'));
       return;
     }
     setBusy(true);
@@ -107,206 +119,246 @@ export default function SettingsScreen({
       setBusy(false);
       if (!picked) return;
       setRestoreFile(picked);
-    } catch (error) {
+    } catch {
       setBusy(false);
-      showToast(error instanceof Error ? error.message : 'File backup tidak dapat dibaca.');
+      showToast(t('common.backupUnreadable'));
     }
   };
   const openLink = async (url: string) => {
     try {
       await Linking.openURL(url);
     } catch {
-      showToast('Halaman belum bisa dibuka.');
+      showToast(t('common.pageCannotOpen'));
     }
   };
 
   return (
     <ThemedView style={styles.page}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <PageHeader eyebrow="PENGATURAN" title="Pengaturan" />
-          <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
-            TAMPILAN
-          </ThemedText>
-          <ThemedView
-            style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
-          >
-            <SettingRow icon="☼" title="Tema gelap" detail="Sesuaikan suasana aplikasimu">
-              <Pressable
-                accessibilityRole="switch"
-                accessibilityLabel="Tema gelap"
-                accessibilityState={{ checked: dark, busy }}
-                onPress={() => setMode(dark ? 'light' : 'dark')}
-                style={[styles.toggle, { backgroundColor: dark ? theme.pine : theme.line }]}
+      <MotionScreen>
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+            <PageHeader eyebrow={t('common.settings').toUpperCase()} title={t('common.settings')} />
+            <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
+              {t('common.appearance')}
+            </ThemedText>
+            <ThemedView
+              style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
+            >
+              <SettingRow
+                icon="☼"
+                title={t('common.darkTheme')}
+                detail={t('common.darkThemeDetail')}
               >
-                <View style={[styles.toggleKnob, dark && { transform: [{ translateX: 15 }] }]} />
-              </Pressable>
-            </SettingRow>
-          </ThemedView>
-          <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
-            PREFERENSI
-          </ThemedText>
-          <ThemedView
-            style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
-          >
-            <SettingRow icon="¤" title="Mata uang" detail="Dipakai untuk semua Wallet">
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Pilih mata uang"
-                accessibilityState={{ expanded: currencyOpen }}
-                onPress={() => setCurrencyOpen((open) => !open)}
-                style={[styles.dropdown, { borderColor: theme.line }]}
+                <MotionSwitch
+                  accessibilityLabel={t('common.darkTheme')}
+                  activeTrackColor={theme.pine}
+                  inactiveTrackColor={theme.line}
+                  value={dark}
+                  onChange={(next) => setMode(next ? 'dark' : 'light')}
+                  disabled={busy}
+                />
+              </SettingRow>
+            </ThemedView>
+            <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
+              {t('common.preferences')}
+            </ThemedText>
+            <ThemedView
+              style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
+            >
+              <SettingRow
+                icon="¤"
+                title={t('common.currency')}
+                detail={t('common.currencyUsedForWallets')}
               >
-                <ThemedText type="smallBold" themeColor="pine">
-                  {currency}⌄
-                </ThemedText>
-              </Pressable>
-            </SettingRow>
-            {currencyOpen && (
-              <View style={[styles.currencyGrid, { borderTopColor: theme.line }]}>
-                {currencyOptions.map((option) => (
-                  <Pressable
-                    key={option}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Pilih mata uang ${option}`}
-                    onPress={() => {
-                      void chooseCurrency(option);
-                    }}
-                    style={[
-                      styles.currency,
-                      {
-                        borderColor: currency === option ? theme.pine : theme.line,
-                        backgroundColor: currency === option ? theme.mint : theme.card,
-                      },
-                    ]}
-                  >
-                    <ThemedText
-                      style={styles.currencySymbol}
-                      themeColor={currency === option ? 'pine' : 'muted'}
+                <MotionPressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.chooseCurrency')}
+                  accessibilityState={{ expanded: currencyOpen }}
+                  onPress={() => setCurrencyOpen((open) => !open)}
+                  style={[styles.dropdown, { borderColor: theme.line }]}
+                >
+                  <ThemedText type="smallBold" themeColor="pine">
+                    {currency}
+                  </ThemedText>
+                  <MotionChevron expanded={currencyOpen} color={theme.pine} size={16} />
+                </MotionPressable>
+              </SettingRow>
+              {currencyOpen && (
+                <MotionCollapsible>
+                  <View style={[styles.currencyGrid, { borderTopColor: theme.line }]}>
+                    {currencyOptions.map((option) => (
+                      <MotionPressable
+                        key={option}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.chooseCurrencyOption', { currency: option })}
+                        onPress={() => {
+                          void chooseCurrency(option);
+                        }}
+                        style={[
+                          styles.currency,
+                          {
+                            borderColor: currency === option ? theme.pine : theme.line,
+                            backgroundColor: currency === option ? theme.mint : theme.card,
+                          },
+                        ]}
+                      >
+                        <ThemedText
+                          style={styles.currencySymbol}
+                          themeColor={currency === option ? 'pine' : 'muted'}
+                        >
+                          {currencySymbols[option]}
+                        </ThemedText>
+                        <ThemedText
+                          type="smallBold"
+                          themeColor={currency === option ? 'pine' : 'ink'}
+                        >
+                          {option}
+                        </ThemedText>
+                      </MotionPressable>
+                    ))}
+                  </View>
+                </MotionCollapsible>
+              )}
+              <SettingRow
+                icon="文"
+                title={t('common.language')}
+                detail={t('common.chooseLanguage')}
+              >
+                <View style={styles.languageOptions}>
+                  {(['id', 'en'] as Locale[]).map((option) => (
+                    <MotionPressable
+                      key={option}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('common.selectLanguage', {
+                        language: option.toUpperCase(),
+                      })}
+                      onPress={() => void chooseLocale(option)}
+                      style={[
+                        styles.languageOption,
+                        {
+                          backgroundColor: locale === option ? theme.mint : theme.card,
+                          borderColor: locale === option ? theme.pine : theme.line,
+                        },
+                      ]}
                     >
-                      {currencySymbols[option]}
-                    </ThemedText>
-                    <ThemedText type="smallBold" themeColor={currency === option ? 'pine' : 'ink'}>
-                      {option}
-                    </ThemedText>
-                  </Pressable>
-                ))}
-              </View>
-            )}
-            <SettingRow icon="文" title="Bahasa" detail="Pilih bahasa aplikasi">
-              <View style={styles.languageOptions}>
-                {(['id', 'en'] as Locale[]).map((option) => (
-                  <Pressable key={option} accessibilityRole="button" accessibilityLabel={`Pilih bahasa ${option}`} onPress={() => void chooseLocale(option)} style={[styles.languageOption, { backgroundColor: locale === option ? theme.mint : theme.card, borderColor: locale === option ? theme.pine : theme.line }]}>
-                    <ThemedText type="smallBold" themeColor={locale === option ? 'pine' : 'ink'}>{option.toUpperCase()}</ThemedText>
-                  </Pressable>
-                ))}
-              </View>
-            </SettingRow>
-          </ThemedView>
-          <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
-            DATA
-          </ThemedText>
-          <ThemedView
-            style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
-          >
-            <ActionRow
-              icon="↓"
-              title="Backup data"
-              detail={busy ? 'Menyiapkan file…' : 'Simpan salinan data'}
-              onPress={() => {
-                void runBackup();
-              }}
-            />
-            <ActionRow
-              icon="↑"
-              title="Restore data"
-              detail={busy ? 'Memproses file…' : 'Timpa dari file backup'}
-              onPress={() => {
-                void runRestore();
-              }}
-            />
-          </ThemedView>
-          <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
-            BANTUAN
-          </ThemedText>
-          <ThemedView
-            style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
-          >
-            <ActionRow
-              icon="?"
-              title="FAQ"
-              detail="Jawaban singkat tentang Spen"
-              onPress={onFaqPress ?? (() => undefined)}
-            />
-            <ActionRow
-              icon="!"
-              title="Aduan masalah"
-              detail="Beri tahu kalau ada yang tidak beres"
-              onPress={() => {
-                void openLink('mailto:tondikiag30@gmail.com?subject=Aduan%20masalah%20Spen');
-              }}
-            />
-            <ActionRow
-              icon="›"
-              title="Syarat & Ketentuan"
-              detail="Baca ketentuan penggunaan"
-              onPress={() => {
-                void openLink(getPublicDocumentUrl('/terms'));
-              }}
-            />
-            <ActionRow
-              icon="›"
-              title="Kebijakan Privasi"
-              detail="Baca cara data dipakai"
-              onPress={() => {
-                void openLink(getPublicDocumentUrl('/privacy'));
-              }}
-            />
-          </ThemedView>
-          <View style={styles.footer}>
-            <SpenLogo size={42} />
-            <ThemedText type="smallBold" themeColor="muted">
-              Spen
+                      <ThemedText type="smallBold" themeColor={locale === option ? 'pine' : 'ink'}>
+                        {option.toUpperCase()}
+                      </ThemedText>
+                    </MotionPressable>
+                  ))}
+                </View>
+              </SettingRow>
+            </ThemedView>
+            <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
+              {t('common.data')}
             </ThemedText>
-            <ThemedText type="small" themeColor="muted">
-              Versi{' '}
-              {Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '1.0.0'}
+            <ThemedView
+              style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
+            >
+              <ActionRow
+                icon="↓"
+                title={t('common.backupData')}
+                detail={busy ? t('common.preparingFile') : t('common.saveDataCopy')}
+                onPress={() => {
+                  void runBackup();
+                }}
+              />
+              <ActionRow
+                icon="↑"
+                title={t('common.restoreData')}
+                detail={busy ? t('common.processingFile') : t('common.overwriteFromBackup')}
+                onPress={() => {
+                  void runRestore();
+                }}
+              />
+            </ThemedView>
+            <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
+              {t('common.help')}
             </ThemedText>
-          </View>
-          <ConfirmationModal
-            visible={restoreFile !== null}
-            title="Timpa semua data?"
-            message="Restore akan mengganti seluruh data Spen saat ini."
-            confirmLabel="Restore"
-            destructive
-            onCancel={() => setRestoreFile(null)}
-            onConfirm={async () => {
-              if (!database || !restoreFile) return;
-              const file = restoreFile;
-              setRestoreFile(null);
-              setBusy(true);
-              try {
-                await restoreDatabase(database, file.content);
-                showToast('Data berhasil dipulihkan.');
-              } catch (error) {
-                showToast(error instanceof Error ? error.message : 'Restore gagal.');
-              } finally {
-                setBusy(false);
-              }
-            }}
-          />
-        </ScrollView>
-        {toast && (
-          <View
-            accessibilityLiveRegion="polite"
-            style={[styles.toast, { backgroundColor: theme.ink }]}
-          >
-            <ThemedText type="small" style={{ color: theme.background }}>
-              ✓ {toast}
-            </ThemedText>
-          </View>
-        )}
-      </SafeAreaView>
+            <ThemedView
+              style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
+            >
+              <ActionRow
+                icon="?"
+                title={t('common.faq')}
+                detail={t('common.faqDetail')}
+                onPress={onFaqPress ?? (() => undefined)}
+              />
+              <ActionRow
+                icon="!"
+                title={t('common.reportProblem')}
+                detail={t('common.reportProblemDetail')}
+                onPress={() => {
+                  void openLink(
+                    `mailto:tondikiag30@gmail.com?subject=${encodeURIComponent(t('common.reportProblem'))}`,
+                  );
+                }}
+              />
+              <ActionRow
+                icon="›"
+                title={t('common.terms')}
+                detail={t('common.readTerms')}
+                onPress={() => {
+                  void openLink(getPublicDocumentUrl('/terms'));
+                }}
+              />
+              <ActionRow
+                icon="›"
+                title={t('common.privacy')}
+                detail={t('common.readPrivacy')}
+                onPress={() => {
+                  void openLink(getPublicDocumentUrl('/privacy'));
+                }}
+              />
+            </ThemedView>
+            <View style={styles.footer}>
+              <SpenLogo size={42} />
+              <ThemedText type="smallBold" themeColor="muted">
+                Spen
+              </ThemedText>
+              <ThemedText type="small" themeColor="muted">
+                {t('common.version')}{' '}
+                {Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '1.0.0'}
+              </ThemedText>
+            </View>
+            <ConfirmationModal
+              visible={restoreFile !== null}
+              title={t('common.overwriteAllData')}
+              message={t('common.restoreWarning')}
+              confirmLabel={t('common.restoreData')}
+              destructive
+              onCancel={() => setRestoreFile(null)}
+              onConfirm={async () => {
+                if (!database || !restoreFile) return;
+                const file = restoreFile;
+                setRestoreFile(null);
+                setBusy(true);
+                try {
+                  const restoredLocale = await restoreDatabase(database, file.content);
+                  setLocale(restoredLocale);
+                  setSelectedLocale(restoredLocale);
+                  await changeLocale(restoredLocale);
+                  showToast(t('common.restored'));
+                } catch (cause) {
+                  showToast(t(getErrorTranslationKey(cause)));
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            />
+          </ScrollView>
+          {toast && (
+            <View
+              accessibilityLiveRegion="polite"
+              style={[styles.toast, { backgroundColor: theme.ink }]}
+            >
+              <ThemedText type="small" style={{ color: theme.background }}>
+                ✓ {toast}
+              </ThemedText>
+            </View>
+          )}
+        </SafeAreaView>
+      </MotionScreen>
     </ThemedView>
   );
 }
@@ -353,7 +405,7 @@ function ActionRow({
 }) {
   const theme = useTheme();
   return (
-    <Pressable
+    <MotionPressable
       accessibilityRole="button"
       accessibilityLabel={title}
       onPress={onPress}
@@ -377,7 +429,7 @@ function ActionRow({
       <ThemedText style={styles.chevron} themeColor="muted">
         ›
       </ThemedText>
-    </Pressable>
+    </MotionPressable>
   );
 }
 const styles = StyleSheet.create({
@@ -424,6 +476,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
     borderWidth: 1,
+    flexDirection: 'row',
+    gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 7,
   },

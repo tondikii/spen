@@ -4,15 +4,30 @@ export type FaqEntry = {
 };
 
 export function getFaqEntries(locale: 'id' | 'en' = 'id'): FaqEntry[] {
-  if (locale === 'en') return faqEntries.map((entry, index) => ({
-    ...entry,
-    question: [
-      'Is my data or AI input sent online?', 'Does AI change data, and does it work offline?', 'What happens during backup and restore?', 'What is the difference between Pay and the Paid toggle?', 'How is Goal progress calculated?', 'How are opening balances and Balance correction recorded?', 'Does Transfer affect Net saving?', 'How does Budget plan calculate targets and actuals?',
-    ][index],
-    answer: [
-      'Financial data stays on your device. When you trigger AI, the required summary numbers and Wallet, Category, and Goal names are sent to Groq for processing.', 'AI only provides suggestions or insights. Data changes only after you take an action. When AI is unavailable, Budget plan suggestions and report insights use a local fallback.', 'Backup is manual as a JSON file. Restore removes and replaces all local data after you confirm.', 'Pay opens an expense Transaction form with the remaining target as an editable amount. The Paid toggle immediately creates one expense using the active Wallet with the largest balance.', 'Goal progress follows the balance of its Goal Wallet. Saving means a Transfer to that Wallet. Withdrawals reduce progress and remain recorded as an expense Transaction.', 'A Wallet opening balance is recorded as an Opening Balance Transaction. Balance correction creates a Balance Adjustment Transaction so the change remains traceable.', 'No. Transfer only moves money between Wallets, so it is neutral to total wealth and does not enter the pie chart or Net saving.', 'Budget plan is global within one Budget period. Targets are entered manually; actual Income and Expense come from Transactions in that period.',
-    ][index],
-  }));
+  if (locale === 'en')
+    return faqEntries.map((entry, index) => ({
+      ...entry,
+      question: [
+        'Is my data or AI input sent online?',
+        'Does AI change data, and does it work offline?',
+        'What happens during backup and restore?',
+        'What is the difference between Pay and the Paid toggle?',
+        'How is Goal progress calculated?',
+        'How are opening balances and Balance correction recorded?',
+        'Does Transfer affect Net saving?',
+        'How does Budget plan calculate targets and actuals?',
+      ][index],
+      answer: [
+        'Financial data stays on your device. When you trigger AI, the required summary numbers and Wallet, Category, and Goal names are sent to Groq for processing.',
+        'AI only provides suggestions or insights. Data changes only after you take an action. When AI is unavailable, Ask AI and report insights use a local fallback.',
+        'Backup is manual as a JSON file. Restore removes and replaces all local data after you confirm.',
+        'Pay opens an expense Transaction form with the remaining target as an editable amount. The Paid toggle immediately creates one expense using the active Wallet with the largest balance.',
+        'Goal progress follows the balance of its Goal Wallet. Saving means a Transfer to that Wallet. Withdrawals reduce progress and remain recorded as an expense Transaction.',
+        'A Wallet opening balance is recorded as an Opening Balance Transaction. Balance correction creates a Balance Adjustment Transaction so the change remains traceable.',
+        'No. Transfer only moves money between Wallets, so it is neutral to total wealth and does not enter the pie chart or Net saving.',
+        'Budget plan is global within one Budget period. Targets are entered manually; actual Income and Expense come from Transactions in that period.',
+      ][index],
+    }));
   return faqEntries;
 }
 

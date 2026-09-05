@@ -6,7 +6,7 @@ Pengguna kesulitan merencanakan dan mengelola keuangan bulanan secara terstruktu
 
 ## Solution
 
-Spen adalah aplikasi mobile budget planner berbahasa Indonesia dengan AI, data lokal di perangkat. Pengguna mengelola beberapa Wallet (tempat uang), menyusun satu Budget plan global per periode (Pendapatan, Pengeluaran, Goal), mencatat transaksi harian (income/expense/transfer), dan melihat report (pie chart expense per kategori, line chart net saving per periode) dengan AI insight. Semua data lokal, tanpa akun server. AI (Groq) dipicu manual, read-only (tidak menulis data); user yang mengeksekusi saran via tombol "Terapkan", dengan fallback deterministik.
+Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai default dan English sebagai locale alternatif, dengan AI dan data lokal di perangkat. Pengguna mengelola beberapa Wallet (tempat uang), menyusun satu Budget plan global per periode (Pendapatan, Pengeluaran, Goal), mencatat transaksi harian (income/expense/transfer), dan melihat report (pie chart expense per kategori, line chart net saving per periode) dengan AI insight. Semua data lokal, tanpa akun server. AI (Groq) dipicu manual, read-only (tidak menulis data); user yang mengeksekusi saran via tombol "Terapkan", dengan fallback deterministik dalam locale aktif.
 
 ## User Stories
 
@@ -61,7 +61,7 @@ Spen adalah aplikasi mobile budget planner berbahasa Indonesia dengan AI, data l
 45. As a pengguna, I want restore dari file backup JSON (timpa semua dengan konfirmasi), so that saya bisa mengembalikan data setelah reinstal/pindah device.
 46. As a pengguna, I want currency global default IDR (tanpa konversi), so bahwa tampilan uang sesuai dengan yang saya pakai.
 47. As a pengguna, I want memilih mata uang lain selain IDR di Settings, so bahwa saya bisa menampilkan uang sesuai mata uang yang saya pakai sehari-hari (tanpa konversi nilai).
-48. As a pengguna, I want seluruh UI dan output AI dalam Bahasa Indonesia, so bahwa saya nyaman memakai app.
+48. As a pengguna, I want seluruh UI dan output AI mengikuti pilihan Bahasa Indonesia atau English, so bahwa saya nyaman memakai app.
 
 ## Implementation Decisions
 
@@ -96,11 +96,11 @@ Spen adalah aplikasi mobile budget planner berbahasa Indonesia dengan AI, data l
 - **Transfer di report**: netral — tidak muncul di pie chart (expense saja) dan tidak mempengaruhi net saving; tetap muncul di riwayat transaksi (label "Transfer: X → Y").
 
 ### AI Service (ADR-0002)
-- Satu `AIService` dengan dua fungsi: `suggestBudget` (model `gpt-oss-20b`, output JSON terstruktur via Structured Outputs `json_schema` strict) dan `generateInsight` (model `gpt-oss-120b`, teks Bahasa Indonesia).
+- Satu `AIService` dengan dua fungsi: `suggestBudget` (model `gpt-oss-20b`, output JSON terstruktur via Structured Outputs `json_schema` strict) dan `generateInsight` (model `gpt-oss-120b`, mengikuti locale aktif).
 - **Saran budget berupa daftar saran terstruktur** (bukan teks bebas); tiap saran punya tipe aksi (misal "ubah alokasi", "tambah goal", "ubah nominal fixed expense") + tombol **"Terapkan"** yang mengubah Budget plan. Eksekusi oleh pengguna, bukan AI — AI tetap read-only.
 - Dipicu manual, satu-shot. Fallback deterministik lokal saat AI tidak tersedia (offline/rate limit).
 - API Groq OpenAI-compatible (`POST /openai/v1/chat/completions`); API key via env (dev) / BYOK (nanti).
-- **Penting**: untuk rilis produksi, panggilan Groq harus lewat backend tipis (key server-side). MVP native boleh langsung dari app (key dev).
+- **Penting**: untuk rilis produksi, panggilan Groq harus lewat backend tipis (key server-side). MVP native boleh langsung dari app (key dev). Prompt, fallback, dan output mengikuti locale aktif.
 
 ### Layar Rencana (Plan)
 - Header: judul "Rencana" + label periode `[1–30 Sep ▾]` (tap → modal ubah tanggal mulai Budget period) + tombol **AI Suggestion** di header.
@@ -123,7 +123,7 @@ Spen adalah aplikasi mobile budget planner berbahasa Indonesia dengan AI, data l
 - Currency global (default IDR), **dengan pilihan mata uang lain** (tampilan saja, tanpa konversi).
 
 ### Bahasa
-- UI dan seluruh output AI dalam Bahasa Indonesia.
+- UI dan seluruh output AI dalam locale aktif; Bahasa Indonesia menjadi default dan English menjadi alternatif.
 
 ## Testing Decisions
 
@@ -146,11 +146,11 @@ Plan menyatukan seluruh transaksi income ke Pendapatan dan seluruh transaksi exp
 
 Plan hanya memiliki Pendapatan dan Pengeluaran; Fixed expense dan Alokasi adalah istilah legacy yang sudah digabung menjadi Pengeluaran. Pendapatan mengelompokkan seluruh transaksi income dalam periode aktif berdasarkan kategori, termasuk transaksi Saldo Awal dan Penyesuaian Saldo, serta tidak menampilkan progress. Pengeluaran mengelompokkan seluruh transaksi expense berdasarkan kategori. Target Pengeluaran dapat diubah; progress dihitung dari total pembayaran dibagi target. Tombol "Bayar" membuka form expense dengan sisa target sebagai nominal awal dan nominal tersebut boleh diganti untuk pembayaran sebagian atau penuh. Expense kategori baru otomatis tampil dengan target awal sama dengan realisasi (100%); saat target dinaikkan, progress dihitung ulang.
 
-Klarifikasi interaksi terbaru: Pendapatan tetap dapat ditambahkan dari Plan tetapi tidak memiliki target nominal; nominalnya selalu berasal dari transaksi yang diterima. Pengeluaran menggunakan toggle "Sudah dibayar". Toggle aktif membuat transaksi expense sebesar target menggunakan Wallet aktif dengan saldo terbesar tanpa membuka form transaksi; toggle nonaktif tidak membuat transaksi. Tanggal transaksi mengikuti tanggal toggle.
+Klarifikasi interaksi terbaru: Pendapatan tetap dapat ditambahkan dari Plan dengan nominal target periode. Nominal Pendapatan dianggap terpenuhi otomatis (100%) dan tidak menampilkan progress; realisasi transaksi income tetap dipakai untuk ringkasan dan detail transaksi. Pengeluaran menggunakan toggle "Sudah dibayar". Toggle aktif membuat transaksi expense sebesar target menggunakan Wallet aktif dengan saldo terbesar tanpa membuka form transaksi; toggle nonaktif tidak membuat transaksi. Tanggal transaksi mengikuti tanggal toggle.
 
 ## Out of Scope
 
-- Bahasa lain / i18n penuh (post-MVP)
+- Bahasa selain Indonesia dan English (post-MVP)
 - BYOK AI (post-MVP; MVP pakai key dev)
 - Default wallet / wallet favorit (post-MVP)
 - AI interaktif (follow-up conversation) — MVP satu-shot

@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import HomeScreen from '@/components/home-screen';
 import { DataState } from '@/components/screen-skeleton';
@@ -16,6 +17,7 @@ import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function HomeRoute() {
+  const { t } = useTranslation();
   const router = useRouter();
   const database = useAppDatabase();
   const read = useCallback(
@@ -28,7 +30,7 @@ export default function HomeRoute() {
       ]),
     [database],
   );
-  const { data: loaded, error, retry } = useFocusedRead(read, 'Data Beranda tidak dapat dimuat.');
+  const { data: loaded, error, retry } = useFocusedRead(read, t('common.homeLoadError'));
   const data = loaded
     ? {
         wallets: loaded[0].active,
@@ -45,8 +47,8 @@ export default function HomeRoute() {
     return (
       <DataState
         kind="error"
-        title="Beranda belum siap"
-        description={error}
+        title={t('common.homeNotReady')}
+        description={t('errors.unknown')}
         onRetry={() => {
           void loadData();
         }}
@@ -54,14 +56,15 @@ export default function HomeRoute() {
     );
   if (!data)
     return (
-      <DataState kind="loading" title="Memuat Beranda" description="Menyiapkan ringkasan uangmu." />
+      <DataState
+        kind="loading"
+        title={t('common.loadingHome')}
+        description={t('common.loadingHomeCopy')}
+      />
     );
 
   return (
     <HomeScreen
-      key={data.wallets
-        .map((wallet) => `${wallet.id}:${wallet.balance}:${wallet.name}:${wallet.archived}`)
-        .join('|')}
       wallets={data.wallets.filter((wallet) => !wallet.archived)}
       archivedWallets={data.archivedWallets}
       transactions={data.transactions}

@@ -1,14 +1,7 @@
 import { useContext, useMemo, useState, type ReactNode } from 'react';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { CATEGORY_ICON_CHOICES, CategoryIcon } from '@/components/category-icon';
 import { CurrencyMark } from '@/components/currency-mark';
@@ -36,6 +29,9 @@ import type {
   TransactionType,
   Wallet,
 } from '@/types/domain';
+import { MotionPressable as Pressable, MotionScreen } from '@/components/motion';
+import { getCategoryLabel } from '@/i18n/categories';
+import { getErrorTranslationKey } from '@/lib/app-error';
 
 type TransactionFormProps = {
   mode: 'create' | 'edit';
@@ -65,11 +61,19 @@ type Confirmation = {
   onConfirm: () => void | Promise<void>;
 };
 
-const tabs: { type: TransactionType; label: string }[] = [
-  { type: 'income', label: 'Masuk' },
-  { type: 'expense', label: 'Keluar' },
-  { type: 'transfer', label: 'Transfer' },
+const tabs: { type: TransactionType; translationKey: string }[] = [
+  { type: 'income', translationKey: 'common.income' },
+  { type: 'expense', translationKey: 'common.expense' },
+  { type: 'transfer', translationKey: 'categories.transfer' },
 ];
+
+function chunk<T>(items: readonly T[], size: number) {
+  const rows: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    rows.push(items.slice(index, index + size) as T[]);
+  }
+  return rows;
+}
 
 export function TransactionForm({
   mode,
@@ -91,6 +95,7 @@ export function TransactionForm({
   onCategoryArchive,
 }: TransactionFormProps) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const insets = useContext(SafeAreaInsetsContext) ?? {
     top: 0,
     bottom: 0,
@@ -130,6 +135,16 @@ export function TransactionForm({
     () => getTransactionCategories(categories, selectedCategoryType),
     [categories, selectedCategoryType],
   );
+  const categoryRows = useMemo(() => {
+    const rows: (Category | null)[][] = [];
+    for (let index = 0; index < visibleCategories.length; index += 3) {
+      const row = visibleCategories.slice(index, index + 3) as (Category | null)[];
+      while (row.length < 3) row.push(null);
+      rows.push(row);
+    }
+    return rows;
+  }, [visibleCategories]);
+  const iconRows = useMemo(() => chunk(CATEGORY_ICON_CHOICES, 5), []);
   const numericAmount = parseMoneyInput(amount);
   const allocationLimit = allocationLimitProp ?? getAllocationLimit(categoryId);
   const overBudget = type === 'expense' && allocationLimit > 0 && numericAmount > allocationLimit;
@@ -170,11 +185,11 @@ export function TransactionForm({
       setCategoryName('');
       setEditingCategoryId(null);
       setCategoryEditorOpen(false);
-    } catch (error) {
+    } catch (cause) {
       setConfirmation({
-        title: 'Kategori belum tersimpan',
-        message: error instanceof Error ? error.message : 'Coba lagi.',
-        confirmLabel: 'Mengerti',
+        title: t('common.categoryNotSaved'),
+        message: t(getErrorTranslationKey(cause)),
+        confirmLabel: t('common.understand'),
         onConfirm: () => undefined,
       });
     } finally {
@@ -222,439 +237,476 @@ export function TransactionForm({
 
   return (
     <ThemedView style={styles.page}>
-      <View
-        style={[
-          styles.header,
-          {
-            borderBottomColor: theme.line,
-            paddingTop: Math.max(insets.top, Spacing.two),
-          },
-        ]}
-      >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Tutup form transaksi"
-          onPress={onClose}
-          style={styles.headerButton}
+      <MotionScreen>
+        <View
+          style={[
+            styles.header,
+            {
+              borderBottomColor: theme.line,
+              paddingTop: Math.max(insets.top, Spacing.two),
+            },
+          ]}
         >
-          <ThemedText style={styles.close}>×</ThemedText>
-        </Pressable>
-        <ThemedText type="sectionHeading">
-          {mode === 'edit' ? 'Edit Transaksi' : 'Tambah Transaksi'}
-        </ThemedText>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={mode === 'edit' ? 'Simpan Perubahan' : 'Simpan Transaksi'}
-          onPress={submit}
-          style={styles.headerButton}
-        >
-          <ThemedText type="smallBold" themeColor="pine">
-            {mode === 'edit' ? 'Simpan Perubahan' : 'Simpan'}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('common.closeTransactionForm')}
+            onPress={onClose}
+            style={styles.headerButton}
+          >
+            <ThemedText style={styles.close}>×</ThemedText>
+          </Pressable>
+          <ThemedText type="sectionHeading">
+            {mode === 'edit' ? t('common.edit') : t('common.addTransaction')}
           </ThemedText>
-        </Pressable>
-      </View>
-      <KeyboardAvoidingView
-        style={styles.body}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-      >
-        <ScrollView
-          contentContainerStyle={[styles.content, { paddingBottom: 40 + insets.bottom }]}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
-          automaticallyAdjustKeyboardInsets
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={
+              mode === 'edit' ? t('common.saveChanges') : t('common.saveTransaction')
+            }
+            onPress={submit}
+            style={styles.headerButton}
+          >
+            <ThemedText type="smallBold" themeColor="pine">
+              {mode === 'edit' ? t('common.saveChanges') : t('common.save')}
+            </ThemedText>
+          </Pressable>
+        </View>
+        <KeyboardAvoidingView
+          style={styles.body}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={0}
         >
-          <View style={[styles.typeTabs, { borderBottomColor: theme.line }]}>
-            {tabs.map((tab) => (
-              <Pressable
-                key={tab.type}
-                accessibilityRole="tab"
-                accessibilityLabel={`Tipe ${tab.label}`}
-                accessibilityState={{ selected: type === tab.type }}
-                accessibilityHint="Memilih jenis transaksi"
-                onPress={() => changeType(tab.type)}
-                style={[
-                  styles.typeTab,
-                  type === tab.type && {
-                    borderBottomColor:
-                      tab.type === 'income'
-                        ? theme.income
-                        : tab.type === 'expense'
-                          ? theme.expense
-                          : theme.pine,
-                  },
-                ]}
-              >
-                <ThemedText
-                  type="smallBold"
-                  themeColor={
-                    type === tab.type
-                      ? tab.type === 'income'
-                        ? 'income'
-                        : tab.type === 'expense'
-                          ? 'expense'
-                          : 'pine'
-                      : 'muted'
-                  }
-                >
-                  {tab.label}
-                </ThemedText>
-              </Pressable>
-            ))}
-          </View>
-
-          {type === 'transfer' ? (
-            <>
-              <FieldLabel>TRANSFER DARI</FieldLabel>
-              <WalletPicker wallets={wallets} selected={walletId} onSelect={setWalletId} />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Tukar Wallet Transfer"
-                onPress={() => {
-                  setWalletId(toWalletId);
-                  setToWalletId(walletId);
-                }}
-                style={styles.swap}
-              >
-                <ThemedText type="subtitle" themeColor="gold">
-                  ↕
-                </ThemedText>
-              </Pressable>
-              <FieldLabel>TRANSFER KE</FieldLabel>
-              {lockedToWalletId ? (
-                <View
-                  style={[
-                    styles.lockedWallet,
-                    { borderColor: theme.line, backgroundColor: theme.mint },
-                  ]}
-                >
-                  <ThemedText type="smallBold">
-                    {wallets.find((wallet) => wallet.id === lockedToWalletId)?.name ??
-                      'Wallet Goal'}
-                  </ThemedText>
-                  <ThemedText type="small" themeColor="muted">
-                    Tujuan Wallet Goal terkunci
-                  </ThemedText>
-                </View>
-              ) : (
-                <WalletPicker
-                  wallets={wallets}
-                  selected={toWalletId}
-                  onSelect={setToWalletId}
-                  exclude={walletId}
-                />
-              )}
-              <FieldLabel>
-                BIAYA ADMIN{' '}
-                <ThemedText type="small" themeColor="muted">
-                  (opsional)
-                </ThemedText>
-              </FieldLabel>
-              <View style={styles.moneyInputRow}>
-                <CurrencyMark />
-                <ThemedInput
-                  accessibilityLabel="Biaya admin transfer"
-                  keyboardType="numeric"
-                  placeholder="0"
-                  placeholderTextColor={theme.muted}
-                  value={adminFee}
-                  onChangeText={(value) => setAdminFee(formatMoneyInput(value))}
-                  style={[
-                    styles.input,
-                    styles.moneyInput,
-                    { borderBottomColor: theme.line, color: theme.ink },
-                  ]}
-                />
-              </View>
-            </>
-          ) : (
-            <>
-              <FieldLabel>WALLET</FieldLabel>
-              <WalletPicker wallets={wallets} selected={walletId} onSelect={setWalletId} />
-              <View style={styles.labelLine}>
-                <FieldLabel>
-                  {type === 'income' ? 'KATEGORI PENDAPATAN' : 'KATEGORI PENGELUARAN'}
-                </FieldLabel>
+          <ScrollView
+            contentContainerStyle={[styles.content, { paddingBottom: 40 + insets.bottom }]}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
+            automaticallyAdjustKeyboardInsets
+          >
+            <View style={[styles.typeTabs, { borderBottomColor: theme.line }]}>
+              {tabs.map((tab) => (
                 <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Kelola kategori"
-                  onPress={() => {
-                    setEditingCategoryId(null);
-                    setCategoryName('');
-                    setCategoryIcon(CATEGORY_ICON_CHOICES[0]);
-                    setCategoryEditorOpen(true);
-                  }}
+                  key={tab.type}
+                  wrapperStyle={styles.typeTabWrapper}
+                  accessibilityRole="tab"
+                  accessibilityLabel={t('common.transactionType', { type: t(tab.translationKey) })}
+                  accessibilityState={{ selected: type === tab.type }}
+                  accessibilityHint={t('common.transactionTypeHint')}
+                  onPress={() => changeType(tab.type)}
+                  style={[
+                    styles.typeTab,
+                    type === tab.type && {
+                      borderBottomColor:
+                        tab.type === 'income'
+                          ? theme.income
+                          : tab.type === 'expense'
+                            ? theme.expense
+                            : theme.pine,
+                    },
+                  ]}
                 >
-                  <ThemedText type="smallBold" themeColor="pine">
-                    + Tambah
+                  <ThemedText
+                    type="smallBold"
+                    themeColor={
+                      type === tab.type
+                        ? tab.type === 'income'
+                          ? 'income'
+                          : tab.type === 'expense'
+                            ? 'expense'
+                            : 'pine'
+                        : 'muted'
+                    }
+                  >
+                    {t(tab.translationKey)}
                   </ThemedText>
                 </Pressable>
-              </View>
-              <ScrollView
-                style={styles.categoryScroll}
-                contentContainerStyle={styles.categoryGrid}
-                nestedScrollEnabled
-                showsVerticalScrollIndicator={false}
-              >
-                {visibleCategories.map((category) => (
-                  <Pressable
-                    key={category.id}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Kategori ${category.name}`}
-                    onPress={() => setCategoryId(category.id)}
-                    onLongPress={() => setCategoryActions(category)}
-                    delayLongPress={350}
+              ))}
+            </View>
+
+            {type === 'transfer' ? (
+              <>
+                <FieldLabel>{t('common.fromWallet')}</FieldLabel>
+                <WalletPicker wallets={wallets} selected={walletId} onSelect={setWalletId} />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.swapTransferWallet')}
+                  onPress={() => {
+                    setWalletId(toWalletId);
+                    setToWalletId(walletId);
+                  }}
+                  style={styles.swap}
+                >
+                  <ThemedText type="subtitle" themeColor="gold">
+                    ↕
+                  </ThemedText>
+                </Pressable>
+                <FieldLabel>{t('common.toWallet')}</FieldLabel>
+                {lockedToWalletId ? (
+                  <View
                     style={[
-                      styles.category,
-                      {
-                        borderColor: category.id === categoryId ? theme.pine : theme.line,
-                        backgroundColor: category.id === categoryId ? theme.mint : theme.card,
-                      },
+                      styles.lockedWallet,
+                      { borderColor: theme.line, backgroundColor: theme.mint },
                     ]}
                   >
-                    <CategoryIcon
-                      name={category.icon}
-                      color={type === 'income' ? theme.income : theme.expense}
-                    />
-                    <ThemedText type="small" style={styles.categoryName}>
-                      {category.name}
-                    </ThemedText>
-                  </Pressable>
-                ))}
-              </ScrollView>
-              {categoryEditorOpen && (
-                <View
-                  style={[
-                    styles.categoryEditor,
-                    { borderColor: theme.line, backgroundColor: theme.card },
-                  ]}
-                >
-                  <View style={styles.categoryEditorHeader}>
                     <ThemedText type="smallBold">
-                      {editingCategoryId ? 'Edit kategori' : 'Tambah kategori'}
+                      {wallets.find((wallet) => wallet.id === lockedToWalletId)?.name ??
+                        'Wallet Goal'}
                     </ThemedText>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel="Batal edit kategori"
-                      disabled={categorySaving}
-                      onPress={() => {
-                        setCategoryEditorOpen(false);
-                        setEditingCategoryId(null);
-                        setCategoryName('');
-                      }}
-                      hitSlop={8}
-                    >
-                      <ThemedText type="smallBold" style={{ color: theme.expense }}>
-                        Batal
-                      </ThemedText>
-                    </Pressable>
+                    <ThemedText type="small" themeColor="muted">
+                      {t('common.lockedGoalWallet')}
+                    </ThemedText>
                   </View>
+                ) : (
+                  <WalletPicker
+                    wallets={wallets}
+                    selected={toWalletId}
+                    onSelect={setToWalletId}
+                    exclude={walletId}
+                  />
+                )}
+                <FieldLabel>
+                  {t('common.adminFee').toUpperCase()}{' '}
+                  <ThemedText type="small" themeColor="muted">
+                    ({t('common.optional')})
+                  </ThemedText>
+                </FieldLabel>
+                <View style={styles.moneyInputRow}>
+                  <CurrencyMark />
                   <ThemedInput
-                    accessibilityLabel={editingCategoryId ? 'Nama kategori' : 'Nama kategori baru'}
-                    placeholder="Nama kategori"
+                    accessibilityLabel={t('common.adminFee')}
+                    keyboardType="numeric"
+                    placeholder="0"
                     placeholderTextColor={theme.muted}
-                    value={categoryName}
-                    onChangeText={setCategoryName}
+                    value={adminFee}
+                    onChangeText={(value) => setAdminFee(formatMoneyInput(value))}
                     style={[
-                      styles.editorInput,
+                      styles.input,
+                      styles.moneyInput,
                       { borderBottomColor: theme.line, color: theme.ink },
                     ]}
                   />
-                  <ScrollView
-                    style={styles.iconScroll}
-                    contentContainerStyle={styles.iconLibrary}
-                    nestedScrollEnabled
-                    showsVerticalScrollIndicator
-                  >
-                    {CATEGORY_ICON_CHOICES.map((icon) => (
-                      <Pressable
-                        key={icon}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Pilih ikon ${icon}`}
-                        onPress={() => setCategoryIcon(icon)}
-                        style={[
-                          styles.iconChoice,
-                          {
-                            borderColor: icon === categoryIcon ? theme.pine : theme.line,
-                            backgroundColor: icon === categoryIcon ? theme.mint : theme.background,
-                          },
-                        ]}
-                      >
-                        <CategoryIcon name={icon} color={theme.pine} size={21} />
-                      </Pressable>
-                    ))}
-                  </ScrollView>
+                </View>
+              </>
+            ) : (
+              <>
+                <FieldLabel>{t('common.wallet')}</FieldLabel>
+                <WalletPicker wallets={wallets} selected={walletId} onSelect={setWalletId} />
+                <View style={styles.labelLine}>
+                  <FieldLabel>
+                    {type === 'income' ? t('common.categoryIncome') : t('common.categoryExpense')}
+                  </FieldLabel>
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel="Simpan kategori"
-                    disabled={categorySaving || !categoryName.trim()}
-                    onPress={() => void saveCategory()}
-                    style={({ pressed }) => [
-                      styles.saveCategoryButton,
-                      {
-                        backgroundColor: categoryName.trim() ? theme.pine : theme.line,
-                        opacity: pressed || categorySaving ? 0.78 : 1,
-                      },
-                    ]}
+                    accessibilityLabel={t('common.manageCategory')}
+                    onPress={() => {
+                      setEditingCategoryId(null);
+                      setCategoryName('');
+                      setCategoryIcon(CATEGORY_ICON_CHOICES[0]);
+                      setCategoryEditorOpen(true);
+                    }}
                   >
-                    <ThemedText
-                      type="smallBold"
-                      style={{
-                        color: categoryName.trim() ? theme.heroText : theme.muted,
-                      }}
-                    >
-                      {categorySaving
-                        ? 'Menyimpan…'
-                        : editingCategoryId
-                          ? 'Simpan perubahan'
-                          : 'Simpan kategori'}
+                    <ThemedText type="smallBold" themeColor="pine">
+                      {t('common.add')}
                     </ThemedText>
                   </Pressable>
                 </View>
-              )}
-            </>
-          )}
+                <ScrollView
+                  style={styles.categoryScroll}
+                  contentContainerStyle={styles.categoryGrid}
+                  nestedScrollEnabled
+                  showsVerticalScrollIndicator={false}
+                >
+                  {categoryRows.map((row, rowIndex) => (
+                    <View key={`category-row-${rowIndex}`} style={styles.categoryRow}>
+                      {row.map((category, columnIndex) =>
+                        category ? (
+                          <Pressable
+                            key={category.id}
+                            wrapperStyle={styles.categoryCell}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('common.selectCategory', {
+                              name: getCategoryLabel(category),
+                            })}
+                            onPress={() => setCategoryId(category.id)}
+                            onLongPress={() => setCategoryActions(category)}
+                            delayLongPress={350}
+                            style={[
+                              styles.category,
+                              {
+                                borderColor: category.id === categoryId ? theme.pine : theme.line,
+                                backgroundColor:
+                                  category.id === categoryId ? theme.mint : theme.card,
+                              },
+                            ]}
+                          >
+                            <CategoryIcon
+                              name={category.icon}
+                              color={type === 'income' ? theme.income : theme.expense}
+                            />
+                            <ThemedText type="small" style={styles.categoryName}>
+                              {getCategoryLabel(category)}
+                            </ThemedText>
+                          </Pressable>
+                        ) : (
+                          <View
+                            key={`category-spacer-${rowIndex}-${columnIndex}`}
+                            style={styles.categorySpacer}
+                          />
+                        ),
+                      )}
+                    </View>
+                  ))}
+                </ScrollView>
+                {categoryEditorOpen && (
+                  <View
+                    style={[
+                      styles.categoryEditor,
+                      { borderColor: theme.line, backgroundColor: theme.card },
+                    ]}
+                  >
+                    <View style={styles.categoryEditorHeader}>
+                      <ThemedText type="smallBold">
+                        {editingCategoryId ? t('common.editCategory') : t('common.addCategory')}
+                      </ThemedText>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.cancelCategoryEdit')}
+                        disabled={categorySaving}
+                        onPress={() => {
+                          setCategoryEditorOpen(false);
+                          setEditingCategoryId(null);
+                          setCategoryName('');
+                        }}
+                        hitSlop={8}
+                      >
+                        <ThemedText type="smallBold" style={{ color: theme.expense }}>
+                          {t('common.cancel')}
+                        </ThemedText>
+                      </Pressable>
+                    </View>
+                    <ThemedInput
+                      accessibilityLabel={
+                        editingCategoryId ? t('common.categoryName') : t('common.newCategory')
+                      }
+                      placeholder={t('common.categoryName')}
+                      placeholderTextColor={theme.muted}
+                      value={categoryName}
+                      onChangeText={setCategoryName}
+                      style={[
+                        styles.editorInput,
+                        { borderBottomColor: theme.line, color: theme.ink },
+                      ]}
+                    />
+                    <ScrollView
+                      style={styles.iconScroll}
+                      contentContainerStyle={styles.iconLibrary}
+                      nestedScrollEnabled
+                      showsVerticalScrollIndicator
+                    >
+                      {iconRows.map((row, rowIndex) => (
+                        <View key={`icon-row-${rowIndex}`} style={styles.iconRow}>
+                          {row.map((icon) => (
+                            <Pressable
+                              key={icon}
+                              wrapperStyle={styles.iconCell}
+                              accessibilityRole="button"
+                              accessibilityLabel={t('common.chooseIcon', { icon })}
+                              onPress={() => setCategoryIcon(icon)}
+                              style={[
+                                styles.iconChoice,
+                                {
+                                  borderColor: icon === categoryIcon ? theme.pine : theme.line,
+                                  backgroundColor:
+                                    icon === categoryIcon ? theme.mint : theme.background,
+                                },
+                              ]}
+                            >
+                              <CategoryIcon name={icon} color={theme.pine} size={21} />
+                            </Pressable>
+                          ))}
+                        </View>
+                      ))}
+                    </ScrollView>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t('common.saveCategory')}
+                      disabled={categorySaving || !categoryName.trim()}
+                      onPress={() => void saveCategory()}
+                      style={({ pressed }) => [
+                        styles.saveCategoryButton,
+                        {
+                          backgroundColor: categoryName.trim() ? theme.pine : theme.line,
+                          opacity: pressed || categorySaving ? 0.78 : 1,
+                        },
+                      ]}
+                    >
+                      <ThemedText
+                        type="smallBold"
+                        style={{
+                          color: categoryName.trim() ? theme.heroText : theme.muted,
+                        }}
+                      >
+                        {categorySaving
+                          ? t('common.categorySaving')
+                          : editingCategoryId
+                            ? t('common.saveChanges')
+                            : t('common.saveCategory')}
+                      </ThemedText>
+                    </Pressable>
+                  </View>
+                )}
+              </>
+            )}
 
-          <FieldLabel>{type === 'transfer' ? 'NOMINAL TRANSFER' : 'NOMINAL'}</FieldLabel>
-          <View style={styles.moneyInputRow}>
-            <CurrencyMark />
+            <FieldLabel>
+              {type === 'transfer' ? t('common.transferAmount') : t('common.nominal')}
+            </FieldLabel>
+            <View style={styles.moneyInputRow}>
+              <CurrencyMark />
+              <ThemedInput
+                accessibilityLabel={t('common.transactionAmount')}
+                keyboardType="numeric"
+                placeholder="0"
+                placeholderTextColor={theme.muted}
+                value={amount}
+                onChangeText={(value) => setAmount(formatMoneyInput(value))}
+                style={[
+                  styles.amountInput,
+                  styles.moneyInput,
+                  { borderBottomColor: theme.line, color: theme.ink },
+                ]}
+              />
+            </View>
+            {overBudget && (
+              <View
+                accessibilityLiveRegion="polite"
+                style={[styles.warning, { backgroundColor: theme.dangerBackground }]}
+              >
+                <ThemedText type="small" style={{ color: theme.expense }}>
+                  {t('common.slowDown')}
+                </ThemedText>
+              </View>
+            )}
+            {possibleDuplicate && (
+              <View
+                accessibilityLiveRegion="polite"
+                style={[styles.warning, { backgroundColor: theme.transferBackground }]}
+              >
+                <ThemedText type="small" style={{ color: theme.gold }}>
+                  {t('common.possibleDuplicate')}
+                </ThemedText>
+              </View>
+            )}
+            <FieldLabel>
+              {t('common.notes')}{' '}
+              <ThemedText type="small" themeColor="muted">
+                ({t('common.optional')})
+              </ThemedText>
+            </FieldLabel>
             <ThemedInput
-              accessibilityLabel="Nominal transaksi"
-              keyboardType="numeric"
-              placeholder="0"
+              accessibilityLabel={t('common.transactionNote')}
+              placeholder={t('common.transactionNotePlaceholder')}
               placeholderTextColor={theme.muted}
-              value={amount}
-              onChangeText={(value) => setAmount(formatMoneyInput(value))}
-              style={[
-                styles.amountInput,
-                styles.moneyInput,
-                { borderBottomColor: theme.line, color: theme.ink },
-              ]}
+              value={note}
+              onChangeText={setNote}
+              style={[styles.input, { borderBottomColor: theme.line, color: theme.ink }]}
             />
-          </View>
-          {overBudget && (
-            <View
-              accessibilityLiveRegion="polite"
-              style={[styles.warning, { backgroundColor: theme.dangerBackground }]}
-            >
-              <ThemedText type="small" style={{ color: theme.expense }}>
-                Perlahan ya — ini akan melebihi alokasi, tetapi tetap bisa dicatat.
-              </ThemedText>
-            </View>
-          )}
-          {possibleDuplicate && (
-            <View
-              accessibilityLiveRegion="polite"
-              style={[styles.warning, { backgroundColor: theme.transferBackground }]}
-            >
-              <ThemedText type="small" style={{ color: theme.gold }}>
-                Transaksi ini mungkin dobel dengan catatan pendapatan hari ini.
-              </ThemedText>
-            </View>
-          )}
-          <FieldLabel>
-            CATATAN{' '}
-            <ThemedText type="small" themeColor="muted">
-              (opsional)
-            </ThemedText>
-          </FieldLabel>
-          <ThemedInput
-            accessibilityLabel="Catatan transaksi"
-            placeholder="Mis. makan siang"
-            placeholderTextColor={theme.muted}
-            value={note}
-            onChangeText={setNote}
-            style={[styles.input, { borderBottomColor: theme.line, color: theme.ink }]}
-          />
-          {mode === 'edit' && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Hapus Transaksi"
-              onPress={() =>
-                setConfirmation({
-                  title: 'Hapus transaksi?',
-                  message: 'Transaksi ini akan dihapus dari catatan.',
-                  confirmLabel: 'Hapus',
-                  destructive: true,
-                  onConfirm: () => onDelete?.(),
-                })
-              }
-              style={styles.deleteAction}
-            >
-              <ThemedText type="smallBold" style={{ color: theme.expense }}>
-                Hapus Transaksi
-              </ThemedText>
-            </Pressable>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
-      <Modal
-        transparent
-        animationType="slide"
-        visible={Boolean(categoryActions)}
-        onRequestClose={() => setCategoryActions(null)}
-      >
-        <Pressable
-          style={[styles.overlay, { backgroundColor: theme.overlay }]}
-          onPress={() => setCategoryActions(null)}
+            {mode === 'edit' && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.deleteTransaction')}
+                onPress={() =>
+                  setConfirmation({
+                    title: t('common.deleteTransactionConfirm'),
+                    message: t('common.deleteTransactionCopy'),
+                    confirmLabel: t('common.delete'),
+                    destructive: true,
+                    onConfirm: () => onDelete?.(),
+                  })
+                }
+                style={styles.deleteAction}
+              >
+                <ThemedText type="smallBold" style={{ color: theme.expense }}>
+                  {t('common.deleteTransaction')}
+                </ThemedText>
+              </Pressable>
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
+        <Modal
+          transparent
+          animationType="slide"
+          visible={Boolean(categoryActions)}
+          onRequestClose={() => setCategoryActions(null)}
         >
-          <View style={[styles.categorySheet, { backgroundColor: theme.card }]}>
-            <ThemedText type="sectionHeading">{categoryActions?.name}</ThemedText>
-            <ThemedText type="small" themeColor="muted">
-              Pilih aksi untuk kategori ini.
-            </ThemedText>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Edit kategori ${categoryActions?.name}`}
-              onPress={() => categoryActions && editCategory(categoryActions)}
-              style={[styles.sheetAction, { borderTopColor: theme.line }]}
-            >
-              <ThemedText type="smallBold" themeColor="pine">
-                Edit kategori
+          <Pressable
+            wrapperStyle={{ flex: 1 }}
+            style={[styles.overlay, { backgroundColor: theme.overlay }]}
+            onPress={() => setCategoryActions(null)}
+          >
+            <View style={[styles.categorySheet, { backgroundColor: theme.card }]}>
+              <ThemedText type="sectionHeading">{categoryActions?.name}</ThemedText>
+              <ThemedText type="small" themeColor="muted">
+                {t('common.categoryActions')}
               </ThemedText>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Arsipkan kategori ${categoryActions?.name}`}
-              onPress={async () => {
-                if (!categoryActions) return;
-                const category = categoryActions;
-                setCategoryActions(null);
-                setConfirmation({
-                  title: 'Arsipkan kategori?',
-                  message: `${category.name} tidak akan muncul di pilihan baru. Transaksi lama tetap tersimpan.`,
-                  confirmLabel: 'Arsipkan',
-                  destructive: true,
-                  onConfirm: async () => {
-                    if (onCategoryArchive) await onCategoryArchive(category);
-                    setCategories((current) => archiveMockCategory(current, category.id));
-                    if (categoryId === category.id) setCategoryId(null);
-                  },
-                });
-              }}
-              style={[styles.sheetAction, { borderTopColor: theme.line }]}
-            >
-              <ThemedText type="smallBold" style={{ color: theme.expense }}>
-                Arsipkan kategori
-              </ThemedText>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
-      <ConfirmationModal
-        visible={confirmation !== null}
-        title={confirmation?.title ?? ''}
-        message={confirmation?.message ?? ''}
-        confirmLabel={confirmation?.confirmLabel ?? 'Mengerti'}
-        destructive={confirmation?.destructive}
-        cancelLabel={confirmation?.confirmLabel === 'Mengerti' ? undefined : 'Batal'}
-        onCancel={() => setConfirmation(null)}
-        onConfirm={async () => {
-          const action = confirmation?.onConfirm;
-          setConfirmation(null);
-          await action?.();
-        }}
-      />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.editCategoryNamed', {
+                  name: categoryActions?.name ?? '',
+                })}
+                onPress={() => categoryActions && editCategory(categoryActions)}
+                style={[styles.sheetAction, { borderTopColor: theme.line }]}
+              >
+                <ThemedText type="smallBold" themeColor="pine">
+                  {t('common.editCategory')}
+                </ThemedText>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.archiveCategory', {
+                  name: categoryActions?.name ?? '',
+                })}
+                onPress={async () => {
+                  if (!categoryActions) return;
+                  const category = categoryActions;
+                  setCategoryActions(null);
+                  setConfirmation({
+                    title: t('common.archiveCategoryQuestion'),
+                    message: t('common.archiveCategoryCopy', { name: category.name }),
+                    confirmLabel: t('common.archive'),
+                    destructive: true,
+                    onConfirm: async () => {
+                      if (onCategoryArchive) await onCategoryArchive(category);
+                      setCategories((current) => archiveMockCategory(current, category.id));
+                      if (categoryId === category.id) setCategoryId(null);
+                    },
+                  });
+                }}
+                style={[styles.sheetAction, { borderTopColor: theme.line }]}
+              >
+                <ThemedText type="smallBold" style={{ color: theme.expense }}>
+                  {t('common.archiveCategoryAction')}
+                </ThemedText>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Modal>
+        <ConfirmationModal
+          visible={confirmation !== null}
+          title={confirmation?.title ?? ''}
+          message={confirmation?.message ?? ''}
+          confirmLabel={confirmation?.confirmLabel ?? t('common.understand')}
+          destructive={confirmation?.destructive}
+          cancelLabel={
+            confirmation?.confirmLabel === t('common.understand') ? undefined : t('common.cancel')
+          }
+          onCancel={() => setConfirmation(null)}
+          onConfirm={async () => {
+            const action = confirmation?.onConfirm;
+            setConfirmation(null);
+            await action?.();
+          }}
+        />
+      </MotionScreen>
     </ThemedView>
   );
 }
@@ -679,6 +731,7 @@ function WalletPicker({
   exclude?: string | null;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   return (
     <ScrollView
       horizontal
@@ -691,7 +744,7 @@ function WalletPicker({
           <Pressable
             key={wallet.id}
             accessibilityRole="button"
-            accessibilityLabel={`Pilih Wallet ${wallet.name}`}
+            accessibilityLabel={t('common.selectWallet', { name: wallet.name })}
             onPress={() => onSelect(wallet.id)}
             style={[
               styles.walletChoice,
@@ -741,6 +794,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: Spacing.four,
   },
+  typeTabWrapper: { flex: 1 },
   typeTab: {
     alignItems: 'center',
     borderBottomWidth: 2,
@@ -777,22 +831,22 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   categoryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: Spacing.two,
-    justifyContent: 'flex-start',
     width: '100%',
   },
+  categoryRow: { flexDirection: 'row', gap: Spacing.two, width: '100%' },
   category: {
     alignItems: 'center',
     borderRadius: 13,
     borderWidth: 1,
     gap: 3,
-    flexGrow: 0,
-    width: '31%',
+    height: 78,
     padding: 9,
+    width: '100%',
   },
-  categoryName: { fontSize: 10, lineHeight: 13, textAlign: 'center' },
+  categoryCell: { flex: 1, minWidth: 0 },
+  categorySpacer: { flex: 1, minWidth: 0 },
+  categoryName: { fontSize: 10, lineHeight: 13, textAlign: 'center', width: '100%' },
   categoryEditor: {
     alignSelf: 'stretch',
     borderRadius: 13,
@@ -816,12 +870,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   iconLibrary: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 7,
-    justifyContent: 'flex-start',
     width: '100%',
   },
+  iconRow: { flexDirection: 'row', gap: 7, width: '100%' },
   iconScroll: {
     maxHeight: 196,
     width: '100%',
@@ -832,8 +884,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     height: 39,
     justifyContent: 'center',
-    width: '18%',
+    width: '100%',
   },
+  iconCell: { flex: 1, minWidth: 0 },
   saveCategoryButton: {
     alignItems: 'center',
     borderRadius: Radius.medium,

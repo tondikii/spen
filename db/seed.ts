@@ -1,33 +1,47 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 export const DEFAULT_CATEGORIES = [
-  { name: 'Gaji', type: 'income', icon: '✦', isAdjustment: 0 },
-  { name: 'Freelance', type: 'income', icon: '⌁', isAdjustment: 0 },
-  { name: 'Bonus', type: 'income', icon: '✺', isAdjustment: 0 },
-  { name: 'Makan', type: 'expense', icon: '◒', isAdjustment: 0 },
-  { name: 'Transport', type: 'expense', icon: '◉', isAdjustment: 0 },
-  { name: 'Belanja', type: 'expense', icon: '▧', isAdjustment: 0 },
-  { name: 'Sewa', type: 'expense', icon: '⌂', isAdjustment: 0 },
-  { name: 'Internet', type: 'expense', icon: '◈', isAdjustment: 0 },
-  { name: 'Hiburan', type: 'expense', icon: '♫', isAdjustment: 0 },
-  { name: 'Transfer', type: 'transfer', icon: '⇄', isAdjustment: 0 },
-  { name: 'Saldo Awal', type: 'income', icon: '↺', isAdjustment: 1 },
-  { name: 'Penyesuaian Saldo', type: 'expense', icon: '±', isAdjustment: 1 },
+  { name: 'Gaji', systemKey: 'salary', type: 'income', icon: '✦', isAdjustment: 0 },
+  { name: 'Freelance', systemKey: 'freelance', type: 'income', icon: '⌁', isAdjustment: 0 },
+  { name: 'Bonus', systemKey: 'bonus', type: 'income', icon: '✺', isAdjustment: 0 },
+  { name: 'Makan', systemKey: 'food', type: 'expense', icon: '◒', isAdjustment: 0 },
+  { name: 'Transport', systemKey: 'transport', type: 'expense', icon: '◉', isAdjustment: 0 },
+  { name: 'Belanja', systemKey: 'shopping', type: 'expense', icon: '▧', isAdjustment: 0 },
+  { name: 'Sewa', systemKey: 'rent', type: 'expense', icon: '⌂', isAdjustment: 0 },
+  { name: 'Internet', systemKey: 'internet', type: 'expense', icon: '◈', isAdjustment: 0 },
+  { name: 'Hiburan', systemKey: 'entertainment', type: 'expense', icon: '♫', isAdjustment: 0 },
+  { name: 'Transfer', systemKey: 'transfer', type: 'transfer', icon: '⇄', isAdjustment: 0 },
+  { name: 'Saldo Awal', systemKey: 'openingBalance', type: 'income', icon: '↺', isAdjustment: 1 },
+  {
+    name: 'Penyesuaian Saldo',
+    systemKey: 'balanceAdjustment',
+    type: 'expense',
+    icon: '±',
+    isAdjustment: 1,
+  },
 ] as const;
 
 export async function seedDefaultCategories(database: SQLiteDatabase) {
   const seed = async (transaction: SQLiteDatabase) => {
     for (const category of DEFAULT_CATEGORIES) {
       const existing = await transaction.getFirstAsync<{ id: number }>(
-        'SELECT id FROM categories WHERE name = ? AND type = ? LIMIT 1;',
+        'SELECT id FROM categories WHERE (system_key = ? OR (system_key IS NULL AND name = ?)) AND type = ? LIMIT 1;',
+        category.systemKey,
         category.name,
         category.type,
       );
-      if (!existing) {
+      if (existing) {
         await transaction.runAsync(
-          `INSERT INTO categories (name, type, icon, archived, is_adjustment)
-           VALUES (?, ?, ?, 0, ?);`,
+          'UPDATE categories SET system_key = ? WHERE id = ? AND system_key IS NULL;',
+          category.systemKey,
+          existing.id,
+        );
+      } else {
+        await transaction.runAsync(
+          `INSERT INTO categories (name, system_key, type, icon, archived, is_adjustment)
+           VALUES (?, ?, ?, ?, 0, ?);`,
           category.name,
+          category.systemKey,
           category.type,
           category.icon,
           category.isAdjustment,

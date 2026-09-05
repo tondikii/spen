@@ -23,8 +23,8 @@ describe('SetupWizard', () => {
     const { getByLabelText } = await render(<SetupWizard onComplete={onComplete} />);
 
     await fireEvent.press(getByLabelText('Mulai'));
-    await fireEvent.changeText(getByLabelText('Nama wallet pertama'), 'BCA');
-    await fireEvent.changeText(getByLabelText('Saldo awal wallet pertama'), '2000000');
+    await fireEvent.changeText(getByLabelText('Nama Wallet pertama'), 'BCA');
+    await fireEvent.changeText(getByLabelText('Saldo awal Wallet pertama'), '2000000');
     await fireEvent.press(getByLabelText('Lanjut'));
     await fireEvent.press(getByLabelText('Pilih mata uang USD'));
     await fireEvent.press(getByLabelText('Masuk ke Spen'));
@@ -39,11 +39,11 @@ describe('SetupWizard', () => {
     const { getByLabelText } = await render(<SetupWizard onComplete={onComplete} />);
 
     await fireEvent.press(getByLabelText('Mulai'));
-    await fireEvent.changeText(getByLabelText('Nama wallet pertama'), 'BCA');
-    await fireEvent.changeText(getByLabelText('Saldo awal wallet pertama'), '2000000');
+    await fireEvent.changeText(getByLabelText('Nama Wallet pertama'), 'BCA');
+    await fireEvent.changeText(getByLabelText('Saldo awal Wallet pertama'), '2000000');
     await fireEvent.press(getByLabelText('Tambah Wallet'));
-    await fireEvent.changeText(getByLabelText('Nama wallet 2'), 'Tunai');
-    await fireEvent.changeText(getByLabelText('Saldo awal wallet 2'), '500000');
+    await fireEvent.changeText(getByLabelText('Nama Wallet 2'), 'Tunai');
+    await fireEvent.changeText(getByLabelText('Saldo awal Wallet 2'), '500000');
     await fireEvent.press(getByLabelText('Lanjut'));
     await fireEvent.press(getByLabelText('Masuk ke Spen'));
 

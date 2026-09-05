@@ -10,7 +10,7 @@ describe('TransactionForm', () => {
       <TransactionForm mode="create" onClose={jest.fn()} onSave={onSave} />,
     );
 
-    await fireEvent.press(getByLabelText('Tipe Keluar'));
+    await fireEvent.press(getByLabelText('Tipe Pengeluaran'));
     await fireEvent.press(getByLabelText('Pilih Wallet GoPay'));
     await fireEvent.press(getByLabelText('Kategori Makan'));
     await fireEvent.changeText(getByLabelText('Nominal transaksi'), '45000');
@@ -30,6 +30,16 @@ describe('TransactionForm', () => {
     );
   });
 
+  it('merender tiga tab tipe transaksi dengan wrapper yang membagi lebar secara merata', async () => {
+    const { getAllByRole } = await render(
+      <TransactionForm mode="create" onClose={jest.fn()} onSave={jest.fn()} />,
+    );
+
+    const tabs = getAllByRole('tab');
+    expect(tabs).toHaveLength(3);
+    expect(tabs.every((tab) => tab.parent?.props.style?.[0]?.flex === 1)).toBe(true);
+  });
+
   it('membuka edit state dengan data terisi dan tombol hapus', async () => {
     const onSave = jest.fn();
     const onDelete = jest.fn();
@@ -44,7 +54,7 @@ describe('TransactionForm', () => {
       />,
     );
 
-    expect(getByText('Edit Transaksi')).toBeTruthy();
+    expect(getByText('Edit')).toBeTruthy();
     expect(getByLabelText('Nominal transaksi').props.value).toBe('45.000');
     expect(getByLabelText('Catatan transaksi').props.value).toBe('Kopi dan sarapan');
     expect(getByText('Hapus Transaksi')).toBeTruthy();
@@ -55,7 +65,7 @@ describe('TransactionForm', () => {
       <TransactionForm mode="create" onClose={jest.fn()} onSave={jest.fn()} />,
     );
 
-    await fireEvent.press(getByLabelText('Tipe Keluar'));
+    await fireEvent.press(getByLabelText('Tipe Pengeluaran'));
     await fireEvent.press(getByLabelText('Kategori Makan'));
     await fireEvent.changeText(getByLabelText('Nominal transaksi'), '1300000');
 
@@ -86,7 +96,7 @@ describe('TransactionForm', () => {
       <TransactionForm mode="create" onClose={jest.fn()} onSave={jest.fn()} />,
     );
 
-    await fireEvent.press(getByLabelText('Tipe Keluar'));
+    await fireEvent.press(getByLabelText('Tipe Pengeluaran'));
     await fireEvent.press(getByLabelText('Kelola kategori'));
     await fireEvent.changeText(getByLabelText('Nama kategori baru'), 'Kesehatan');
     await fireEvent.press(getByLabelText('Simpan kategori'));

@@ -1,5 +1,5 @@
 import { useMemo, useState, type ComponentProps } from 'react';
-import { Modal, Pressable, SectionList, StyleSheet, View } from 'react-native';
+import { Modal, SectionList, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -26,15 +26,23 @@ import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
+import { getCategoryLabel } from '@/i18n/categories';
+import { getIntlLocale } from '@/i18n/format';
+import {
+  MotionAnimatedView,
+  MotionPressable as Pressable,
+  MotionScreen,
+  motionPresets,
+} from '@/components/motion';
 
 type HistoryChip = HistoryFilter | 'makan';
 
-const filterOptions: { key: HistoryChip; label: string }[] = [
-  { key: 'all', label: 'Semua' },
-  { key: 'expense', label: 'Pengeluaran' },
-  { key: 'income', label: 'Pendapatan' },
-  { key: 'transfer', label: 'Transfer' },
-  { key: 'makan', label: 'Makan' },
+const filterOptions: { key: HistoryChip; translationKey: string }[] = [
+  { key: 'all', translationKey: 'common.all' },
+  { key: 'expense', translationKey: 'common.expense' },
+  { key: 'income', translationKey: 'common.income' },
+  { key: 'transfer', translationKey: 'categories.transfer' },
+  { key: 'makan', translationKey: 'categories.food' },
 ];
 
 function HistoryScreenContent({
@@ -44,7 +52,6 @@ function HistoryScreenContent({
 }: { transactions?: Transaction[]; categories?: Category[]; wallets?: Wallet[] } = {}) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const tr = (key: string, fallback: string) => t(key) === key ? fallback : t(key);
   const {
     categoryId: categoryParam,
     walletId: walletParam,
@@ -61,20 +68,25 @@ function HistoryScreenContent({
   const [walletId, setWalletId] = useState<string | undefined>(walletParam);
   const [page, setPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
-  const transactions = useMemo(
+  const filteredTransactions = useMemo(
     () =>
-      getHistoryPage(
-        page,
-        5,
+      filterHistoryTransactions(
         filterHistoryPeriod(
           transactionsProp ?? getHistoryPage(1, Number.MAX_SAFE_INTEGER),
           startDate,
           endDate,
         ),
+        filter,
+        categoryId,
+        walletId,
       ),
-    [page, startDate, endDate, transactionsProp],
+    [filter, categoryId, walletId, startDate, endDate, transactionsProp],
   );
-  const filtered = filterHistoryTransactions(transactions, filter, categoryId, walletId);
+  const transactions = useMemo(
+    () => getHistoryPage(page, 5, filteredTransactions),
+    [page, filteredTransactions],
+  );
+  const filtered = transactions;
   const groups = groupHistoryByDate(filtered);
   const sections = groups.map((group) => ({ title: group.date, data: group.data }));
   const chooseFilter = (key: HistoryChip) => {
@@ -94,173 +106,185 @@ function HistoryScreenContent({
 
   return (
     <ThemedView style={styles.page}>
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.id}
-        stickySectionHeadersEnabled
-        onEndReached={() =>
-          setPage((current) =>
-            Math.min(current + 1, Math.max(1, Math.ceil((transactionsProp?.length ?? 5) / 5))),
-          )
-        }
-        onEndReachedThreshold={0.4}
-        contentContainerStyle={styles.content}
-        ListHeaderComponent={
-          <View style={styles.header}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Kembali"
-              onPress={() => router.back()}
-            >
-              <ThemedText style={styles.back}>‹</ThemedText>
-            </Pressable>
-            <View style={styles.headerCopy}>
-              <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-                {tr('common.allTransactions', 'SEMUA TRANSAKSI')}
-              </ThemedText>
-              <ThemedText type="title" style={styles.title}>
-                {tr('common.history', 'Riwayat')}
+      <MotionScreen>
+        <SectionList
+          sections={sections}
+          keyExtractor={(item) => item.id}
+          stickySectionHeadersEnabled
+          onEndReached={() =>
+            setPage((current) =>
+              Math.min(current + 1, Math.max(1, Math.ceil(filteredTransactions.length / 5))),
+            )
+          }
+          onEndReachedThreshold={0.4}
+          contentContainerStyle={styles.content}
+          ListHeaderComponent={
+            <View style={styles.header}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.back')}
+                onPress={() => router.back()}
+              >
+                <ThemedText style={styles.back}>‹</ThemedText>
+              </Pressable>
+              <View style={styles.headerCopy}>
+                <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
+                  {t('common.allTransactions').toUpperCase()}
+                </ThemedText>
+                <ThemedText type="title" style={styles.title}>
+                  {t('common.history')}
+                </ThemedText>
+              </View>
+            </View>
+          }
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <ThemedText style={[styles.emptyGlyph, { color: theme.pine }]}>◌</ThemedText>
+              <ThemedText type="subtitle">{t('common.noRecords')}</ThemedText>
+              <ThemedText type="small" themeColor="muted">
+                {t('common.noMatchingTransactions')}
               </ThemedText>
             </View>
-          </View>
-        }
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <ThemedText style={[styles.emptyGlyph, { color: theme.pine }]}>◌</ThemedText>
-            <ThemedText type="subtitle">{tr('common.noRecords', 'Belum ada catatan')}</ThemedText>
-            <ThemedText type="small" themeColor="muted">
-              Tidak ada transaksi yang cocok dengan filter ini.
-            </ThemedText>
-          </View>
-        }
-        renderSectionHeader={({ section }) => (
-          <View
-            style={[
-              styles.sectionHeader,
-              { backgroundColor: theme.background, borderBottomColor: theme.line },
-            ]}
-          >
-            <ThemedText type="smallBold">{formatDate(section.title)}</ThemedText>
-            <ThemedText type="small" themeColor="muted">
-              {formatMoney(
-                section.data.reduce(
+          }
+          renderSectionHeader={({ section }) => (
+            <View
+              style={[
+                styles.sectionHeader,
+                { backgroundColor: theme.background, borderBottomColor: theme.line },
+              ]}
+            >
+              <ThemedText type="smallBold">{formatDate(section.title)}</ThemedText>
+              {(() => {
+                const incoming = section.data.reduce(
                   (sum, item) => sum + (item.type === 'income' ? item.amount : 0),
                   0,
-                ),
-              )}{' '}
-              {tr('common.income', 'Masuk').toLowerCase()}
-            </ThemedText>
-          </View>
-        )}
-        renderItem={({ item }) => (
-          <HistoryTransaction transaction={item} categories={categories} wallets={wallets} />
-        )}
-        ListFooterComponent={
-          <View style={styles.footer}>
-            <ThemedText type="small" themeColor="muted">
-              Geser untuk memuat lebih banyak
-            </ThemedText>
-          </View>
-        }
-      />
-      <View style={[styles.filterBar, { backgroundColor: theme.card, borderTopColor: theme.line }]}>
-        {
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Filter"
-            onPress={() => setFilterOpen(true)}
-          >
-            <ThemedText type="smallBold" themeColor="pine">
-              {tr('common.filter', 'Filter')}
-            </ThemedText>
-          </Pressable>
-        }
-      </View>
-      <Modal
-        transparent
-        animationType="slide"
-        visible={filterOpen}
-        onRequestClose={() => setFilterOpen(false)}
-      >
-        <Pressable
-          style={[styles.overlay, { backgroundColor: theme.overlay }]}
-          onPress={() => setFilterOpen(false)}
+                );
+                return incoming > 0 ? (
+                  <ThemedText type="small" themeColor="muted">
+                    {formatMoney(incoming)} {t('common.incoming').toLowerCase()}
+                  </ThemedText>
+                ) : null;
+              })()}
+            </View>
+          )}
+          renderItem={({ item }) => (
+            <HistoryTransaction transaction={item} categories={categories} wallets={wallets} />
+          )}
+          ListFooterComponent={
+            <View style={styles.footer}>
+              <ThemedText type="small" themeColor="muted">
+                Geser untuk memuat lebih banyak
+              </ThemedText>
+            </View>
+          }
+        />
+        <View
+          style={[styles.filterBar, { backgroundColor: theme.card, borderTopColor: theme.line }]}
         >
-          <View style={[styles.filterSheet, { backgroundColor: theme.card }]}>
-            <ThemedText type="sectionHeading">{tr('common.filterTransactions', 'Filter transaksi')}</ThemedText>
-            {filterOptions.map((option) => (
-              <Pressable
-                key={option.key}
-                accessibilityRole="button"
-                accessibilityLabel={`Pilih filter ${option.label}`}
-                accessibilityState={{ selected: filter === option.key && !categoryId && !walletId }}
-                onPress={() => chooseFilter(option.key)}
-                style={[styles.filterOption, { borderTopColor: theme.line }]}
-              >
-                <ThemedText
-                  type="smallBold"
-                  themeColor={
-                    (
-                      option.key === 'makan'
-                        ? categoryId === 'category-makan'
-                        : categoryId === undefined &&
-                          walletId === undefined &&
-                          filter === option.key
-                    )
-                      ? 'pine'
-                      : 'ink'
-                  }
+          {
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('common.filter')}
+              onPress={() => setFilterOpen(true)}
+            >
+              <ThemedText type="smallBold" themeColor="pine">
+                {t('common.filter')}
+              </ThemedText>
+            </Pressable>
+          }
+        </View>
+        <Modal
+          transparent
+          animationType="slide"
+          visible={filterOpen}
+          onRequestClose={() => setFilterOpen(false)}
+        >
+          <Pressable
+            wrapperStyle={{ flex: 1 }}
+            style={[styles.overlay, { backgroundColor: theme.overlay }]}
+            onPress={() => setFilterOpen(false)}
+          >
+            <MotionAnimatedView
+              entering={motionPresets.itemEntering}
+              style={[styles.filterSheet, { backgroundColor: theme.card }]}
+            >
+              <ThemedText type="sectionHeading">{t('common.filterTransactions')}</ThemedText>
+              {filterOptions.map((option) => (
+                <Pressable
+                  key={option.key}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('common.filter')} ${t('common.selectCategory', { name: t(option.translationKey) })}`}
+                  accessibilityState={{
+                    selected: filter === option.key && !categoryId && !walletId,
+                  }}
+                  onPress={() => chooseFilter(option.key)}
+                  style={[styles.filterOption, { borderTopColor: theme.line }]}
                 >
-                  {option.label}
-                </ThemedText>
-              </Pressable>
-            ))}
-            {categories?.map((category) => (
-              <Pressable
-                key={category.id}
-                accessibilityRole="button"
-                accessibilityLabel={`Pilih filter kategori ${category.name}`}
-                accessibilityState={{ selected: categoryId === category.id }}
-                onPress={() => {
-                  setCategoryId(category.id);
-                  setWalletId(undefined);
-                  setFilter(
-                    category.type === 'income'
-                      ? 'income'
-                      : category.type === 'transfer'
-                        ? 'transfer'
-                        : 'expense',
-                  );
-                  setPage(1);
-                  setFilterOpen(false);
-                }}
-                style={[styles.filterOption, { borderTopColor: theme.line }]}
-              >
-                <ThemedText
-                  type="smallBold"
-                  themeColor={categoryId === category.id ? 'pine' : 'ink'}
+                  <ThemedText
+                    type="smallBold"
+                    themeColor={
+                      (
+                        option.key === 'makan'
+                          ? categoryId === 'category-makan'
+                          : categoryId === undefined &&
+                            walletId === undefined &&
+                            filter === option.key
+                      )
+                        ? 'pine'
+                        : 'ink'
+                    }
+                  >
+                    {t(option.translationKey)}
+                  </ThemedText>
+                </Pressable>
+              ))}
+              {categories?.map((category) => (
+                <Pressable
+                  key={category.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('common.filter')} ${t('common.selectCategory', { name: getCategoryLabel(category) })}`}
+                  accessibilityState={{ selected: categoryId === category.id }}
+                  onPress={() => {
+                    setCategoryId(category.id);
+                    setWalletId(undefined);
+                    setFilter(
+                      category.type === 'income'
+                        ? 'income'
+                        : category.type === 'transfer'
+                          ? 'transfer'
+                          : 'expense',
+                    );
+                    setPage(1);
+                    setFilterOpen(false);
+                  }}
+                  style={[styles.filterOption, { borderTopColor: theme.line }]}
                 >
-                  {category.name}
-                </ThemedText>
-              </Pressable>
-            ))}
-            {wallets?.map((wallet) => (
-              <Pressable
-                key={wallet.id}
-                accessibilityRole="button"
-                accessibilityLabel={`Pilih filter Wallet ${wallet.name}`}
-                accessibilityState={{ selected: walletId === wallet.id }}
-                onPress={() => chooseWallet(wallet.id)}
-                style={[styles.filterOption, { borderTopColor: theme.line }]}
-              >
-                <ThemedText type="smallBold" themeColor={walletId === wallet.id ? 'pine' : 'ink'}>
-                  {wallet.name}
-                </ThemedText>
-              </Pressable>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
+                  <ThemedText
+                    type="smallBold"
+                    themeColor={categoryId === category.id ? 'pine' : 'ink'}
+                  >
+                    {getCategoryLabel(category)}
+                  </ThemedText>
+                </Pressable>
+              ))}
+              {wallets?.map((wallet) => (
+                <Pressable
+                  key={wallet.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.selectWallet', { name: wallet.name })}
+                  accessibilityState={{ selected: walletId === wallet.id }}
+                  onPress={() => chooseWallet(wallet.id)}
+                  style={[styles.filterOption, { borderTopColor: theme.line }]}
+                >
+                  <ThemedText type="smallBold" themeColor={walletId === wallet.id ? 'pine' : 'ink'}>
+                    {wallet.name}
+                  </ThemedText>
+                </Pressable>
+              ))}
+            </MotionAnimatedView>
+          </Pressable>
+        </Modal>
+      </MotionScreen>
     </ThemedView>
   );
 }
@@ -284,6 +308,8 @@ function HistoryTransaction({
 }) {
   const theme = useTheme();
   const presentation = getTransactionPresentation(transaction, categories, wallets);
+  const category = categories?.find((item) => item.id === transaction.categoryId);
+  const categoryName = category ? getCategoryLabel(category) : presentation.categoryName;
   const income = transaction.type === 'income';
   const transfer = transaction.type === 'transfer';
   const color = income ? theme.income : transfer ? theme.gold : theme.expense;
@@ -295,7 +321,7 @@ function HistoryTransaction({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Edit transaksi ${presentation.categoryName}`}
+      accessibilityLabel={i18n.t('common.editTransaction', { name: categoryName })}
       onPress={() =>
         router.push({ pathname: '/create', params: { transactionId: transaction.id } })
       }
@@ -305,7 +331,7 @@ function HistoryTransaction({
         <ThemedText style={{ color }}>{presentation.categoryIcon}</ThemedText>
       </ThemedView>
       <View style={styles.copy}>
-        <ThemedText type="smallBold">{presentation.categoryName}</ThemedText>
+        <ThemedText type="smallBold">{categoryName}</ThemedText>
         <ThemedText type="small" themeColor="muted" numberOfLines={1}>
           {presentation.walletName} · {transaction.note}
         </ThemedText>
@@ -323,7 +349,7 @@ function HistoryTransaction({
 }
 
 function formatDate(date: string) {
-  return new Intl.DateTimeFormat(i18n.language === 'en' ? 'en-US' : 'id-ID', {
+  return new Intl.DateTimeFormat(getIntlLocale(i18n.language === 'en' ? 'en' : 'id'), {
     weekday: 'long',
     day: 'numeric',
     month: 'long',

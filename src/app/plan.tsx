@@ -1,17 +1,16 @@
 import PlanScreen from '@/components/plan-screen';
-import { router } from 'expo-router';
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   applyDatabaseBudgetSuggestion,
   createDatabasePlanItem,
   deleteDatabasePlanItem,
   setBudgetPeriodStartDay,
-  setDatabasePlanItemPaid,
   updateDatabasePlanItem,
 } from '@/features/budget';
 import { getBudgetGoalOverview } from '@/features/budget';
 import type { BudgetSuggestion } from '@/services/ai-service';
-import { saveDatabaseCategory } from '@/features/transactions';
+import { saveDatabaseCategory, saveDatabaseTransaction } from '@/features/transactions';
 import {
   archiveGoal,
   createGoal,
@@ -24,9 +23,10 @@ import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function PlanRoute() {
+  const { t } = useTranslation();
   const database = useAppDatabase();
   const read = useCallback(() => getBudgetGoalOverview(database), [database]);
-  const { data, error, retry } = useFocusedRead(read, 'Budget plan tidak dapat dimuat.');
+  const { data, error, retry } = useFocusedRead(read, t('common.planLoadError'));
   const load = async () => retry();
   const planView = data?.[0] ?? null;
   const categories = data?.[1] ?? [];
@@ -35,8 +35,8 @@ export default function PlanRoute() {
     return (
       <DataState
         kind="error"
-        title="Rencana belum siap"
-        description={error}
+        title={t('common.planNotReady')}
+        description={t('errors.unknown')}
         onRetry={() => {
           void load();
         }}
@@ -46,8 +46,8 @@ export default function PlanRoute() {
     return (
       <DataState
         kind="loading"
-        title="Memuat Rencana"
-        description="Menghitung Budget plan dan Saldo tersedia."
+        title={t('common.loadingPlan')}
+        description={t('common.loadingPlanCopy')}
       />
     );
   return (
@@ -61,8 +61,8 @@ export default function PlanRoute() {
         await load();
       }}
       onPlanItemSave={async (item, draft) => {
-        if (item && !('isAutomatic' in item && item.isAutomatic))
-          await updateDatabasePlanItem(database, item, draft);
+        if (item?.isAutomatic) return;
+        if (item) await updateDatabasePlanItem(database, item, draft);
         else await createDatabasePlanItem(database, draft);
         await load();
       }}
@@ -70,29 +70,19 @@ export default function PlanRoute() {
         await deleteDatabasePlanItem(database, item);
         await load();
       }}
-      onItemAction={(item, amount) => {
-        router.push({
-          pathname: '/create',
-          params: {
-            type: item.type === 'income' ? 'income' : 'expense',
-            categoryId: item.categoryId,
-            amount: String(amount),
-          },
-        });
-      }}
-      onItemPayment={async (item, paid) => {
-        const wallet = [...planView.wallets]
-          .filter((candidate) => !candidate.archived)
-          .sort((left, right) => right.balance - left.balance)[0];
-        if (!wallet) throw new Error('Belum ada Wallet aktif untuk pembayaran.');
+      onItemAction={async (item, amount, walletId) => {
         const now = new Date();
-        await setDatabasePlanItemPaid(
-          database,
-          item,
-          paid,
-          wallet.id,
-          `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
-        );
+        await saveDatabaseTransaction(database, {
+          type: 'expense',
+          walletId,
+          toWalletId: null,
+          categoryId: item.categoryId,
+          amount,
+          date: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
+          time: now.toTimeString().slice(0, 5),
+          note: t('common.planPaymentNote', { name: item.name }),
+          sourceExpenseItemId: item.id,
+        });
         await load();
       }}
       onSuggestionApply={async (suggestion: BudgetSuggestion) => {
@@ -128,21 +118,15 @@ export default function PlanRoute() {
         await archiveGoal(database, goal.id);
         await load();
       }}
-      onGoalSaveAction={(goal) => {
-        const source = planView.wallets.find(
-          (wallet) => !wallet.archived && wallet.id !== goal.walletId,
-        );
-        if (source)
-          router.push({
-            pathname: '/create',
-            params: {
-              type: 'transfer',
-              walletId: source.id,
-              toWalletId: goal.walletId,
-              goalId: goal.id,
-              lockedToWalletId: goal.walletId,
-            },
-          });
+      onGoalAllocate={async (goal, amount) => {
+        await updateGoal(database, goal.id, {
+          name: goal.name,
+          targetAmount: goal.targetAmount,
+          targetDate: goal.targetDate,
+          walletId: goal.walletId,
+          monthlyContribution: amount,
+        });
+        await load();
       }}
       onGoalWithdraw={async (goal, amount) => {
         if (amount > 0) await withdrawFromGoal(database, goal.id, amount);

@@ -73,7 +73,7 @@ Aturan:
 - **Balance card / available hero**: surface gelap `pine-2`, radius `26px`, shadow lembut `0 12px 28px #1E4A4222`, padding `21px`. Angka utama `32px` (Beranda) / `30px` (Rencana).
 - **Plan snapshot** (Beranda): kartu terang, radius `21px`, progress + mini stats (Pendapatan vs Terpakai).
 - **Chart card** (Report): kartu terang, radius `22px`, padding `17px`.
-- **Wallet card**: `119×107px` horizontal scroll, radius `18px`, border tint per wallet (pine/coral/gold/goal), nama di atas + nominal DM Mono di bawah. Kartu "+ Tambah Wallet" dashed border.
+- **Wallet card**: `119×107px` horizontal scroll, radius `18px`, surface `card`, border `line` hairline tanpa shadow, nama di atas + nominal DM Mono di bawah. Kartu "+ Tambah Wallet" dashed border.
 - **Setting group**: kartu berisi row-row, radius `19px`, divider antar row.
 
 ### Progress bar
@@ -158,7 +158,7 @@ Aturan:
 
 ## 7. Bahasa & Nada
 
-- Seluruh UI dan output AI dalam **Bahasa Indonesia**, santai namun tenang ("Membaca pola keuanganmu…", "Perlahan ya…", "Mengerti" sebagai tombol tutup insight).
+- Seluruh UI dan output AI mengikuti locale aktif (**Bahasa Indonesia** sebagai default, English sebagai alternatif), dengan suara santai namun tenang ("Membaca pola keuanganmu…", "Perlahan ya…", "Mengerti" sebagai tombol tutup insight).
 - Gunakan istilah domain dari `CONTEXT.md` secara konsisten: **Wallet, Budget plan, Budget period, Fixed expense, Goal, Spare budget, Net saving, Saldo tersedia, Transaksi penyesuaian, Alokasi, Transfer** — jangan pakai sinonim yang di-avoid (account, budget item, dll.).
 - Nada AI suggestion/insight: ringkas, jelas, actionable, tanpa menghakimi.
 

@@ -1,5 +1,6 @@
 import DailyTransactionsScreen from '@/components/daily-transactions-screen';
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getDatabaseTransactionCategories, getDatabaseTransactions } from '@/features/transactions';
 import { getWallets } from '@/features/wallet';
 import { DataState } from '@/components/screen-skeleton';
@@ -7,6 +8,7 @@ import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function DailyRoute() {
+  const { t } = useTranslation();
   const database = useAppDatabase();
   const read = useCallback(
     () =>
@@ -17,13 +19,13 @@ export default function DailyRoute() {
       ]),
     [database],
   );
-  const { data, error, retry } = useFocusedRead(read, 'Transaksi harian tidak dapat dimuat.');
+  const { data, error, retry } = useFocusedRead(read, t('common.dailyNotReady'));
   if (error)
     return (
       <DataState
         kind="error"
-        title="Transaksi belum siap"
-        description={error}
+        title={t('common.transactionsNotReady')}
+        description={t('errors.unknown')}
         onRetry={() => {
           retry();
         }}
@@ -33,8 +35,8 @@ export default function DailyRoute() {
     return (
       <DataState
         kind="loading"
-        title="Memuat transaksi"
-        description="Mengambil catatan hari ini."
+        title={t('common.loadingTransactions')}
+        description={t('common.loadingDailyTransactionsCopy')}
       />
     );
   const [transactions, categories, wallets] = data;

@@ -31,14 +31,11 @@ Catatan: `--mint` di light theme adalah `#DCE5EC` (salah ejaan nama di CSS, nila
 | expense  | `--expense` (`#C85C55`) | Teks nominal keluar, ikon kategori expense, label over-budget |
 | transfer | `--gold` (`#BD8A30`)    | Teks nominal transfer, ikon kategori transfer                 |
 
-### Wallet card tints (border accent)
+### Wallet card surface
 
-| Tint    | Border color | Contoh wallet            |
-| ------- | ------------ | ------------------------ |
-| `pine`  | `#B6D7CC`    | BCA                      |
-| `coral` | `#EFC5BB`    | Tunai                    |
-| `gold`  | `#E9D49A`    | GoPay                    |
-| `goal`  | `#C9B8DE`    | Dana Nikah (wallet goal) |
+- Background: `--card`
+- Border: `--line` at hairline width
+- No shadow; Wallet card mengikuti surface card standar.
 
 ### Hero surface (balance card / available)
 
@@ -51,7 +48,6 @@ Catatan: `--mint` di light theme adalah `#DCE5EC` (salah ejaan nama di CSS, nila
 
 - Overlay sheet/modal: `#10251D66` (66% opacity)
 - Shadow balance card: `0 12px 28px #1E4A4222`
-- Shadow wallet card: `0 8px 18px rgba(33,52,49,.07)` (hover: `rgba(33,52,49,.11)`)
 - Shadow FAB: `0 5px 15px #235B5066`
 
 ## Typography

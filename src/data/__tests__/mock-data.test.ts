@@ -63,7 +63,7 @@ describe('mockData', () => {
     expect(mockData.budgetSnapshot.totalTransferIn).toBe(0);
     expect(mockData.budgetSnapshot.totalTransferOut).toBe(0);
     expect(mockData.budgetSnapshot.netSaving).toBe(6500000 - activeExpenses);
-    expect(mockData.budgetSnapshot.spareBudget).toBe(4450000);
+    expect(mockData.budgetSnapshot.spareBudget).toBe(2850000);
     expect(mockData.budgetSnapshot.planItems).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ paymentStatus: { kind: 'Lunas' } }),

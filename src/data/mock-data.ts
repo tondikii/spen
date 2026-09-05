@@ -52,6 +52,7 @@ export const mockData = {
     {
       id: 'category-gaji',
       name: 'Gaji',
+      systemKey: 'salary',
       type: 'income',
       icon: '✦',
       archived: false,
@@ -60,6 +61,7 @@ export const mockData = {
     {
       id: 'category-freelance',
       name: 'Freelance',
+      systemKey: 'freelance',
       type: 'income',
       icon: '⌁',
       archived: false,
@@ -68,6 +70,7 @@ export const mockData = {
     {
       id: 'category-bonus',
       name: 'Bonus',
+      systemKey: 'bonus',
       type: 'income',
       icon: '✺',
       archived: false,
@@ -76,6 +79,7 @@ export const mockData = {
     {
       id: 'category-makan',
       name: 'Makan',
+      systemKey: 'food',
       type: 'expense',
       icon: '◒',
       archived: false,
@@ -84,6 +88,7 @@ export const mockData = {
     {
       id: 'category-transport',
       name: 'Transport',
+      systemKey: 'transport',
       type: 'expense',
       icon: '◉',
       archived: false,
@@ -92,6 +97,7 @@ export const mockData = {
     {
       id: 'category-belanja',
       name: 'Belanja',
+      systemKey: 'shopping',
       type: 'expense',
       icon: '▧',
       archived: false,
@@ -100,6 +106,7 @@ export const mockData = {
     {
       id: 'category-sewa',
       name: 'Sewa',
+      systemKey: 'rent',
       type: 'expense',
       icon: '⌂',
       archived: false,
@@ -108,6 +115,7 @@ export const mockData = {
     {
       id: 'category-internet',
       name: 'Internet',
+      systemKey: 'internet',
       type: 'expense',
       icon: '◈',
       archived: false,
@@ -116,6 +124,7 @@ export const mockData = {
     {
       id: 'category-hiburan',
       name: 'Hiburan',
+      systemKey: 'entertainment',
       type: 'expense',
       icon: '♪',
       archived: false,
@@ -124,6 +133,7 @@ export const mockData = {
     {
       id: 'category-transfer',
       name: 'Transfer',
+      systemKey: 'transfer',
       type: 'transfer',
       icon: '⇄',
       archived: false,
@@ -132,6 +142,7 @@ export const mockData = {
     {
       id: 'category-saldo-awal',
       name: 'Saldo Awal',
+      systemKey: 'openingBalance',
       type: 'income',
       icon: '↺',
       archived: false,
@@ -140,6 +151,7 @@ export const mockData = {
     {
       id: 'category-penyesuaian',
       name: 'Penyesuaian Saldo',
+      systemKey: 'balanceAdjustment',
       type: 'expense',
       icon: '±',
       archived: false,
@@ -337,7 +349,7 @@ export const mockData = {
     totalTransferIn: 0,
     totalTransferOut: 0,
     netSaving: 3550000,
-    spareBudget: 4450000,
+    spareBudget: 2850000,
     availableBalance: 9275000,
     freeBalance: 5525000,
     goalBalance: 3750000,

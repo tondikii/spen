@@ -33,6 +33,32 @@ describe('ReportScreen', () => {
     expect(getByText('Mengerti')).toBeTruthy();
   });
 
+  it('memakai picker Budget period yang sama dan menyimpan tanggal mulai', async () => {
+    const onPeriodStartDayChange = jest.fn();
+    const { getByLabelText, getByText } = await render(
+      <ReportScreen onPeriodStartDayChange={onPeriodStartDayChange} />,
+    );
+
+    expect(getByText('1–30 Sep')).toBeTruthy();
+    await fireEvent.press(getByLabelText('Pilih rentang Laporan'));
+    await fireEvent.press(getByLabelText('Tanggal 5'));
+
+    expect(onPeriodStartDayChange).toHaveBeenCalledWith(5);
+    expect(getByText('5–30 Sep')).toBeTruthy();
+  });
+
+  it('menampilkan satu picker khusus untuk rentang chart Net saving di dalam card', async () => {
+    const { getByLabelText, getByText } = await render(<ReportScreen />);
+
+    expect(getByLabelText('Pilih rentang Net saving').props.accessibilityState).toEqual({
+      expanded: false,
+    });
+    await fireEvent.press(getByLabelText('Pilih rentang Net saving'));
+    await fireEvent.press(getByLabelText('Laporan 6 bulan'));
+
+    expect(getByText('6 bulan')).toBeTruthy();
+  });
+
   it('meneruskan drill-down kategori beserta Budget period', async () => {
     const onCategoryPress = jest.fn();
     const { getByLabelText } = await render(<ReportScreen onCategoryPress={onCategoryPress} />);

@@ -1,5 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import i18n from '@/i18n';
+import { AppError } from '@/lib/app-error';
 import { currencyOptions, setSelectedCurrency } from '@/services/settings-service';
 import type { CurrencyCode } from '@/types/domain';
 
@@ -27,20 +29,22 @@ export async function completeSetup(
   wallets: SetupWalletDraft[],
   currency: CurrencyCode,
 ) {
-  if (wallets.length === 0) throw new Error('Buat minimal satu Wallet');
+  if (wallets.length === 0) throw new AppError('validation', undefined, 'Buat minimal satu Wallet');
   const drafts = wallets.map((wallet) => ({
     name: wallet.name.trim(),
     initialBalance: wallet.initialBalance,
   }));
-  if (drafts.some((wallet) => !wallet.name)) throw new Error('Nama Wallet wajib diisi');
+  if (drafts.some((wallet) => !wallet.name))
+    throw new AppError('validation', undefined, 'Nama Wallet wajib diisi');
   if (drafts.some((wallet) => !Number.isSafeInteger(wallet.initialBalance)))
-    throw new Error('Saldo awal harus berupa angka bulat');
+    throw new AppError('validation', undefined, 'Saldo awal harus berupa angka bulat');
 
   await database.withExclusiveTransactionAsync(async (transaction) => {
     const walletCount = await transaction.getFirstAsync<{ count: number }>(
       'SELECT COUNT(*) AS count FROM wallets;',
     );
-    if ((walletCount?.count ?? 0) > 0) throw new Error('Setup sudah selesai');
+    if ((walletCount?.count ?? 0) > 0)
+      throw new AppError('validation', undefined, 'Setup sudah selesai');
     const category = drafts.some((wallet) => wallet.initialBalance !== 0)
       ? await transaction.getFirstAsync<{ id: number }>(
           'SELECT id FROM categories WHERE name = ? AND is_adjustment = 1 LIMIT 1;',
@@ -48,7 +52,7 @@ export async function completeSetup(
         )
       : null;
     if (drafts.some((wallet) => wallet.initialBalance !== 0) && !category)
-      throw new Error('Kategori Saldo Awal belum tersedia');
+      throw new AppError('notFound', undefined, 'Kategori Saldo Awal belum tersedia');
     for (const draft of drafts) {
       const wallet = await transaction.runAsync(
         'INSERT INTO wallets (name, initial_balance, is_savings, archived) VALUES (?, 0, 0, 0);',
@@ -65,7 +69,7 @@ export async function completeSetup(
           Math.abs(draft.initialBalance),
           now.toISOString().slice(0, 10),
           now.toTimeString().slice(0, 5),
-          'Saldo awal Wallet',
+          i18n.t('common.openingBalanceNote'),
         );
       }
     }

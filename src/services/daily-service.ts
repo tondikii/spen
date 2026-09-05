@@ -1,5 +1,7 @@
+import i18n, { getCurrentLocale } from '@/i18n';
+import { getIntlLocale } from '@/i18n/format';
 import { getMockTransactions } from '@/services/transaction-service';
-import type { Transaction } from '@/types/domain';
+import type { Locale, Transaction } from '@/types/domain';
 
 export function getDailyTransactions(
   date: string,
@@ -28,10 +30,14 @@ export function shiftDate(date: string, days: number) {
   return shifted.toISOString().slice(0, 10);
 }
 
-export function getDailyLabel(date: string, today = '2026-09-01') {
-  if (date === today) return 'Hari Ini';
-  if (date === shiftDate(today, -1)) return 'Kemarin';
-  return new Intl.DateTimeFormat('id-ID', {
+export function getDailyLabel(
+  date: string,
+  today = '2026-09-01',
+  locale: Locale = getCurrentLocale(),
+) {
+  if (date === today) return i18n.t('common.today', { lng: locale });
+  if (date === shiftDate(today, -1)) return i18n.t('common.yesterday', { lng: locale });
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
     weekday: 'short',
     day: 'numeric',
     month: 'short',

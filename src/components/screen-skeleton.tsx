@@ -1,31 +1,34 @@
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { Card, PrimaryButton } from '@/components/ui-primitives';
+import { MotionAnimatedView, motionPresets } from '@/components/motion';
 
 export function ScreenSkeleton({ title, eyebrow }: { title: string; eyebrow: string }) {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   return (
     <ThemedView style={styles.page}>
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.content}>
+        <MotionAnimatedView entering={motionPresets.screenEntering} style={styles.content}>
           <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
             {eyebrow}
           </ThemedText>
           <ThemedText type="title">{title}</ThemedText>
           <Card style={styles.card}>
             <View style={[styles.dot, { backgroundColor: theme.pine }]} />
-            <ThemedText type="subtitle">Segera hadir</ThemedText>
+            <ThemedText type="subtitle">{t('common.comingSoon')}</ThemedText>
             <ThemedText themeColor="muted" style={styles.description}>
-              Ruang ini sedang disiapkan untuk membantu mengatur uangmu dengan lebih tenang.
+              {t('common.comingSoonCopy')}
             </ThemedText>
           </Card>
-        </View>
+        </MotionAnimatedView>
       </SafeAreaView>
     </ThemedView>
   );
@@ -43,25 +46,25 @@ export function DataState({
   onRetry?: () => void;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
+  if (kind === 'loading') return null;
   return (
     <View style={styles.state}>
       <View style={[styles.stateGlyph, { backgroundColor: theme.mint }]}>
-        {kind === 'loading' ? (
-          <ActivityIndicator color={theme.pine} />
-        ) : (
-          <ThemedText
-            style={{ color: kind === 'error' ? theme.expense : theme.pine, fontSize: 28 }}
-          >
-            {kind === 'error' ? '!' : '◌'}
-          </ThemedText>
-        )}
+        <ThemedText style={{ color: kind === 'error' ? theme.expense : theme.pine, fontSize: 28 }}>
+          {kind === 'error' ? '!' : '◌'}
+        </ThemedText>
       </View>
       <ThemedText type="sectionHeading">{title}</ThemedText>
       <ThemedText type="small" themeColor="muted" style={styles.stateDescription}>
         {description}
       </ThemedText>
       {onRetry && (
-        <PrimaryButton label="Coba lagi" onPress={onRetry} accessibilityLabel="Coba lagi" />
+        <PrimaryButton
+          label={t('common.retry')}
+          onPress={onRetry}
+          accessibilityLabel={t('common.retry')}
+        />
       )}
     </View>
   );

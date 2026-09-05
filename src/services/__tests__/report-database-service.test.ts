@@ -118,6 +118,10 @@ describe('database report service', () => {
       totalTransferIn: 250,
       totalTransferOut: 250,
       netSaving: 600,
+      spareBudget: 1000,
+      availableBalance: 600,
+      freeBalance: 600,
+      goalBalance: 0,
     });
     expect(view.expenses.map((expense) => expense.name)).toEqual(['Makan', 'Transport']);
     expect(view.netSavingByPeriod[0].period.startDate).toBe('2026-09-01');

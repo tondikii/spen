@@ -1,9 +1,9 @@
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
-import { Radius, Spacing, Typography } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { MotionAnimatedView, MotionPressable, motionPresets } from '@/components/motion';
 
 type ConfirmationModalProps = {
   visible: boolean;
@@ -31,14 +31,17 @@ export function ConfirmationModal({
   return (
     <Modal transparent animationType="fade" visible={visible} onRequestClose={onCancel}>
       <View style={[styles.overlay, { backgroundColor: theme.overlay }]}>
-        <ThemedView style={[styles.card, { backgroundColor: theme.card }]}>
+        <MotionAnimatedView
+          entering={motionPresets.itemEntering}
+          style={[styles.card, { backgroundColor: theme.card }]}
+        >
           <ThemedText type="sectionHeading">{title}</ThemedText>
           <ThemedText type="default" themeColor="muted" style={styles.message}>
             {message}
           </ThemedText>
           <View style={styles.actions}>
             {cancelLabel && (
-              <Pressable
+              <MotionPressable
                 accessibilityRole="button"
                 accessibilityLabel={cancelLabel}
                 onPress={onCancel}
@@ -47,9 +50,9 @@ export function ConfirmationModal({
                 <ThemedText type="smallBold" themeColor="pine">
                   {cancelLabel}
                 </ThemedText>
-              </Pressable>
+              </MotionPressable>
             )}
-            <Pressable
+            <MotionPressable
               accessibilityRole="button"
               accessibilityLabel={confirmLabel}
               onPress={() => {
@@ -63,9 +66,9 @@ export function ConfirmationModal({
               <ThemedText type="smallBold" style={{ color: theme.heroText }}>
                 {confirmLabel}
               </ThemedText>
-            </Pressable>
+            </MotionPressable>
           </View>
-        </ThemedView>
+        </MotionAnimatedView>
       </View>
     </Modal>
   );

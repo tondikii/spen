@@ -1,24 +1,56 @@
 import { router } from 'expo-router';
-import { useEffect, useState, type ComponentProps, type ReactNode } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
+import {
+  useEffect,
+  useState,
+  type ComponentProps,
+  type ComponentType,
+  type ReactNode,
+} from 'react';
+import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import Svg, { Circle, ClipPath, Defs, G, Path, Rect } from 'react-native-svg';
+import Animated, {
+  cancelAnimation,
+  useAnimatedProps,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+  type SharedValue,
+} from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { FinanceHeroCard } from '@/components/finance-hero-card';
+import { BudgetPeriodPicker } from '@/components/budget-period-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BottomTabInset, Fonts, Radius, Typography } from '@/constants/theme';
+import { BottomTabInset, Fonts, Motion, Radius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoney } from '@/lib/money';
 import { aiService, type BudgetAIInput } from '@/services/ai-service';
 import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
+import { getIntlLocale } from '@/i18n/format';
+import { getCategoryLabel } from '@/i18n/categories';
+import { getErrorTranslationKey } from '@/lib/app-error';
 import {
   getDatabaseReportView,
   getReportNetSavingLabel,
   getReportView,
   type ReportExpense,
 } from '@/services/report-service';
+import {
+  MotionAnimatedView,
+  MotionChevron,
+  MotionPressable as Pressable,
+  MotionScreen,
+  motionPresets,
+} from '@/components/motion';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
+const ClipPathCompat = ClipPath as unknown as ComponentType<{
+  id: string;
+  children?: ReactNode;
+}>;
 
 type ReportView =
   ReturnType<typeof getReportView> | Awaited<ReturnType<typeof getDatabaseReportView>>;
@@ -26,19 +58,21 @@ type ReportView =
 function ReportScreenContent({
   reportView = getReportView(),
   onRangeChange,
+  onPeriodStartDayChange,
   onCategoryPress,
   aiInput,
 }: {
   reportView?: ReportView;
   onRangeChange?: (months: number) => void | Promise<void>;
+  onPeriodStartDayChange?: (day: number) => void | Promise<void>;
   onCategoryPress?: (expense: ReportExpense, period: ReportView['period']) => void;
   aiInput?: BudgetAIInput;
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const tr = (key: string, fallback: string) => t(key) === key ? fallback : t(key);
   const locale = i18n.language === 'en' ? 'en' : 'id';
   const { snapshot, expenses, period, netSavingByPeriod } = reportView;
+  const [startDay, setStartDay] = useState(Number(period.startDate.slice(-2)));
   const [range, setRange] = useState(3);
   const [insightOpen, setInsightOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -46,34 +80,36 @@ function ReportScreenContent({
   const [insightSource, setInsightSource] = useState<'ai' | 'fallback'>('fallback');
   const [insightError, setInsightError] = useState('');
   const [rangeOpen, setRangeOpen] = useState(false);
+  const [dismissSignal, setDismissSignal] = useState(0);
   useEffect(() => {
     if (!insightOpen) return;
     let cancelled = false;
     const timer = setTimeout(() => {
       setLoading(true);
       void aiService
-        .generateInsight(
-          { ...(aiInput ?? {
+        .generateInsight({
+          ...(aiInput ?? {
             spareBudget: reportView.snapshot.spareBudget,
             totalIncome: reportView.snapshot.totalIncome,
             fixedExpense: 0,
             goalContributions: 0,
             netSaving: reportView.snapshot.netSaving,
             topExpenses: reportView.expenses.map((expense) => ({
-              name: expense.name,
+              name: getCategoryLabel(expense, locale),
               amount: expense.amount,
             })),
-          }), locale },
-        )
+          }),
+          locale,
+        })
         .then((result) => {
           if (cancelled) return;
           setInsightText(result.text);
           setInsightSource(result.source);
           setLoading(false);
         })
-        .catch(() => {
+        .catch((cause) => {
           if (!cancelled) {
-            setInsightError('Insight belum tersedia. Coba lagi nanti.');
+            setInsightError(t(getErrorTranslationKey(cause)));
             setLoading(false);
           }
         });
@@ -82,7 +118,16 @@ function ReportScreenContent({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [aiInput, insightOpen]);
+  }, [
+    aiInput,
+    insightOpen,
+    locale,
+    reportView.expenses,
+    reportView.snapshot.netSaving,
+    reportView.snapshot.spareBudget,
+    reportView.snapshot.totalIncome,
+    t,
+  ]);
 
   const openCategory = (expense: ReportExpense) =>
     onCategoryPress
@@ -104,23 +149,30 @@ function ReportScreenContent({
   };
 
   return (
-    <ThemedView style={styles.page}>
+    <ThemedView
+      style={styles.page}
+      onTouchStart={() => setDismissSignal((current) => current + 1)}
+    >
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <View>
             <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-              BUDGET PERIOD
+              {t('common.planEyebrow')}
             </ThemedText>
-            <ThemedText type="title">{tr('common.report', 'Laporan')}</ThemedText>
-            <Pressable accessibilityRole="button" accessibilityLabel="Ubah Budget period">
-              <ThemedText type="small" themeColor="muted">
-                {formatPeriodAccurate(period)}⌄
-              </ThemedText>
-            </Pressable>
+            <ThemedText type="title">{t('common.report')}</ThemedText>
+            <BudgetPeriodPicker
+              period={period}
+              startDay={startDay}
+              dismissSignal={dismissSignal}
+              onStartDayChange={(day) => {
+                setStartDay(day);
+                return onPeriodStartDayChange?.(day);
+              }}
+            />
           </View>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Tanya AI"
+            accessibilityLabel={t('common.reportAskAi')}
             onPress={() => {
               setLoading(true);
               setInsightOpen(true);
@@ -128,7 +180,7 @@ function ReportScreenContent({
             style={[styles.aiButton, { borderColor: theme.line, backgroundColor: theme.mint }]}
           >
             <ThemedText type="smallBold" themeColor="pine" style={styles.aiButtonText}>
-              ✦ Tanya AI
+              ✦ {t('common.reportAskAi')}
             </ThemedText>
           </Pressable>
         </View>
@@ -137,27 +189,33 @@ function ReportScreenContent({
           amount={snapshot.netSaving}
           amountColor={snapshot.netSaving < 0 ? theme.expense : undefined}
           footer={[
-            { label: 'Pendapatan', value: formatMoney(snapshot.totalIncome) },
-            { label: 'Pengeluaran', value: formatMoney(snapshot.totalExpense) },
+            { label: t('common.income'), value: formatMoney(snapshot.totalIncome) },
+            { label: t('common.expense'), value: formatMoney(snapshot.totalExpense) },
           ]}
           style={styles.summary}
         />
-        <ChartCard title="Pengeluaran" trailing={formatMonth(period.endDate)} theme={theme}>
+        <ChartCard
+          title={t('common.reportExpenses')}
+          trailing={formatMonth(period.endDate)}
+          theme={theme}
+        >
           {expenses.length === 0 ? (
             <View style={styles.empty}>
               <ThemedText style={styles.emptyGlyph}>◌</ThemedText>
-              <ThemedText type="smallBold">{tr('common.noExpenses', 'Belum ada pengeluaran')}</ThemedText>
+              <ThemedText type="smallBold">{t('common.noExpenses')}</ThemedText>
             </View>
           ) : (
-            <View style={styles.pieArea}>
-              <Donut expenses={expenses} total={snapshot.totalExpense} theme={theme} />
-              <View style={styles.pieLabel}>
-                <ThemedText type="smallBold" style={styles.pieAmount}>
-                  {formatMoney(snapshot.totalExpense)}
-                </ThemedText>
-                <ThemedText type="small" themeColor="muted">
-                  total keluar
-                </ThemedText>
+            <View style={styles.chartReveal}>
+              <View style={styles.pieArea}>
+                <Donut expenses={expenses} total={snapshot.totalExpense} theme={theme} />
+                <View style={styles.pieLabel}>
+                  <ThemedText type="smallBold" style={styles.pieAmount}>
+                    {formatMoney(snapshot.totalExpense)}
+                  </ThemedText>
+                  <ThemedText type="small" themeColor="muted">
+                    {t('common.totalOut')}
+                  </ThemedText>
+                </View>
               </View>
             </View>
           )}
@@ -166,7 +224,7 @@ function ReportScreenContent({
               <Pressable
                 key={item.categoryId}
                 accessibilityRole="button"
-                accessibilityLabel={`Lihat kategori ${item.name}`}
+                accessibilityLabel={t('common.viewCategory', { name: getCategoryLabel(item) })}
                 onPress={() => openCategory(item)}
                 style={[styles.legendRow, { borderTopColor: theme.line }]}
               >
@@ -177,7 +235,7 @@ function ReportScreenContent({
                   ]}
                 />
                 <ThemedText type="small" style={styles.legendName}>
-                  {item.name}
+                  {getCategoryLabel(item)}
                 </ThemedText>
                 <ThemedText type="smallBold" themeColor="muted">
                   {percentage(item.amount, snapshot.totalExpense)}%
@@ -186,45 +244,65 @@ function ReportScreenContent({
             ))}
           </View>
         </ChartCard>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Pilih rentang Laporan"
-          onPress={() => setRangeOpen(true)}
-          style={[styles.rangeButton, { borderColor: theme.line }]}
+        <ChartCard
+          title={t('common.reportNetSaving')}
+          trailing={t('common.months', { months: range })}
+            trailingAction={() => setRangeOpen((current) => !current)}
+          trailingAccessibilityLabel={t('common.chooseNetSavingRange')}
+          trailingExpanded={rangeOpen}
+          trailingPopover={
+            rangeOpen ? (
+              <MotionAnimatedView
+                entering={motionPresets.itemEntering}
+                onTouchStart={(event) => event.stopPropagation()}
+                style={[styles.rangePopover, { backgroundColor: theme.card, borderColor: theme.line }]}
+              >
+                {[3, 6, 12].map((months) => (
+                  <Pressable
+                    key={months}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.reportMonths', { months })}
+                    onTouchStart={(event) => event.stopPropagation()}
+                    onPress={() => updateRange(months)}
+                    style={[styles.rangeOption, { borderBottomColor: theme.line }]}
+                  >
+                    <ThemedText type="smallBold" themeColor={range === months ? 'pine' : 'ink'}>
+                      {t('common.months', { months })}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </MotionAnimatedView>
+            ) : null
+          }
+          theme={theme}
         >
-          <ThemedText type="smallBold" themeColor="pine">
-            Rentang: {range} bulan⌄
-          </ThemedText>
-        </Pressable>
-        <ChartCard title="Net saving" trailing={`${range} bulan⌄`} theme={theme}>
           {chartPoints.length === 0 ? (
             <View style={styles.empty}>
               <ThemedText style={styles.emptyGlyph}>◌</ThemedText>
-              <ThemedText type="smallBold">{tr('common.noNetSaving', 'Belum ada data net saving')}</ThemedText>
+              <ThemedText type="smallBold">{t('common.noNetSaving')}</ThemedText>
             </View>
           ) : (
             <>
-              <View style={[styles.chart, { borderBottomColor: theme.line }]}>
-                <Svg
-                  accessible
-                  accessibilityLabel={`Tren Net saving: ${chartPoints
-                    .map(
-                      (point) =>
-                        `${formatMonthShort(point.period.startDate)} ${formatMoney(point.netSaving)}`,
-                    )
-                    .join(', ')}`}
-                  width="100%"
-                  height="120"
-                  viewBox="0 0 320 120"
-                  preserveAspectRatio="none"
-                >
-                  <Path d={linePath(chartPoints)} fill="none" stroke={theme.pine} strokeWidth="3" />
-                  <Path
-                    d={`${linePath(chartPoints)} L318 120 L2 120Z`}
-                    fill={theme.pine}
-                    opacity="0.1"
-                  />
-                </Svg>
+              <View style={styles.chartReveal}>
+                <View style={[styles.chart, { borderBottomColor: theme.line }]}>
+                  <Svg
+                    accessible
+                    accessibilityLabel={t('common.reportTrend', {
+                      values: chartPoints
+                        .map(
+                          (point) =>
+                            `${formatMonthShort(point.period.startDate)} ${formatMoney(point.netSaving)}`,
+                        )
+                        .join(', '),
+                    })}
+                    width="100%"
+                    height="120"
+                    viewBox="0 0 320 120"
+                    preserveAspectRatio="none"
+                  >
+                    <NetSavingLineChart points={chartPoints} color={theme.pine} />
+                  </Svg>
+                </View>
               </View>
               <View style={styles.months}>
                 {chartPoints.map((point) => (
@@ -244,6 +322,7 @@ function ReportScreenContent({
         onRequestClose={() => setInsightOpen(false)}
       >
         <Pressable
+          wrapperStyle={{ flex: 1 }}
           style={[styles.overlay, { backgroundColor: theme.overlay }]}
           onPress={() => setInsightOpen(false)}
         >
@@ -251,20 +330,20 @@ function ReportScreenContent({
             {loading ? (
               <View accessibilityLiveRegion="polite" style={styles.loading}>
                 <ThemedText style={[styles.loadingGlyph, { color: theme.pine }]}>✦</ThemedText>
-                <ThemedText type="smallBold">Membaca pola keuanganmu…</ThemedText>
+                <ThemedText type="smallBold">{t('common.insightReading')}</ThemedText>
                 <ThemedText type="small" themeColor="muted">
-                  Sebentar ya.
+                  {t('common.holdOn')}
                 </ThemedText>
               </View>
             ) : (
               <>
-                <ThemedText type="sectionHeading">Insight bulan ini</ThemedText>
+                <ThemedText type="sectionHeading">{t('common.insightThisMonth')}</ThemedText>
                 {insightError ? (
                   <View accessibilityLiveRegion="polite" style={styles.insightError}>
                     <ThemedText style={{ color: theme.expense }}>{insightError}</ThemedText>
                     <Pressable
                       accessibilityRole="button"
-                      accessibilityLabel="Coba lagi"
+                      accessibilityLabel={t('common.retryInsight')}
                       onPress={() => {
                         setInsightError('');
                         setInsightOpen(false);
@@ -272,26 +351,28 @@ function ReportScreenContent({
                       }}
                     >
                       <ThemedText type="smallBold" themeColor="pine">
-                        Coba lagi
+                        {t('common.retryInsight')}
                       </ThemedText>
                     </Pressable>
                   </View>
                 ) : (
                   <>
                     <ThemedText type="small" themeColor="muted">
-                      {insightSource === 'fallback' ? 'Insight lokal' : 'Insight AI'}
+                      {insightSource === 'fallback'
+                        ? t('common.insightLocal')
+                        : t('common.insightAi')}
                     </ThemedText>
                     <ThemedText style={styles.insightText}>{insightText}</ThemedText>
                   </>
                 )}
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Mengerti"
+                  accessibilityLabel={t('common.understand')}
                   onPress={() => setInsightOpen(false)}
                   style={[styles.closeInsight, { backgroundColor: theme.pine }]}
                 >
                   <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-                    Mengerti
+                    {t('common.understand')}
                   </ThemedText>
                 </Pressable>
               </>
@@ -299,73 +380,100 @@ function ReportScreenContent({
           </View>
         </Pressable>
       </Modal>
-      <Modal
-        transparent
-        animationType="slide"
-        visible={rangeOpen}
-        onRequestClose={() => setRangeOpen(false)}
-      >
-        <Pressable
-          style={[styles.overlay, { backgroundColor: theme.overlay }]}
-          onPress={() => setRangeOpen(false)}
-        >
-          <View style={[styles.sheet, { backgroundColor: theme.card }]}>
-            <ThemedText type="sectionHeading">Rentang Laporan</ThemedText>
-            {[3, 6, 12].map((months) => (
-              <Pressable
-                key={months}
-                accessibilityRole="button"
-                accessibilityLabel={`Laporan ${months} bulan`}
-                onPress={() => updateRange(months)}
-                style={[styles.sheetOption, { borderTopColor: theme.line }]}
-              >
-                <ThemedText type="smallBold" themeColor={range === months ? 'pine' : 'ink'}>
-                  {months} bulan
-                </ThemedText>
-              </Pressable>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
     </ThemedView>
   );
 }
 
-function formatPeriodAccurate(period: { startDate: string; endDate: string }) {
-  const month = new Intl.DateTimeFormat(i18n.language === 'en' ? 'en-US' : 'id-ID', { month: 'short' }).format(
-    new Date(`${period.endDate}T12:00:00`),
-  );
-  return `${Number(period.startDate.slice(-2))}–${Number(period.endDate.slice(-2))} ${month}`;
-}
 function formatMonth(date: string) {
-  return new Intl.DateTimeFormat(i18n.language === 'en' ? 'en-US' : 'id-ID', { month: 'long' }).format(new Date(`${date}T12:00:00`));
+  return new Intl.DateTimeFormat(getIntlLocale(i18n.language === 'en' ? 'en' : 'id'), {
+    month: 'long',
+  }).format(new Date(`${date}T12:00:00`));
 }
 function formatMonthShort(date: string) {
-  return new Intl.DateTimeFormat(i18n.language === 'en' ? 'en-US' : 'id-ID', { month: 'short' }).format(new Date(`${date}T12:00:00`));
+  return new Intl.DateTimeFormat(getIntlLocale(i18n.language === 'en' ? 'en' : 'id'), {
+    month: 'short',
+  }).format(new Date(`${date}T12:00:00`));
 }
 function percentage(amount: number, total: number) {
   return total > 0 ? Math.round((amount / total) * 100) : 0;
 }
-function linePath(points: ReportView['netSavingByPeriod']) {
-  if (points.length === 0) return 'M2 110 L318 110';
+type LinePath = { d: string; length: number };
+
+function getLinePath(points: ReportView['netSavingByPeriod']): LinePath {
+  if (points.length === 0) return { d: 'M2 110 L318 110', length: 316 };
   const values = points.map((point) => point.netSaving);
   const min = Math.min(...values, 0);
   const max = Math.max(...values, 0);
   const spread = Math.max(max - min, 1);
-  return values
-    .map((value, index) => {
-      const x = points.length === 1 ? 160 : 2 + index * (316 / (points.length - 1));
-      const y = 110 - ((value - min) / spread) * 90;
-      return `${index === 0 ? 'M' : 'L'}${x.toFixed(1)} ${Math.max(20, Math.min(110, y)).toFixed(1)}`;
-    })
+  const coordinates = values.map((value, index) => {
+    const x = points.length === 1 ? 160 : 2 + index * (316 / (points.length - 1));
+    const y = 110 - ((value - min) / spread) * 90;
+    return { x, y: Math.max(20, Math.min(110, y)) };
+  });
+  const d = coordinates
+    .map(({ x, y }, index) => `${index === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y.toFixed(1)}`)
     .join(' ');
+  const length = coordinates.reduce((total, point, index) => {
+    if (index === 0) return total;
+    const previous = coordinates[index - 1];
+    return total + Math.hypot(point.x - previous.x, point.y - previous.y);
+  }, 0);
+  return { d, length: Math.max(length, 1) };
+}
+
+function useChartReveal(animationKey: string) {
+  const reveal = useSharedValue(0);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    cancelAnimation(reveal);
+    reveal.value = reduceMotion ? 1 : 0;
+    if (!reduceMotion) {
+      reveal.value = withTiming(1, { duration: Motion.chartDuration });
+    }
+    return () => cancelAnimation(reveal);
+  }, [animationKey, reduceMotion, reveal]);
+
+  return reveal;
+}
+
+function NetSavingLineChart({
+  points,
+  color,
+}: {
+  points: ReportView['netSavingByPeriod'];
+  color: string;
+}) {
+  const path = getLinePath(points);
+  const reveal = useChartReveal(
+    points.map((point) => `${point.period.id}:${point.netSaving}`).join('|'),
+  );
+  const animatedClipProps = useAnimatedProps(() => ({
+    width: 320 * reveal.value,
+  }));
+
+  return (
+    <>
+      <Defs>
+        <ClipPathCompat id="net-saving-reveal">
+          <AnimatedRect x="0" y="0" height="120" animatedProps={animatedClipProps} />
+        </ClipPathCompat>
+      </Defs>
+      <G clipPath="url(#net-saving-reveal)">
+        <Path d={path.d} fill="none" stroke={color} strokeWidth="3" />
+        <Path d={`${path.d} L318 120 L2 120Z`} fill={color} opacity="0.1" />
+      </G>
+    </>
+  );
 }
 
 export default function ReportScreen(props: ComponentProps<typeof ReportScreenContent>) {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ReportScreenContent {...props} />
-    </SafeAreaView>
+    <MotionScreen>
+      <SafeAreaView style={styles.safeArea}>
+        <ReportScreenContent {...props} />
+      </SafeAreaView>
+    </MotionScreen>
   );
 }
 function chartColors(theme: ReturnType<typeof useTheme>) {
@@ -384,13 +492,19 @@ function Donut({
   const colors = chartColors(theme);
   const radius = 57;
   const circumference = 2 * Math.PI * radius;
+  const reveal = useChartReveal(
+    `${total}:${expenses.map((item) => `${item.categoryId}:${item.amount}`).join('|')}`,
+  );
   let offset = 0;
   return (
     <Svg
       accessible
-      accessibilityLabel={`Pengeluaran total ${formatMoney(total)}; ${expenses
-        .map((item) => `${item.name} ${formatMoney(item.amount)}`)
-        .join(', ')}`}
+      accessibilityLabel={i18n.t('common.totalExpense', {
+        total: formatMoney(total),
+        breakdown: expenses
+          .map((item) => `${getCategoryLabel(item)} ${formatMoney(item.amount)}`)
+          .join(', '),
+      })}
       width={145}
       height={145}
       viewBox="0 0 145 145"
@@ -400,17 +514,14 @@ function Donut({
       {expenses.map((item, index) => {
         const length = total > 0 ? (item.amount / total) * circumference : 0;
         const segment = (
-          <Circle
+          <DonutSegment
             key={item.categoryId}
-            cx="72.5"
-            cy="72.5"
-            r={radius}
-            fill="none"
-            stroke={colors[index % colors.length]}
-            strokeWidth="28"
-            strokeDasharray={`${length} ${circumference - length}`}
-            strokeDashoffset={-offset}
-            transform="rotate(-90 72.5 72.5)"
+            color={colors[index % colors.length]}
+            circumference={circumference}
+            length={length}
+            offset={offset}
+            radius={radius}
+            reveal={reveal}
           />
         );
         offset += length;
@@ -420,48 +531,56 @@ function Donut({
   );
 }
 /* eslint-enable react-hooks/immutability */
-function formatPeriod(period: { startDate: string; endDate: string }) {
-  return `${Number(period.startDate.slice(-2))}â€“${Number(period.endDate.slice(-2))} ${new Date(`${period.endDate}T12:00:00`).toLocaleDateString('id-ID', { month: 'short' })}ÃƒÂ¢Ã…â€™Ã¢â‚¬Å¾`;
-}
-function Metric({
-  label,
-  value,
+
+function DonutSegment({
   color,
-  theme,
+  circumference,
+  length,
+  offset,
+  radius,
+  reveal,
 }: {
-  label: string;
-  value: number;
   color: string;
-  theme: ReturnType<typeof useTheme>;
+  circumference: number;
+  length: number;
+  offset: number;
+  radius: number;
+  reveal: SharedValue<number>;
 }) {
+  const animatedProps = useAnimatedProps(() => ({
+    strokeDasharray: [length * reveal.value, circumference - length * reveal.value],
+    strokeDashoffset: -offset * reveal.value,
+  }));
+
   return (
-    <ThemedView style={[styles.metric, { backgroundColor: theme.pine2 }]}>
-      <ThemedText type="code" style={{ color: theme.heroMuted }}>
-        {label}
-      </ThemedText>
-      <ThemedText
-        type="smallBold"
-        style={{
-          color,
-          fontFamily: Fonts.serifBold,
-          fontSize: 24,
-          lineHeight: 28,
-          letterSpacing: -1,
-        }}
-      >
-        {formatMoney(value)}
-      </ThemedText>
-    </ThemedView>
+    <AnimatedCircle
+      cx="72.5"
+      cy="72.5"
+      r={radius}
+      fill="none"
+      stroke={color}
+      strokeWidth="28"
+      transform="rotate(-90 72.5 72.5)"
+      animatedProps={animatedProps}
+    />
   );
 }
 function ChartCard({
   title,
   trailing,
+  trailingAction,
+  trailingAccessibilityLabel,
+  trailingExpanded = false,
+  trailingPopover,
   children,
   theme,
 }: {
   title: string;
   trailing?: ReactNode;
+  trailingAction?: () => void;
+  trailingAccessibilityLabel?: string;
+  trailingExpanded?: boolean;
+  trailingPopover?: ReactNode;
   children: ReactNode;
   theme: ReturnType<typeof useTheme>;
 }) {
@@ -473,11 +592,28 @@ function ChartCard({
     >
       <View style={styles.cardHeader}>
         <ThemedText type="sectionHeading">{title}</ThemedText>
-        {trailing && (
+        {trailing && trailingAction ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={trailingAccessibilityLabel}
+            accessibilityState={{ expanded: trailingExpanded }}
+            onTouchStart={(event) => event.stopPropagation()}
+            onPress={trailingAction}
+            hitSlop={8}
+          >
+            <View style={styles.cardTrailing}>
+              <ThemedText type="small" themeColor="muted">
+                {trailing}
+              </ThemedText>
+              <MotionChevron expanded={trailingExpanded} color={theme.muted} size={16} />
+            </View>
+          </Pressable>
+        ) : trailing ? (
           <ThemedText type="small" themeColor="muted">
             {trailing}
           </ThemedText>
-        )}
+        ) : null}
+        {trailingPopover}
       </View>
       {children}
     </ThemedView>
@@ -513,8 +649,16 @@ const styles = StyleSheet.create({
   summary: { marginBottom: 24 },
   metric: { flex: 1, gap: 5, minHeight: 58 },
   card: { borderRadius: 22, borderWidth: 1, marginBottom: 16, padding: 18 },
-  cardHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
+  cardHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    position: 'relative',
+    zIndex: 10,
+  },
+  cardTrailing: { alignItems: 'center', flexDirection: 'row', gap: 2 },
   pieArea: { alignItems: 'center', height: 183, justifyContent: 'center', marginTop: 8 },
+  chartReveal: { overflow: 'hidden' },
   empty: { alignItems: 'center', gap: 7, paddingVertical: 38 },
   emptyGlyph: { fontSize: 38 },
   pieLabel: { alignItems: 'center', position: 'absolute' },
@@ -537,16 +681,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     marginTop: 10,
   },
-  rangeButton: {
-    alignItems: 'center',
-    alignSelf: 'flex-end',
-    borderRadius: 10,
-    borderWidth: 1,
-    flexDirection: 'row',
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
   chart: {
     alignItems: 'flex-end',
     borderBottomWidth: 1,
@@ -562,6 +696,23 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: 27, borderTopRightRadius: 27, padding: 21 },
   sheetOption: { borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: 15 },
+  rangePopover: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    elevation: 100,
+    padding: 4,
+    position: 'absolute',
+    right: 0,
+    top: 28,
+    width: 148,
+    zIndex: 100,
+  },
+  rangeOption: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'center',
+    minHeight: 38,
+    paddingHorizontal: 11,
+  },
   loading: { alignItems: 'center', paddingVertical: 45 },
   loadingGlyph: { fontSize: 29, marginBottom: 12 },
   insightText: { fontSize: 13, lineHeight: 21, marginTop: 17 },
