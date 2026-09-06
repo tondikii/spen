@@ -38,7 +38,7 @@ describe('BudgetPeriodPicker', () => {
 
     await fireEvent.press(getByLabelText('Pilih rentang Laporan'));
 
-    expect(getByLabelText('Tanggal 31').props.style).toEqual(
+    expect(getByLabelText('Tanggal 31').parent?.props.style).toEqual(
       expect.arrayContaining([expect.objectContaining({ width: '13%' })]),
     );
   });
