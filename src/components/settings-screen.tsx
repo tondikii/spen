@@ -345,11 +345,11 @@ function SettingRow({
   const theme = useTheme();
   return (
     <View style={[styles.row, { borderBottomColor: theme.line }]}>
-      <ThemedText
-        style={[styles.icon, iconStyle, { backgroundColor: theme.mint, color: theme.pine }]}
-      >
-        {icon}
-      </ThemedText>
+      <View style={[styles.icon, { backgroundColor: theme.mint }]}>
+        <ThemedText style={[styles.iconGlyph, iconStyle]} themeColor="pine">
+          {icon}
+        </ThemedText>
+      </View>
       <View style={styles.copy}>
         <ThemedText type="smallBold" style={styles.rowTitle}>
           {title}
@@ -387,11 +387,11 @@ function ActionRow({
         pressed && styles.pressed,
       ]}
     >
-      <ThemedText
-        style={[styles.icon, iconStyle, { backgroundColor: theme.mint, color: theme.pine }]}
-      >
-        {icon}
-      </ThemedText>
+      <View style={[styles.icon, { backgroundColor: theme.mint }]}>
+        <ThemedText style={[styles.iconGlyph, iconStyle]} themeColor="pine">
+          {icon}
+        </ThemedText>
+      </View>
       <View style={styles.copy}>
         <ThemedText type="smallBold" style={styles.rowTitle}>
           {title}
@@ -433,19 +433,21 @@ const styles = StyleSheet.create({
   icon: {
     alignItems: 'center',
     borderRadius: 10,
-    fontFamily: Fonts.mono,
-    fontSize: 18,
     height: 35,
     justifyContent: 'center',
+    width: 35,
+  },
+  iconGlyph: {
+    fontFamily: Fonts.mono,
+    fontSize: 18,
     lineHeight: 35,
     textAlign: 'center',
     textAlignVertical: 'center',
-    width: 35,
   },
-  smallIcon: { fontSize: 12, height: 31, lineHeight: 24, width: 31 },
-  themeIcon: { transform: [{ translateY: -4 }] },
+  smallIcon: { fontSize: 12, lineHeight: 24 },
+  themeIcon: { transform: [{ translateY: -6 }] },
   currencyIcon: { fontSize: 15 },
-  dataIcon: { transform: [{ translateY: -4 }] },
+  dataIcon: { transform: [{ translateY: -6 }] },
   copy: { flex: 1 },
   rowTitle: { fontSize: 12, lineHeight: 16 },
   rowDetail: { fontSize: 10, lineHeight: 14 },
