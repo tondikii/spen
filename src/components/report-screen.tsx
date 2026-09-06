@@ -209,7 +209,13 @@ function ReportScreenContent({
               <View style={styles.pieArea}>
                 <Donut expenses={expenses} total={snapshot.totalExpense} theme={theme} />
                 <View style={styles.pieLabel}>
-                  <ThemedText type="smallBold" style={styles.pieAmount}>
+                  <ThemedText
+                    type="smallBold"
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.5}
+                    numberOfLines={1}
+                    style={styles.pieAmount}
+                  >
                     {formatMoney(snapshot.totalExpense)}
                   </ThemedText>
                   <ThemedText type="small" themeColor="muted">
@@ -662,7 +668,13 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', gap: 7, paddingVertical: 38 },
   emptyGlyph: { fontSize: 38 },
   pieLabel: { alignItems: 'center', position: 'absolute' },
-  pieAmount: { fontFamily: Fonts.mono, fontSize: 13, letterSpacing: -1 },
+  pieAmount: {
+    fontFamily: Fonts.mono,
+    fontSize: 13,
+    letterSpacing: -1,
+    textAlign: 'center',
+    width: 90,
+  },
   donut: { height: 145, width: 145 },
   legend: { flex: 1 },
   legendRow: {

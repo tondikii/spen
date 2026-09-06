@@ -28,10 +28,13 @@ describe('ReportScreen', () => {
       },
     };
 
-    const { getByText } = await render(<ReportScreen reportView={reportView} />);
+    const { getAllByText, getByText } = await render(<ReportScreen reportView={reportView} />);
 
     expect(getByText('Pendapatan Rp 12.345.678.901')).toBeTruthy();
     expect(getByText('Pengeluaran Rp 9.876.543.210')).toBeTruthy();
+    expect(
+      getAllByText('Rp 9.876.543.210').some((node) => node.props.adjustsFontSizeToFit === true),
+    ).toBe(true);
   });
 
   it('menampilkan empty state saat saving trend belum memiliki data', async () => {
