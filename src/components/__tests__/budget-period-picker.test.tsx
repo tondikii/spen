@@ -39,7 +39,17 @@ describe('BudgetPeriodPicker', () => {
     await fireEvent.press(getByLabelText('Pilih rentang Laporan'));
 
     expect(getByLabelText('Tanggal 31').parent?.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ width: '13%' }),
+        expect.objectContaining({ marginRight: '1.5%' }),
+      ]),
+    );
+
+    expect(getByLabelText('Tanggal 28').parent?.props.style).toEqual(
       expect.arrayContaining([expect.objectContaining({ width: '13%' })]),
+    );
+    expect(getByLabelText('Tanggal 28').parent?.props.style).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ marginRight: '1.5%' })]),
     );
   });
 });

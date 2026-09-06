@@ -87,7 +87,7 @@ export function BudgetPeriodPicker({
                   accessibilityLabel={t('common.date', { date: day })}
                   accessibilityState={{ selected: pendingDay === day }}
                   onPress={() => setPendingDay(day)}
-                  wrapperStyle={styles.optionWrapper}
+                  wrapperStyle={[styles.optionWrapper, day % 7 !== 0 && styles.optionGap]}
                   style={[
                     styles.option,
                     { borderColor: theme.line },
@@ -177,10 +177,10 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
     rowGap: 8,
   },
   optionWrapper: { width: '13%' },
+  optionGap: { marginRight: '1.5%' },
   option: {
     alignItems: 'center',
     borderRadius: Radius.small,
