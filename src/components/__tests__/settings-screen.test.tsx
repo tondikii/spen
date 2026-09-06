@@ -1,11 +1,18 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as Linking from 'expo-linking';
 
 import SettingsScreen from '@/components/settings-screen';
 import { AppThemeProvider } from '@/components/theme-provider';
+import { changeLocale } from '@/i18n';
+import { setSelectedLocale } from '@/services/settings-service';
 
 describe('SettingsScreen', () => {
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(async () => {
+    cleanup();
+    jest.restoreAllMocks();
+    setSelectedLocale('id');
+    await changeLocale('id');
+  });
 
   it('menampilkan pengaturan tema, currency, data, dan footer', async () => {
     const { getByText } = await render(
@@ -32,6 +39,19 @@ describe('SettingsScreen', () => {
     await fireEvent.press(getByLabelText('Pilih mata uang USD'));
 
     await waitFor(() => expect(getByText('USD')).toBeTruthy());
+  });
+
+  it('mengubah bahasa lewat dropdown baru', async () => {
+    const { getByLabelText, getByText } = await render(
+      <AppThemeProvider>
+        <SettingsScreen />
+      </AppThemeProvider>,
+    );
+
+    await fireEvent.press(getByLabelText('Pilih bahasa aplikasi'));
+    await fireEvent.press(getByLabelText('Pilih bahasa Inggris'));
+
+    await waitFor(() => expect(getByText('EN')).toBeTruthy());
   });
 
   it('meneruskan aksi FAQ ke navigasi screen baru', async () => {

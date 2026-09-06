@@ -38,8 +38,8 @@ function AppNavigation({ initialSetupComplete }: { initialSetupComplete: boolean
         <AppTabs />
       ) : (
         <SetupWizard
-          onComplete={async (wallets, currency) => {
-            await completeSetup(sqlite, wallets, currency);
+          onComplete={async (wallets, currency, locale) => {
+            await completeSetup(sqlite, wallets, currency, locale);
             setSetupComplete(true);
           }}
         />

@@ -10,7 +10,7 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 
 ## User Stories
 
-1. As a pengguna baru, I want menjalani setup wizard saat pertama membuka app, so that saya bisa membuat wallet pertama dan mengatur currency sebelum mulai memakai app.
+1. As a pengguna baru, I want menjalani setup wizard saat pertama membuka app, so that saya bisa memilih bahasa, membuat Wallet pertama, dan mengatur currency sebelum mulai memakai app.
 2. As a pengguna, I want membuat beberapa Wallet dengan nama bebas (misal "Tunai", "BCA", "GoPay"), so that saya bisa memisahkan uang sesuai tempat penyimpanan aslinya.
 3. As a pengguna, I want mengedit dan mengarsipkan Wallet, so that saya bisa memperbaiki atau menonaktifkan wallet yang sudah tidak dipakai tanpa kehilangan data transaksinya.
 4. As a pengguna, I want memindahkan uang antar Wallet via Transfer, so that saya bisa mencerminkan perpindahan uang di dunia nyata.
@@ -165,4 +165,4 @@ Klarifikasi interaksi terbaru: Pendapatan tetap dapat ditambahkan dari Plan deng
 - **Rekomendasi Drizzle version**: `drizzle-orm@rc` / `drizzle-kit@rc` (line v1.0 RC) sesuai docs Drizzle; atau stable `latest` (0.45.x). Pastikan kompatibel dengan expo-sqlite 57.
 - **expo version**: pertahankan `expo` ≥ 57.0.17 (fix regresi memori Hermes di SDK 57).
 - **Proses** (sesuai alur agentic): spec ini → `/to-tickets` untuk memecah jadi tracer-bullet tickets → `/implement` per ticket (tdd + code-review).
-- **Setup wizard** saat pertama buka: welcome → buat wallet pertama (nama + saldo awal) → pilih currency (IDR). Tanggal mulai Budget period diubah dari layar Rencana, bukan di wizard.
+- **Setup wizard** saat pertama buka: pilih bahasa → welcome → buat Wallet pertama (nama + saldo awal) → pilih currency (IDR). Tanggal mulai Budget period diubah dari layar Rencana, bukan di wizard.

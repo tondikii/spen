@@ -5,6 +5,10 @@ import type { Locale } from '@/types/domain';
 
 const id = {
   language: 'Bahasa',
+  languageName: {
+    id: 'Bahasa Indonesia',
+    en: 'Inggris',
+  },
   english: 'Inggris',
   cancel: 'Batal',
   moreActions: 'Aksi lainnya',
@@ -98,6 +102,7 @@ const id = {
   darkThemeDetail: 'Sesuaikan suasana aplikasimu',
   currencyUsedForWallets: 'Dipakai untuk semua Wallet',
   chooseLanguage: 'Pilih bahasa aplikasi',
+  chooseLanguageDetail: 'Bisa diubah kapan saja di Pengaturan.',
   backupData: 'Backup data',
   preparingFile: 'Menyiapkan file…',
   saveDataCopy: 'Simpan salinan data',
@@ -336,6 +341,10 @@ const id = {
 
 const en = {
   language: 'Language',
+  languageName: {
+    id: 'Indonesian',
+    en: 'English',
+  },
   english: 'English',
   cancel: 'Cancel',
   moreActions: 'More actions',
@@ -428,6 +437,7 @@ const en = {
   darkThemeDetail: 'Set the mood for your app',
   currencyUsedForWallets: 'Used for all Wallets',
   chooseLanguage: 'Choose the app language',
+  chooseLanguageDetail: 'You can change it anytime in Settings.',
   backupData: 'Backup data',
   preparingFile: 'Preparing file…',
   saveDataCopy: 'Save a copy of your data',

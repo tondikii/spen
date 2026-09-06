@@ -11,22 +11,26 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { CURRENCY_SYMBOLS, CurrencyMark } from '@/components/currency-mark';
+import { CurrencyMark } from '@/components/currency-mark';
+import { CurrencyPicker } from '@/components/currency-picker';
 import { Fonts, Radius, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import { ThemedInput } from '@/components/themed-input';
 import type { SetupWalletDraft } from '@/services/setup-service';
-import type { CurrencyCode } from '@/types/domain';
+import type { CurrencyCode, Locale } from '@/types/domain';
+import { changeLocale } from '@/i18n';
+import { LanguagePicker } from '@/components/language-picker';
+import { getSelectedLocale, setSelectedLocale } from '@/services/settings-service';
 import { useTranslation } from 'react-i18next';
 import { MotionPressable as Pressable, MotionScreen } from '@/components/motion';
 
-const totalSteps = 3;
+const totalSteps = 4;
 
 export function SetupWizard({
   onComplete,
 }: {
-  onComplete: (wallets: SetupWalletDraft[], currency: CurrencyCode) => void;
+  onComplete: (wallets: SetupWalletDraft[], currency: CurrencyCode, locale: Locale) => void;
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -34,6 +38,7 @@ export function SetupWizard({
   const { width: windowWidth } = useWindowDimensions();
   const [step, setStep] = useState(0);
   const [wallets, setWallets] = useState([{ name: '', balance: '' }]);
+  const [locale, setLocale] = useState<Locale>(getSelectedLocale());
   const [currency, setCurrency] = useState<CurrencyCode>('IDR');
   const carouselWidth = Math.max(0, Math.min(windowWidth, 430) - 42);
 
@@ -57,6 +62,7 @@ export function SetupWizard({
         initialBalance: parseMoneyInput(wallet.balance),
       })),
       currency,
+      locale,
     );
   };
 
@@ -99,7 +105,7 @@ export function SetupWizard({
               </View>
 
               <View style={styles.dots} accessibilityRole="tablist">
-                {[0, 1, 2].map((dot) => {
+                {Array.from({ length: totalSteps }, (_, dot) => {
                   const active = dot === step;
 
                   return (
@@ -138,6 +144,26 @@ export function SetupWizard({
                   carouselWidth ? { width: carouselWidth * totalSteps } : undefined,
                 ]}
               >
+                <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
+                  <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
+                    {t('common.language')}
+                  </ThemedText>
+                  <ThemedText type="title" style={styles.title}>
+                    {t('common.chooseLanguage')}
+                  </ThemedText>
+                  <ThemedText type="small" themeColor="muted" style={styles.lead}>
+                    {t('common.chooseLanguageDetail')}
+                  </ThemedText>
+                  <LanguagePicker
+                    selected={locale}
+                    onSelect={(option) => {
+                      setLocale(option);
+                      setSelectedLocale(option);
+                      void changeLocale(option);
+                    }}
+                  />
+                </View>
+
                 <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
                   <ThemedText
                     style={[styles.orb, { backgroundColor: theme.mint, color: theme.pine }]}
@@ -274,36 +300,7 @@ export function SetupWizard({
                   <ThemedText type="small" themeColor="muted" style={styles.lead}>
                     {t('common.noConversion')}
                   </ThemedText>
-                  <View style={styles.currencyGrid}>
-                    {(['IDR', 'USD', 'SGD', 'MYR'] as CurrencyCode[]).map((option) => (
-                      <Pressable
-                        key={option}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('common.chooseCurrencyOption', { currency: option })}
-                        onPress={() => setCurrency(option)}
-                        style={[
-                          styles.currency,
-                          {
-                            borderColor: currency === option ? theme.pine : theme.line,
-                            backgroundColor: currency === option ? theme.mint : theme.card,
-                          },
-                        ]}
-                      >
-                        <ThemedText
-                          style={styles.currencySymbol}
-                          themeColor={currency === option ? 'pine' : 'muted'}
-                        >
-                          {CURRENCY_SYMBOLS[option]}
-                        </ThemedText>
-                        <ThemedText
-                          type="smallBold"
-                          themeColor={currency === option ? 'pine' : 'ink'}
-                        >
-                          {option}
-                        </ThemedText>
-                      </Pressable>
-                    ))}
-                  </View>
+                  <CurrencyPicker selected={currency} onSelect={setCurrency} />
                 </View>
               </ScrollView>
 
@@ -311,9 +308,9 @@ export function SetupWizard({
                 accessible
                 accessibilityRole="button"
                 accessibilityLabel={
-                  step === 0
+                  step === 1
                     ? t('common.start')
-                    : step === 2
+                    : step === totalSteps - 1
                       ? t('common.enterSpen')
                       : t('common.next')
                 }
@@ -323,11 +320,11 @@ export function SetupWizard({
                 style={[styles.primary, { backgroundColor: theme.pine }]}
               >
                 <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-                  {step === 0
+                  {step === 1
                     ? t('common.start')
-                    : step === 1
-                      ? t('common.next')
-                      : t('common.enterSpen')}{' '}
+                    : step === totalSteps - 1
+                      ? t('common.enterSpen')
+                      : t('common.next')}{' '}
                   <ThemedText style={{ color: theme.heroText }}>→</ThemedText>
                 </ThemedText>
               </Pressable>
@@ -402,21 +399,5 @@ const styles = StyleSheet.create({
   moneyInputRow: { alignItems: 'center', flexDirection: 'row', gap: Spacing.two },
   moneyInput: { flex: 1 },
   balanceLabel: { marginTop: 25 },
-  currencyGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 25,
-    marginTop: 5,
-  },
-  currency: {
-    alignItems: 'center',
-    borderRadius: 17,
-    borderWidth: 1,
-    gap: 5,
-    padding: 14,
-    width: '47%',
-  },
-  currencySymbol: { fontFamily: Fonts.mono, fontSize: 16 },
   primary: { borderRadius: 15, marginTop: 'auto', padding: 15 },
 });

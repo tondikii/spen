@@ -2,8 +2,13 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import i18n from '@/i18n';
 import { AppError } from '@/lib/app-error';
-import { currencyOptions, setSelectedCurrency } from '@/services/settings-service';
-import type { CurrencyCode } from '@/types/domain';
+import {
+  currencyOptions,
+  getSelectedLocale,
+  setSelectedCurrency,
+  setSelectedLocale,
+} from '@/services/settings-service';
+import type { CurrencyCode, Locale } from '@/types/domain';
 
 function isCurrency(value: string): value is CurrencyCode {
   return currencyOptions.includes(value as CurrencyCode);
@@ -28,6 +33,7 @@ export async function completeSetup(
   database: SQLiteDatabase,
   wallets: SetupWalletDraft[],
   currency: CurrencyCode,
+  locale: Locale = getSelectedLocale(),
 ) {
   if (wallets.length === 0) throw new AppError('validation', undefined, 'Buat minimal satu Wallet');
   const drafts = wallets.map((wallet) => ({
@@ -73,7 +79,12 @@ export async function completeSetup(
         );
       }
     }
-    await transaction.runAsync('UPDATE settings SET currency = ? WHERE id = 1;', currency);
+    await transaction.runAsync(
+      'UPDATE settings SET currency = ?, locale = ? WHERE id = 1;',
+      currency,
+      locale,
+    );
   });
   setSelectedCurrency(currency);
+  setSelectedLocale(locale);
 }

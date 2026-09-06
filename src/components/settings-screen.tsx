@@ -8,6 +8,8 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SpenLogo } from '@/components/brand-assets';
+import { CurrencyPicker } from '@/components/currency-picker';
+import { LanguagePicker } from '@/components/language-picker';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { PageHeader } from '@/components/ui-primitives';
@@ -22,7 +24,6 @@ import {
   shareBackupFile,
 } from '@/services/backup-service';
 import {
-  currencyOptions,
   getSelectedCurrency,
   getSelectedLocale,
   setDatabaseLocale,
@@ -42,19 +43,6 @@ import {
   MotionSwitch,
 } from '@/components/motion';
 
-const currencySymbols: Record<CurrencyCode, string> = {
-  IDR: 'Rp',
-  USD: '$',
-  SGD: 'S$',
-  MYR: 'RM',
-  EUR: '€',
-  GBP: '£',
-  JPY: '¥',
-  AUD: 'A$',
-  SAR: '﷼',
-  AED: 'د.إ',
-};
-
 export default function SettingsScreen({
   database,
   onFaqPress,
@@ -65,6 +53,7 @@ export default function SettingsScreen({
   const [currency, setCurrency] = useState<CurrencyCode>(getSelectedCurrency());
   const [locale, setLocale] = useState<Locale>(getSelectedLocale());
   const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [languageOpen, setLanguageOpen] = useState(false);
   const [toast, setToast] = useState('');
   const [busy, setBusy] = useState(false);
   const [restoreFile, setRestoreFile] = useState<{ content: string; name: string } | null>(null);
@@ -89,6 +78,7 @@ export default function SettingsScreen({
       const next = database ? await setDatabaseLocale(database, option) : setSelectedLocale(option);
       setLocale(next);
       await changeLocale(next);
+      setLanguageOpen(false);
     } catch {
       showToast(t('errors.storage'));
     }
@@ -185,38 +175,11 @@ export default function SettingsScreen({
               </SettingRow>
               {currencyOpen && (
                 <MotionCollapsible>
-                  <View style={[styles.currencyGrid, { borderTopColor: theme.line }]}>
-                    {currencyOptions.map((option) => (
-                      <MotionPressable
-                        key={option}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('common.chooseCurrencyOption', { currency: option })}
-                        onPress={() => {
-                          void chooseCurrency(option);
-                        }}
-                        style={[
-                          styles.currency,
-                          {
-                            borderColor: currency === option ? theme.pine : theme.line,
-                            backgroundColor: currency === option ? theme.mint : theme.card,
-                          },
-                        ]}
-                      >
-                        <ThemedText
-                          style={styles.currencySymbol}
-                          themeColor={currency === option ? 'pine' : 'muted'}
-                        >
-                          {currencySymbols[option]}
-                        </ThemedText>
-                        <ThemedText
-                          type="smallBold"
-                          themeColor={currency === option ? 'pine' : 'ink'}
-                        >
-                          {option}
-                        </ThemedText>
-                      </MotionPressable>
-                    ))}
-                  </View>
+                  <CurrencyPicker
+                    selected={currency}
+                    onSelect={(option) => void chooseCurrency(option)}
+                    withTopBorder
+                  />
                 </MotionCollapsible>
               )}
               <SettingRow
@@ -224,30 +187,28 @@ export default function SettingsScreen({
                 title={t('common.language')}
                 detail={t('common.chooseLanguage')}
               >
-                <View style={styles.languageOptions}>
-                  {(['id', 'en'] as Locale[]).map((option) => (
-                    <MotionPressable
-                      key={option}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('common.selectLanguage', {
-                        language: option.toUpperCase(),
-                      })}
-                      onPress={() => void chooseLocale(option)}
-                      style={[
-                        styles.languageOption,
-                        {
-                          backgroundColor: locale === option ? theme.mint : theme.card,
-                          borderColor: locale === option ? theme.pine : theme.line,
-                        },
-                      ]}
-                    >
-                      <ThemedText type="smallBold" themeColor={locale === option ? 'pine' : 'ink'}>
-                        {option.toUpperCase()}
-                      </ThemedText>
-                    </MotionPressable>
-                  ))}
-                </View>
+                <MotionPressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.chooseLanguage')}
+                  accessibilityState={{ expanded: languageOpen }}
+                  onPress={() => setLanguageOpen((open) => !open)}
+                  style={[styles.dropdown, { borderColor: theme.line }]}
+                >
+                  <ThemedText type="smallBold" themeColor="pine">
+                    {locale.toUpperCase()}
+                  </ThemedText>
+                  <MotionChevron expanded={languageOpen} color={theme.pine} size={16} />
+                </MotionPressable>
               </SettingRow>
+              {languageOpen && (
+                <MotionCollapsible>
+                  <LanguagePicker
+                    selected={locale}
+                    onSelect={(option) => void chooseLocale(option)}
+                    withTopBorder
+                  />
+                </MotionCollapsible>
+              )}
             </ThemedView>
             <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
               {t('common.data')}
@@ -481,25 +442,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
-  currencyGrid: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    padding: 13,
-  },
-  languageOptions: { flexDirection: 'row', gap: 8 },
-  languageOption: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
-  currency: {
-    alignItems: 'center',
-    borderRadius: 10,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  currencySymbol: { fontFamily: Fonts.mono, fontSize: 11 },
   footer: { alignItems: 'center', gap: 4, marginTop: 53 },
   toast: {
     alignSelf: 'center',

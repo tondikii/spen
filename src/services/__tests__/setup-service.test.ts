@@ -6,6 +6,7 @@ import { seedDefaultCategories } from '../../../db/seed';
 import {
   getDatabaseSettings,
   getSelectedCurrency,
+  getSelectedLocale,
   setDatabaseCurrency,
 } from '@/services/settings-service';
 import { getSetupState, completeSetup } from '@/services/setup-service';
@@ -63,9 +64,13 @@ describe('setup service', () => {
   it('reports an incomplete setup without wallets and persists the first wallet plus currency', async () => {
     await expect(getSetupState(database)).resolves.toEqual({ hasWallet: false, currency: 'IDR' });
 
-    await completeSetup(database, [{ name: 'BCA', initialBalance: 2_000_000 }], 'USD');
+    await completeSetup(database, [{ name: 'BCA', initialBalance: 2_000_000 }], 'USD', 'en');
 
     await expect(getSetupState(database)).resolves.toEqual({ hasWallet: true, currency: 'USD' });
+    await expect(getDatabaseSettings(database)).resolves.toMatchObject({
+      currency: 'USD',
+      locale: 'en',
+    });
     await expect(getWallets(database)).resolves.toEqual([
       expect.objectContaining({ name: 'BCA', balance: 2_000_000 }),
     ]);
@@ -78,6 +83,7 @@ describe('setup service', () => {
       ),
     ).toEqual({ category_name: 'Saldo Awal' });
     expect(getSelectedCurrency()).toBe('USD');
+    expect(getSelectedLocale()).toBe('en');
   });
 
   it('does not create a second initial wallet when setup is submitted again', async () => {
