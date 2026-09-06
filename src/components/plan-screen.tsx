@@ -98,7 +98,7 @@ function PlanSummaryCard({ snapshot }: { snapshot: PlanView['snapshot'] }) {
             now: Math.min(Math.max(expenseProgress, 0), 100),
           }}
         />
-        <ThemedText type="code" themeColor="muted" style={styles.summaryProgressPercent}>
+        <ThemedText type="code" style={[styles.summaryProgressPercent, { color: theme.heroMuted }]}>
           {Math.max(0, Math.round(expenseProgress))}%
         </ThemedText>
       </View>
