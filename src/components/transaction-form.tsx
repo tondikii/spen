@@ -29,7 +29,7 @@ import type {
   TransactionType,
   Wallet,
 } from '@/types/domain';
-import { MotionPressable as Pressable, MotionScreen } from '@/components/motion';
+import { MotionChevron, MotionPressable as Pressable, MotionScreen } from '@/components/motion';
 import { getCategoryLabel } from '@/i18n/categories';
 import i18n from '@/i18n';
 import { formatDate } from '@/i18n/format';
@@ -88,14 +88,32 @@ function shiftMonth(value: string, delta: number) {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
 }
 
-function daysForMonth(value: string) {
-  const [year, month] = value.split('-').map(Number);
-  return new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
+function shiftDate(value: string, delta: number) {
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day, 12));
+  date.setUTCDate(date.getUTCDate() + delta);
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(
+    date.getUTCDate(),
+  ).padStart(2, '0')}`;
 }
 
-function firstWeekday(value: string) {
-  const [year, month] = value.split('-').map(Number);
-  return new Date(Date.UTC(year, month - 1, 1, 12)).getUTCDay();
+function getCalendarDates(value: string) {
+  const firstDay = `${value}-01`;
+  const weekday = new Date(`${firstDay}T12:00:00Z`).getUTCDay();
+  const mondayOffset = (weekday + 6) % 7;
+  const start = shiftDate(firstDay, -mondayOffset);
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = shiftDate(start, index);
+    return { date, inMonth: date.startsWith(value) };
+  });
+}
+
+function getWeekdayLabels(locale: string) {
+  return Array.from({ length: 7 }, (_, index) =>
+    new Intl.DateTimeFormat(locale, { weekday: 'narrow' }).format(
+      new Date(`2026-09-${String(7 + index).padStart(2, '0')}T12:00:00Z`),
+    ),
+  );
 }
 
 export function TransactionForm({
@@ -175,6 +193,14 @@ export function TransactionForm({
   const numericAmount = parseMoneyInput(amount);
   const allocationLimit = allocationLimitProp ?? getAllocationLimit(categoryId);
   const overBudget = type === 'expense' && allocationLimit > 0 && numericAmount > allocationLimit;
+  const locale = i18n.language === 'en' ? 'en-US' : 'id-ID';
+  const calendarWeekdays = useMemo(() => getWeekdayLabels(locale), [locale]);
+  const visibleCalendarDates = useMemo(() => getCalendarDates(calendarMonth), [calendarMonth]);
+
+  const toggleCalendar = () => {
+    if (!calendarOpen) setCalendarMonth(date.slice(0, 7));
+    setCalendarOpen((current) => !current);
+  };
 
   const changeType = (nextType: TransactionType) => {
     setType(nextType);
@@ -632,15 +658,15 @@ export function TransactionForm({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('common.openCalendar')}
-              onPress={() => setCalendarOpen((current) => !current)}
+              accessibilityState={{ expanded: calendarOpen }}
+              onPress={toggleCalendar}
               style={[styles.dateButton, { borderColor: theme.line, backgroundColor: theme.card }]}
             >
-              <ThemedText type="smallBold">
-                {formatDate(date, i18n.language === 'en' ? 'en' : 'id')}
+              <CategoryIcon name="calendar-month-outline" color={theme.pine} size={19} />
+              <ThemedText type="smallBold" style={styles.dateButtonText}>
+                {formatDate(`${date}T12:00:00`, i18n.language === 'en' ? 'en' : 'id')}
               </ThemedText>
-              <ThemedText type="small" themeColor="muted">
-                {t('common.openCalendar')}
-              </ThemedText>
+              <MotionChevron expanded={calendarOpen} color={theme.muted} size={16} />
             </Pressable>
             {calendarOpen && (
               <View
@@ -653,7 +679,9 @@ export function TransactionForm({
                     onPress={() => setCalendarMonth((current) => shiftMonth(current, -1))}
                     style={styles.calendarArrow}
                   >
-                    <ThemedText type="smallBold">‹</ThemedText>
+                    <ThemedText style={[styles.calendarChevron, { color: theme.pine }]}>
+                      ‹
+                    </ThemedText>
                   </Pressable>
                   <ThemedText type="smallBold">
                     {monthLabel(calendarMonth, i18n.language === 'en' ? 'en-US' : 'id-ID')}
@@ -665,43 +693,53 @@ export function TransactionForm({
                     onPress={() => setCalendarMonth((current) => shiftMonth(current, 1))}
                     style={styles.calendarArrow}
                   >
-                    <ThemedText type="smallBold">›</ThemedText>
+                    <ThemedText style={[styles.calendarChevron, { color: theme.pine }]}>
+                      ›
+                    </ThemedText>
                   </Pressable>
                 </View>
                 <View style={styles.calendarGrid}>
-                  {Array.from({ length: firstWeekday(calendarMonth) }).map((_, index) => (
-                    <View key={`empty-${index}`} style={styles.calendarDay} />
+                  {calendarWeekdays.map((label, index) => (
+                    <View key={`${label}-${index}`} style={styles.calendarCell}>
+                      <ThemedText type="code" themeColor="muted" style={styles.weekday}>
+                        {label}
+                      </ThemedText>
+                    </View>
                   ))}
-                  {Array.from({ length: daysForMonth(calendarMonth) }, (_, index) => index + 1).map(
-                    (day) => {
-                      const candidate = `${calendarMonth}-${String(day).padStart(2, '0')}`;
-                      const disabled = candidate > today;
-                      return (
-                        <Pressable
-                          key={candidate}
-                          accessibilityRole="button"
-                          accessibilityLabel={t('common.selectTransactionDate', {
-                            date: candidate,
-                          })}
-                          accessibilityState={{ selected: candidate === date, disabled }}
-                          disabled={disabled}
-                          onPress={() => {
-                            setDate(candidate);
-                            setCalendarOpen(false);
-                          }}
+                  {visibleCalendarDates.map(({ date: candidate, inMonth }) => {
+                    const disabled = !inMonth || candidate > today;
+                    return (
+                      <Pressable
+                        key={candidate}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.selectTransactionDate', {
+                          date: candidate,
+                        })}
+                        accessibilityState={{ selected: candidate === date, disabled }}
+                        disabled={disabled}
+                        onPress={() => {
+                          setDate(candidate);
+                          setCalendarOpen(false);
+                        }}
+                        wrapperStyle={styles.calendarCell}
+                        style={[styles.calendarPressable, disabled && { opacity: 0.35 }]}
+                      >
+                        <View
                           style={[
                             styles.calendarDay,
                             candidate === date && { backgroundColor: theme.mint },
-                            disabled && { opacity: 0.35 },
                           ]}
                         >
-                          <ThemedText type="small" themeColor={candidate === date ? 'pine' : 'ink'}>
-                            {day}
+                          <ThemedText
+                            type="small"
+                            themeColor={candidate === date ? 'pine' : inMonth ? 'ink' : 'muted'}
+                          >
+                            {Number(candidate.slice(8))}
                           </ThemedText>
-                        </Pressable>
-                      );
-                    },
-                  )}
+                        </View>
+                      </Pressable>
+                    );
+                  })}
                 </View>
               </View>
             )}
@@ -962,25 +1000,36 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     borderWidth: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 46,
+    gap: Spacing.two,
+    minHeight: 48,
     paddingHorizontal: 12,
   },
-  calendar: { borderRadius: 13, borderWidth: 1, marginTop: Spacing.one, padding: 10 },
+  dateButtonText: { flex: 1 },
+  calendar: { borderRadius: Radius.large, borderWidth: 1, marginTop: Spacing.two, padding: 14 },
   calendarHeader: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: Spacing.one,
+    marginBottom: 10,
   },
-  calendarArrow: { alignItems: 'center', height: 32, justifyContent: 'center', width: 32 },
-  calendarGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  calendarArrow: { alignItems: 'center', height: 36, justifyContent: 'center', width: 36 },
+  calendarChevron: { fontSize: 24, lineHeight: 27 },
+  calendarGrid: { alignSelf: 'stretch', flexDirection: 'row', flexWrap: 'wrap', width: '100%' },
+  calendarCell: {
+    alignItems: 'center',
+    flexBasis: '14.2857%',
+    justifyContent: 'center',
+    width: '14.2857%',
+  },
+  calendarPressable: { alignSelf: 'stretch', alignItems: 'center' },
+  weekday: { fontSize: 9, lineHeight: 20, textTransform: 'uppercase' },
   calendarDay: {
     alignItems: 'center',
     borderRadius: Radius.small,
-    height: 36,
+    height: 34,
     justifyContent: 'center',
-    width: '14.2857%',
+    marginVertical: 2,
+    width: 34,
   },
   categoryEditor: {
     alignSelf: 'stretch',

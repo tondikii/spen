@@ -4,11 +4,16 @@ import HomeScreen from '@/components/home-screen';
 
 describe('HomeScreen', () => {
   it('menampilkan ringkasan saldo, Wallet, dan transaksi terbaru tanpa card Spare budget', async () => {
-    const { getByText, queryByText } = await render(<HomeScreen />);
+    const { getAllByLabelText, getByText, queryByText } = await render(<HomeScreen />);
 
     expect(getByText('Rp 9.275.000')).toBeTruthy();
     expect(getByText(/Saldo total/)).toBeTruthy();
     expect(getByText('Dompet')).toBeTruthy();
+    expect(getAllByLabelText('Tambah Dompet')).toHaveLength(1);
+    expect(queryByText('T')).toBeNull();
+    expect(queryByText('B')).toBeNull();
+    expect(queryByText('G')).toBeNull();
+    expect(queryByText('D')).toBeNull();
     expect(queryByText('termasuk Dompet terarsip')).toBeNull();
     expect(queryByText('SISA ANGGARAN')).toBeNull();
     expect(queryByText('44% dari pendapatan')).toBeNull();

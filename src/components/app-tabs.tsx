@@ -35,6 +35,7 @@ export default function AppTabs() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        sceneStyle: { backgroundColor: theme.paper },
         tabBarActiveTintColor: theme.pine,
         tabBarInactiveTintColor: theme.muted,
         tabBarStyle: [

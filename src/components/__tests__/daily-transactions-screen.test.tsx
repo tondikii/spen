@@ -6,11 +6,16 @@ import DailyTransactionsScreen from '@/components/daily-transactions-screen';
 
 describe('DailyTransactionsScreen', () => {
   it('menampilkan ringkasan dan transaksi pada hari aktif', async () => {
-    const { getAllByText, getByText } = await render(<DailyTransactionsScreen />);
+    const { getAllByText, getByLabelText, getByText, queryByLabelText } = await render(
+      <DailyTransactionsScreen />,
+    );
 
+    expect(getByText('Harian')).toBeTruthy();
+    expect(getByLabelText('Tutup form transaksi')).toBeTruthy();
     expect(getByText('Hari Ini')).toBeTruthy();
     expect(getAllByText(/Rp 6\.500\.000/).length).toBeGreaterThanOrEqual(1);
     expect(getByText(/Kopi dan sarapan/)).toBeTruthy();
+    expect(queryByLabelText('Lihat semua transaksi')).toBeNull();
   });
 
   it('berpindah hari dan menampilkan empty state', async () => {
@@ -27,5 +32,14 @@ describe('DailyTransactionsScreen', () => {
     await fireEvent.press(getByLabelText('Pilih tanggal'));
     await fireEvent.press(getByLabelText('Tanggal 2026-08-31'));
     await waitFor(() => expect(getByText('Kemarin')).toBeTruthy());
+  });
+
+  it('berpindah bulan dari calendar picker', async () => {
+    const { getByLabelText, getByText } = await render(<DailyTransactionsScreen />);
+
+    await fireEvent.press(getByLabelText('Pilih tanggal'));
+    await fireEvent.press(getByLabelText('Bulan sebelumnya'));
+
+    await waitFor(() => expect(getByText('Agustus 2026')).toBeTruthy());
   });
 });

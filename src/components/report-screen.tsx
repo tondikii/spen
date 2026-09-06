@@ -532,9 +532,10 @@ function NetSavingLineChart({
 }
 
 export default function ReportScreen(props: ComponentProps<typeof ReportScreenContent>) {
+  const theme = useTheme();
   return (
     <MotionScreen>
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.paper }]}>
         <ReportScreenContent {...props} />
       </SafeAreaView>
     </MotionScreen>

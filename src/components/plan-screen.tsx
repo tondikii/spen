@@ -23,7 +23,7 @@ import {
 import { ThemedInput } from '@/components/themed-input';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Fonts, Layout, Radius, Shadows, Typography } from '@/constants/theme';
+import { Fonts, Layout, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import i18n from '@/i18n';
 import { getCategoryLabel } from '@/i18n/categories';
@@ -555,14 +555,15 @@ function PlanSection({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${action} ${title}`}
+          hitSlop={8}
           onPress={onAction}
         >
-          <ThemedText type="smallBold" themeColor="pine" style={styles.quietAction}>
+          <ThemedText type="smallBold" themeColor="pine">
             {action}
           </ThemedText>
         </Pressable>
       </View>
-      <View style={[styles.card, { borderTopColor: theme.line }]}>{children}</View>
+      <View style={styles.card}>{children}</View>
     </MotionAnimatedView>
   );
 }
@@ -578,9 +579,10 @@ function EmptyPlan({ message }: { message: string }) {
 }
 
 export default function PlanScreen(props: ComponentProps<typeof PlanScreenContent>) {
+  const theme = useTheme();
   return (
     <MotionScreen>
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.paper }]}>
         <PlanScreenContent {...props} />
       </SafeAreaView>
     </MotionScreen>
@@ -1979,18 +1981,17 @@ const styles = StyleSheet.create({
   summaryStats: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
   summaryStat: { fontSize: 10, lineHeight: 14 },
   summaryStatValue: { fontFamily: Fonts.mono, fontSize: 10 },
-  section: { marginBottom: 28 },
+  section: { marginBottom: Spacing.six },
   sectionTitle: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
-    marginHorizontal: 2,
+    marginHorizontal: 0,
   },
-  card: { borderTopWidth: 1, paddingBottom: 1, paddingTop: 19 },
-  item: { paddingVertical: 14 },
+  card: { marginTop: 12, paddingBottom: 1 },
+  item: { borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 12 },
   planItemOpen: { elevation: 100, zIndex: 100 },
-  planItemTop: { alignItems: 'center', flexDirection: 'row', gap: 9 },
+  planItemTop: { alignItems: 'center', flexDirection: 'row', gap: 11 },
   itemHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
   categoryIcon: {
     alignItems: 'center',
@@ -2058,12 +2059,11 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   itemActionText: { fontSize: 10, lineHeight: 14 },
-  quietAction: { fontSize: 12, lineHeight: 15 },
   progressRow: { alignItems: 'center', flexDirection: 'row', gap: 8, marginTop: 10 },
   progress: { flex: 1, borderRadius: 9, height: 5, overflow: 'hidden' },
   progressPercent: { minWidth: 34, textAlign: 'right' },
   progressFill: { borderRadius: 9, height: '100%' },
-  goal: { paddingVertical: 12 },
+  goal: { borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 12 },
   goalActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   goalActionText: { fontSize: 10, lineHeight: 14 },
   goalStatus: { fontSize: 10, lineHeight: 14 },

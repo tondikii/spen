@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,7 +17,6 @@ import {
 import { ThemedInput } from '@/components/themed-input';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { SectionHeader } from '@/components/ui-primitives';
 import {
   BottomTabInset,
   Fonts,
@@ -44,13 +44,6 @@ import type { Category, Transaction, Wallet, WalletTint } from '@/types/domain';
 import { useTranslation } from 'react-i18next';
 
 const tintSequence: WalletTint[] = ['pine', 'coral', 'gold', 'goal'];
-
-function walletGlyph(wallet: Wallet) {
-  if (wallet.tint === 'coral') return 'T';
-  if (wallet.tint === 'pine') return 'B';
-  if (wallet.tint === 'gold') return 'G';
-  return 'D';
-}
 
 function HomeHeader({ today = new Date() }: { today?: Date }) {
   const { i18n } = useTranslation();
@@ -107,61 +100,69 @@ function WalletCards({
   const [archivedOpen, setArchivedOpen] = useState(false);
   return (
     <View style={styles.walletSection}>
-      <SectionHeader
-        title={t('common.walletSection')}
-        action={t('common.addWalletLabel')}
-        onPress={onAdd}
-      />
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.walletRow}
-      >
+      <View style={styles.sectionTitle}>
+        <ThemedText type="sectionHeading">{t('common.walletSection')}</ThemedText>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('common.addWalletLabel')}
+          hitSlop={8}
+          onPress={onAdd}
+        >
+          <ThemedText type="smallBold" themeColor="pine">
+            {t('common.addWalletLabel')}
+          </ThemedText>
+        </Pressable>
+      </View>
+      <View style={styles.walletList}>
         {wallets.map((wallet) => (
           <MotionPressable
             key={wallet.id}
             accessibilityRole="button"
             accessibilityLabel={t('common.selectWallet', { name: wallet.name })}
             onPress={() => onSelect(wallet)}
-            style={[styles.walletCard, { backgroundColor: theme.card, borderColor: theme.line }]}
+            style={[styles.walletRow, { borderBottomColor: theme.line }]}
           >
-            <ThemedText
-              style={[styles.walletGlyph, { backgroundColor: theme.mint, color: theme.pine }]}
-            >
-              {walletGlyph(wallet)}
-            </ThemedText>
-            <ThemedText style={styles.walletName}>{wallet.name}</ThemedText>
-            <ThemedText style={styles.walletBalance}>{formatMoney(wallet.balance)}</ThemedText>
+            <View style={[styles.walletIcon, { backgroundColor: theme.mint }]}>
+              <MaterialCommunityIcons name="wallet-bifold-outline" size={20} color={theme.pine} />
+            </View>
+            <View style={styles.walletCopy}>
+              <ThemedText type="smallBold" style={styles.walletName} numberOfLines={1}>
+                {wallet.name}
+              </ThemedText>
+              <ThemedText type="small" themeColor="muted" style={styles.walletMeta}>
+                {t('common.walletBalance')}
+              </ThemedText>
+            </View>
+            <View style={styles.walletValue}>
+              <ThemedText
+                type="code"
+                style={styles.walletBalance}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+              >
+                {formatMoney(wallet.balance)}
+              </ThemedText>
+              <ThemedText type="small" themeColor="muted" style={styles.walletChevron}>
+                ›
+              </ThemedText>
+            </View>
           </MotionPressable>
         ))}
         {wallets.length === 0 && (
-          <View style={[styles.walletEmpty, { backgroundColor: theme.mint }]}>
-            <ThemedText type="smallBold" themeColor="pine">
-              {t('common.activeWalletEmpty')}
-            </ThemedText>
-            <ThemedText type="small" themeColor="muted">
-              {t('common.activeWalletEmptyCopy')}
-            </ThemedText>
+          <View style={[styles.walletEmpty, { borderBottomColor: theme.line }]}>
+            <View style={[styles.walletIcon, { backgroundColor: theme.mint }]}>
+              <MaterialCommunityIcons name="wallet-bifold-outline" size={20} color={theme.pine} />
+            </View>
+            <View style={styles.walletCopy}>
+              <ThemedText type="smallBold">{t('common.activeWalletEmpty')}</ThemedText>
+              <ThemedText type="small" themeColor="muted" style={styles.walletMeta}>
+                {t('common.activeWalletEmptyCopy')}
+              </ThemedText>
+            </View>
           </View>
         )}
-        <MotionPressable
-          accessibilityRole="button"
-          accessibilityLabel={t('common.addWalletLabel')}
-          onPress={onAdd}
-          style={[styles.walletAdd, { borderColor: theme.line }]}
-        >
-          <ThemedText
-            type="subtitle"
-            themeColor="pine"
-            style={[styles.walletAddIcon, { backgroundColor: theme.mint }]}
-          >
-            ＋
-          </ThemedText>
-          <ThemedText type="small" themeColor="muted" style={styles.walletAddLabel}>
-            {t('common.addWalletLabel')}
-          </ThemedText>
-        </MotionPressable>
-      </ScrollView>
+      </View>
       {archivedWallets.length > 0 && (
         <View
           style={[styles.archivedWallets, { backgroundColor: theme.card, borderColor: theme.line }]}
@@ -175,13 +176,9 @@ function WalletCards({
             onPress={() => setArchivedOpen((open) => !open)}
             style={styles.archivedHeader}
           >
-            <ThemedText
-              type="smallBold"
-              themeColor="pine"
-              style={[styles.archivedGlyph, { backgroundColor: theme.mint }]}
-            >
-              □
-            </ThemedText>
+            <View style={[styles.archivedGlyph, { backgroundColor: theme.mint }]}>
+              <MaterialCommunityIcons name="wallet-bifold-outline" size={18} color={theme.pine} />
+            </View>
             <View style={styles.archivedHeaderCopy}>
               <ThemedText type="smallBold">{t('common.archivedWallets')}</ThemedText>
               <ThemedText type="small" themeColor="muted">
@@ -200,13 +197,13 @@ function WalletCards({
                     key={wallet.id}
                     style={[styles.archivedWalletRow, { borderBottomColor: theme.line }]}
                   >
-                    <ThemedText
-                      type="smallBold"
-                      themeColor="pine"
-                      style={[styles.archivedWalletGlyph, { backgroundColor: theme.mint }]}
-                    >
-                      {walletGlyph(wallet)}
-                    </ThemedText>
+                    <View style={[styles.archivedWalletIcon, { backgroundColor: theme.mint }]}>
+                      <MaterialCommunityIcons
+                        name="wallet-bifold-outline"
+                        size={17}
+                        color={theme.pine}
+                      />
+                    </View>
                     <View style={styles.archivedWalletCopy}>
                       <ThemedText type="smallBold" numberOfLines={1}>
                         {wallet.name}
@@ -610,7 +607,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  walletSection: {},
+  walletSection: { marginBottom: Spacing.six },
   archivedWallets: {
     borderRadius: 19,
     borderWidth: 1,
@@ -626,12 +623,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   archivedGlyph: {
+    alignItems: 'center',
     borderRadius: 10,
-    fontFamily: Fonts.mono,
-    fontSize: 12,
     height: 31,
-    lineHeight: 31,
-    textAlign: 'center',
+    justifyContent: 'center',
     width: 31,
   },
   archivedHeaderCopy: { flex: 1, gap: 3 },
@@ -647,13 +642,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
-  archivedWalletGlyph: {
+  archivedWalletIcon: {
+    alignItems: 'center',
     borderRadius: 9,
-    fontFamily: Fonts.serif,
-    fontSize: 13,
     height: 28,
-    lineHeight: 28,
-    textAlign: 'center',
+    justifyContent: 'center',
     width: 28,
   },
   archivedWalletCopy: { flex: 1, gap: 3, minWidth: 0 },
@@ -665,58 +658,48 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 12,
   },
-  walletRow: { gap: Layout.walletGap, paddingTop: 2, paddingBottom: 20 },
-  walletCard: {
-    borderRadius: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    height: Layout.walletHeight,
-    justifyContent: 'space-between',
-    padding: 12,
-    width: Layout.walletWidth,
+  walletList: {
+    marginTop: 0,
+  },
+  walletRow: {
+    alignItems: 'center',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    gap: 11,
+    minHeight: 62,
+    paddingVertical: 12,
   },
   walletEmpty: {
-    borderRadius: 18,
-    gap: Spacing.one,
-    height: Layout.walletHeight,
+    alignItems: 'center',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    gap: 11,
+    minHeight: 62,
+    paddingVertical: 12,
+  },
+  walletIcon: {
+    alignItems: 'center',
+    borderRadius: 12,
+    height: 35,
     justifyContent: 'center',
-    paddingHorizontal: 12,
-    width: Layout.walletWidth * 1.8,
+    width: 35,
   },
-  walletGlyph: {
-    borderRadius: 10,
-    fontFamily: Fonts.serif,
-    fontSize: 15,
-    height: 28,
-    lineHeight: 28,
-    textAlign: 'center',
-    width: 28,
+  walletCopy: { flex: 1, minWidth: 0 },
+  walletName: { fontSize: 12, lineHeight: 16 },
+  walletMeta: { fontSize: 10, lineHeight: 14, marginTop: Spacing.half },
+  walletValue: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.two,
+    maxWidth: '56%',
   },
-  walletName: { fontFamily: Fonts.sansBold, fontSize: 11, lineHeight: 14 },
   walletBalance: {
-    fontFamily: Fonts.mono,
-    fontSize: 10.5,
+    fontFamily: Fonts.monoMedium,
+    fontSize: 10,
     lineHeight: 14,
-    letterSpacing: -0.63,
+    letterSpacing: -0.4,
   },
-  walletAdd: {
-    alignItems: 'flex-start',
-    borderRadius: 18,
-    borderStyle: 'dashed',
-    borderWidth: 1,
-    height: Layout.walletHeight,
-    justifyContent: 'space-between',
-    padding: 12,
-    width: Layout.walletWidth,
-  },
-  walletAddIcon: {
-    borderRadius: 10,
-    fontSize: 21,
-    height: 28,
-    lineHeight: 28,
-    textAlign: 'center',
-    width: 28,
-  },
-  walletAddLabel: { fontSize: 10, lineHeight: 12 },
+  walletChevron: { fontSize: 17, lineHeight: 18 },
   quietAction: { fontSize: 12, lineHeight: 15 },
   pressed: { opacity: 0.7 },
   recent: { paddingBottom: Spacing.two },
