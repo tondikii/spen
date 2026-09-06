@@ -4,7 +4,7 @@ import * as Linking from 'expo-linking';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, type TextStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SpenLogo } from '@/components/brand-assets';
@@ -184,6 +184,7 @@ export default function SettingsScreen({
               )}
               <SettingRow
                 icon="文"
+                iconStyle={styles.smallIcon}
                 title={t('common.language')}
                 detail={t('common.chooseLanguage')}
               >
@@ -326,11 +327,13 @@ export default function SettingsScreen({
 
 function SettingRow({
   icon,
+  iconStyle,
   title,
   detail,
   children,
 }: {
   icon: string;
+  iconStyle?: TextStyle;
   title: string;
   detail: string;
   children: ReactNode;
@@ -338,7 +341,9 @@ function SettingRow({
   const theme = useTheme();
   return (
     <View style={[styles.row, { borderBottomColor: theme.line }]}>
-      <ThemedText style={[styles.icon, { backgroundColor: theme.mint, color: theme.pine }]}>
+      <ThemedText
+        style={[styles.icon, iconStyle, { backgroundColor: theme.mint, color: theme.pine }]}
+      >
         {icon}
       </ThemedText>
       <View style={styles.copy}>
@@ -429,6 +434,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
     width: 35,
   },
+  smallIcon: { fontSize: 12, height: 31, lineHeight: 24, width: 31 },
   copy: { flex: 1 },
   rowTitle: { fontSize: 12, lineHeight: 16 },
   rowDetail: { fontSize: 10, lineHeight: 14 },
