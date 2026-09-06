@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ComponentProps, type ReactNode } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
-import { Fonts, Layout, Radius, Shadows, Typography } from '@/constants/theme';
+import { Fonts, Layout, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import { getDatabasePlanView, getPlanView, type PlanItemDraft } from '@/services/plan-service';
@@ -55,37 +55,12 @@ type PlanAction = {
   tone?: 'default' | 'danger' | 'primary';
 };
 
-function PlanSummaryMetric({
-  label,
-  value,
-  theme,
-  align = 'left',
-}: {
-  label: string;
-  value: string;
-  theme: ReturnType<typeof useTheme>;
-  align?: 'left' | 'right';
-}) {
-  return (
-    <View
-      accessible
-      accessibilityLabel={`${label}: ${value}`}
-      style={[styles.summaryMetric, align === 'right' && styles.summaryMetricRight]}
-    >
-      <ThemedText style={[styles.summaryMetricLabel, { color: theme.heroMuted }]}>
-        {label}
-      </ThemedText>
-      <ThemedText style={[styles.summaryMetricValue, { color: theme.heroText }]}>
-        {value}
-      </ThemedText>
-    </View>
-  );
-}
-
 function PlanSummaryCard({ snapshot }: { snapshot: PlanView['snapshot'] }) {
   const theme = useTheme();
   const { t } = useTranslation();
   const spareIsNegative = snapshot.spareBudget < 0;
+  const expenseProgress =
+    snapshot.totalIncome > 0 ? (snapshot.totalExpense / snapshot.totalIncome) * 100 : 0;
 
   return (
     <MotionAnimatedView
@@ -101,24 +76,34 @@ function PlanSummaryCard({ snapshot }: { snapshot: PlanView['snapshot'] }) {
       >
         {formatMoney(snapshot.spareBudget)}
       </ThemedText>
-      {spareIsNegative && (
-        <ThemedText style={[styles.summaryWarning, { color: theme.expense }]}>
-          {t('common.spareBudgetOverPlan')}
-        </ThemedText>
-      )}
+      <ThemedText
+        style={[
+          styles.summaryCaption,
+          { color: spareIsNegative ? theme.expense : theme.heroMuted },
+        ]}
+      >
+        {spareIsNegative ? t('common.spareBudgetOverPlan') : t('common.stillAllocatable')}
+      </ThemedText>
 
-      <View style={[styles.summaryBalance, { borderTopColor: theme.heroDivider }]}>
-        <PlanSummaryMetric
-          label={t('common.freeBalance')}
-          value={formatMoney(snapshot.freeBalance)}
-          theme={theme}
-        />
-        <PlanSummaryMetric
-          align="right"
-          label={t('common.tiedGoal')}
-          value={formatMoney(snapshot.goalBalance)}
-          theme={theme}
-        />
+      <MotionProgressBar
+        value={expenseProgress}
+        color={theme.pine}
+        trackColor={theme.line}
+        style={styles.summaryProgress}
+      />
+      <View style={styles.summaryStats}>
+        <ThemedText type="small" themeColor="muted" style={styles.summaryStat}>
+          {t('common.income')}{' '}
+          <ThemedText style={styles.summaryStatValue}>
+            {formatMoney(snapshot.totalIncome)}
+          </ThemedText>
+        </ThemedText>
+        <ThemedText type="small" themeColor="muted" style={styles.summaryStat}>
+          {t('common.expense')}{' '}
+          <ThemedText style={styles.summaryStatValue}>
+            {formatMoney(snapshot.totalExpense)}
+          </ThemedText>
+        </ThemedText>
       </View>
     </MotionAnimatedView>
   );
@@ -1712,17 +1697,16 @@ const styles = StyleSheet.create({
   },
   summaryLabel: { ...Typography.eyebrow },
   summaryAmount: { ...Typography.moneyHero, marginVertical: 8 },
-  summaryWarning: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
-  summaryMetric: { flex: 1 },
-  summaryMetricRight: { alignItems: 'flex-end' },
-  summaryMetricLabel: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
-  summaryMetricValue: { fontFamily: Fonts.monoMedium, fontSize: 12, lineHeight: 16, marginTop: 2 },
-  summaryBalance: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    marginTop: 17,
-    paddingTop: 14,
+  summaryCaption: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
+  summaryProgress: {
+    borderRadius: Radius.pill,
+    height: 5,
+    marginVertical: Spacing.three,
+    overflow: 'hidden',
   },
+  summaryStats: { flexDirection: 'row', justifyContent: 'space-between' },
+  summaryStat: { fontSize: 10, lineHeight: 14 },
+  summaryStatValue: { fontFamily: Fonts.mono, fontSize: 10 },
   section: { marginBottom: 28 },
   sectionTitle: {
     alignItems: 'center',

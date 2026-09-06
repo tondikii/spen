@@ -71,7 +71,7 @@ Aturan:
 ### Kartu
 
 - **Balance card** (Beranda): surface gelap `pine-2`, radius `26px`, shadow lembut `0 12px 28px #1E4A4222`, padding `21px`. Angka utama `32px`.
-- **Kartu ringkasan plan** (Rencana): surface gelap `pine-2`, radius `26px`, angka utama Spare budget `30px`; di bawahnya hanya Tersedia bebas dan Terikat goal. Tanpa operand rumus, heading/caption saldo, progress, persentase, atau donut.
+- **Kartu ringkasan plan** (Rencana): surface gelap `pine-2`, radius `26px`, angka utama Spare budget `30px`; caption, progress pemakaian Pendapatan, dan mini-stat Pendapatan/Pengeluaran mengikuti kartu Spare budget lama di Beranda. Tanpa Saldo tersedia, operand rumus, persentase, atau donut.
 - **Chart card** (Report): kartu terang, radius `22px`, padding `17px`.
 - **Wallet card**: `119×107px` horizontal scroll, radius `18px`, surface `card`, border `line` hairline tanpa shadow, nama di atas + nominal DM Mono di bawah. Kartu "+ Tambah Wallet" dashed border.
 - **Setting group**: kartu berisi row-row, radius `19px`, divider antar row.

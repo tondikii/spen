@@ -39,7 +39,7 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 24. As a pengguna, I want memilih wallet secara eksplisit di tiap transaksi, so that saya tahu dari mana uang keluar/masuk.
 25. As a pengguna, I want mengedit dan menghapus transaksi, so that saya bisa memperbaiki catatan yang salah (tap transaksi → form edit yang sama dengan create, dalam edit state).
 26. As a pengguna, I want saldo wallet selalu dicatat sebagai transaksi, termasuk saldo awal saat creation (kategori "Saldo Awal") dan perubahan saat edit (income ketika bertambah, expense ketika berkurang; kategori "Penyesuaian Saldo"), so that saldo tetap konsisten dengan riwayat dan saya bisa mengoreksi saldo yang melenceng tanpa harus tahu ke mana uang pergi.
-26a. As a pengguna, I want hero Rencana menampilkan saldo tersedia yang dipecah menjadi Tersedia bebas (total saldo − saldo wallet goal) dan Terikat goal, so that saya tahu "uang yang benar-benar bisa kupakai" dan "yang sudah kualokasikan ke tabungan" tanpa plan dan dompet kelihatan beda.
+26a. As a pengguna, I want data Saldo tersedia tetap dihitung dari saldo Wallet lintas periode, tetapi tidak diulang di kartu Spare budget Rencana, so that kartu fokus pada ringkasan plan yang relevan.
 27. As a pengguna, I want wallet yang sudah dipakai (punya transaksi) tidak bisa dihapus, hanya di-archive, so bahwa data transaksi tidak hilang.
 28. As a pengguna, I want mendapat peringatan lembut saat transaksi membuat alokasi melebihi budget (tetap diizinkan), so bahwa saya sadar sebelum over-budget.
 29. As a pengguna, I want goal yang tercapai ditandai "Tercapai" tanpa mengubah spare budget, so bahwa Goal hanya menjadi penanda Wallet tabungan.
@@ -91,7 +91,7 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 - **Archive**: soft-delete untuk kategori/wallet/goal (flag), bukan hapus permanen; transaksi lama tetap valid.
 - **Currency**: curated list (IDR, USD, SGD, MYR, EUR, GBP, JPY, AUD, SAR, AED); format angka id-ID + simbol currency.
 - **Backup/restore**: JSON berisi semua data + field `version`; restore = timpa semua (bukan merge), dengan konfirmasi; validasi version + pesan error kalau beda.
-- **Goal & saldo**: Goal memakai Wallet tabungan yang sudah ada; menetapkan Wallet sebagai Wallet Goal hanya memberi flag dan tidak mengubah saldo/transaksi. Progress Goal = saldo Wallet Goal. Kontribusi bulanan adalah metadata target menabung, bukan pengurang Spare budget. **Saldo tersedia** (realita, diturunkan transaksi) = total saldo seluruh wallet; di layar Rencana dipecah menjadi **Tersedia bebas** (total saldo − saldo wallet goal) dan **Terikat goal**, sehingga "uang di dompet" selalu cocok dengan plan (spare = rencana; saldo tersedia = realita).
+- **Goal & saldo**: Goal memakai Wallet tabungan yang sudah ada; menetapkan Wallet sebagai Wallet Goal hanya memberi flag dan tidak mengubah saldo/transaksi. Progress Goal = saldo Wallet Goal. Kontribusi bulanan adalah metadata target menabung, bukan pengurang Spare budget. **Saldo tersedia** (realita, diturunkan transaksi) = total saldo seluruh wallet; data ini tidak diulang di kartu Spare budget Rencana (spare = rencana; saldo tersedia = realita).
 - **Alokasi & Fixed expense**: dua konsep dengan perilaku sama — keduanya "item alokasi" di plan, progress dari transaksi kategori. Bedanya semantik: Fixed expense = tagihan tetap (Sewa, Cicilan), Alokasi = budget spending fleksibel (Makan, Transport). Keduanya bisa dihapus/arsip (transaksi lama tetap valid); edit nominal → progress otomatis menyesuaikan (transaksi ÷ nominal baru).
 - **Transfer di report**: netral — tidak muncul di pie chart (expense saja) dan tidak mempengaruhi net saving; tetap muncul di riwayat transaksi (label "Transfer: X → Y").
 
@@ -104,7 +104,7 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 
 ### Layar Rencana (Plan)
 - Header: judul "Rencana" + label periode `[1–30 Sep ▾]` (tap → modal ubah tanggal mulai Budget period) + tombol **AI Suggestion** di header.
-- **Kartu ringkasan plan**: satu kartu ringkas dengan **SPARE BUDGET** sebagai angka utama, lalu **Tersedia bebas** dan **Terikat goal**. Tidak ada operand rumus, heading saldo, caption tambahan, total saldo, persentase, atau donut di kartu ini.
+- **Kartu ringkasan plan**: satu kartu dengan **SPARE BUDGET** sebagai angka utama, caption "masih bisa dialokasikan", progress pemakaian Pendapatan, serta mini-stat Pendapatan dan Pengeluaran. Tidak ada saldo tersedia, operand rumus, persentase, atau donut di kartu ini.
 - **Section cards**: Pendapatan, Fixed Expense, Goal, Alokasi — tiap section punya header + tombol "+ Tambah".
 - **Fixed expense item**: progress + status bayar ("Lunas ✓", "x/y dibayar", "Belum dibayar") + tombol **"Bayar"** (buka form bayar → pilih wallet → buat transaksi). **Fixed expense = alokasi**: progress terisi dari transaksi kategori; tidak ada mode "bayar langsung vs dianggarkan" — semua item punya tombol "Bayar" sebagai shortcut, dan progress juga terisi dari transaksi biasa.
 - **Goal item**: progress (saved/target) + kontribusi bulanan.

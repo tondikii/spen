@@ -11,18 +11,15 @@ describe('PlanScreen', () => {
     );
 
     expect(getByText('SPARE BUDGET')).toBeTruthy();
-    expect(getByText('Tersedia bebas')).toBeTruthy();
-    expect(getByText('Terikat goal')).toBeTruthy();
-    expect(getByLabelText('Tersedia bebas: Rp 5.525.000')).toBeTruthy();
-    expect(getByLabelText('Terikat goal: Rp 3.750.000')).toBeTruthy();
+    expect(getByText('masih bisa dialokasikan')).toBeTruthy();
+    expect(getByText('Pemasukan Rp 6.500.000')).toBeTruthy();
+    expect(getByText('Pengeluaran Rp 2.950.000')).toBeTruthy();
     expect(getByText('Pendapatan')).toBeTruthy();
     expect(getByText('Pengeluaran')).toBeTruthy();
     expect(getByText('Goal')).toBeTruthy();
+    expect(queryByText('Tersedia bebas')).toBeNull();
+    expect(queryByText('Terikat goal')).toBeNull();
     expect(queryByText('SALDO TERSEDIA')).toBeNull();
-    expect(queryByText('ruang rencana periode ini')).toBeNull();
-    expect(queryByText('Pendapatan aktual')).toBeNull();
-    expect(queryByText('Target Pengeluaran')).toBeNull();
-    expect(queryByText('saldo Wallet saat ini')).toBeNull();
     expect(queryByLabelText('SPARE BUDGET 44%')).toBeNull();
     expect(queryByText('44% dari pendapatan')).toBeNull();
     expect(() => getByText('Fixed expense')).toThrow();

@@ -70,7 +70,7 @@ Pendapatan dikurangi expense dan transfer keluar, ditambah transfer masuk, dalam
 _Avoid_: saving, tabungan bersih
 
 **Saldo tersedia**:
-Total saldo seluruh wallet saat ini (turunan tabel transaksi, lintas periode). Di layar Rencana dipecah menjadi **Tersedia bebas** (total saldo − saldo wallet goal) dan **Terikat goal**. Berbeda dari spare budget: spare memakai Pendapatan aktual dan target Pengeluaran pada Budget period, saldo tersedia adalah realita lintas periode.
+Total saldo seluruh wallet saat ini (turunan tabel transaksi, lintas periode). Tidak diulang di kartu Spare budget Rencana. Berbeda dari Spare budget: Spare memakai Pendapatan aktual dan target Pengeluaran pada Budget period, Saldo tersedia adalah realita lintas periode.
 _Avoid_: available balance, saldo periode
 
 **Currency**:
