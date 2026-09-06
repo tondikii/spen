@@ -58,10 +58,10 @@ export function BudgetPeriodPicker({
         style={[styles.dropdown, { borderColor: theme.line }]}
       >
         <ThemedText type="code" themeColor="muted" style={styles.label}>
-          {formatBudgetPeriodLabel(
-            readOnly ? period : previewPeriod(startDay),
-            startDay,
-          ).replace('⌄', '')}
+          {formatBudgetPeriodLabel(readOnly ? period : previewPeriod(startDay), startDay).replace(
+            '⌄',
+            '',
+          )}
         </ThemedText>
         <MotionChevron expanded={open} color={theme.muted} size={16} />
       </MotionPressable>
@@ -173,14 +173,19 @@ const styles = StyleSheet.create({
   anchor: { elevation: 100, position: 'relative', zIndex: 100 },
   overlay: { flex: 1, justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: 24, borderTopRightRadius: 24, gap: 10, padding: 21 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 8,
+  },
   option: {
     alignItems: 'center',
     borderRadius: Radius.small,
     borderWidth: 1,
     height: 38,
     justifyContent: 'center',
-    width: '14.2857%',
+    width: '13%',
   },
   apply: {
     alignItems: 'center',

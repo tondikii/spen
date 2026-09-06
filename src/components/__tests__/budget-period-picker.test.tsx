@@ -26,4 +26,20 @@ describe('BudgetPeriodPicker', () => {
 
     expect(getByText('31 Agu–29 Sep')).toBeTruthy();
   });
+
+  it('keeps each date option within seven columns without horizontal overflow', async () => {
+    const { getByLabelText } = await render(
+      <BudgetPeriodPicker
+        period={{ startDate: '2026-09-01', endDate: '2026-09-30' }}
+        startDay={1}
+        onStartDayChange={jest.fn()}
+      />,
+    );
+
+    await fireEvent.press(getByLabelText('Pilih rentang Laporan'));
+
+    expect(getByLabelText('Tanggal 31').props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ width: '13%' })]),
+    );
+  });
 });
