@@ -14,7 +14,7 @@ import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import i18n from '@/i18n';
 import { getIntlLocale } from '@/i18n/format';
-import { periodBounds } from '@/services/plan-service';
+import { dateOnly, periodBounds } from '@/services/plan-service';
 
 const startDayOptions = Array.from({ length: 31 }, (_, index) => index + 1);
 
@@ -58,7 +58,10 @@ export function BudgetPeriodPicker({
         style={[styles.dropdown, { borderColor: theme.line }]}
       >
         <ThemedText type="code" themeColor="muted" style={styles.label}>
-          {formatBudgetPeriodLabel(previewPeriod(period, startDay), startDay).replace('⌄', '')}
+          {formatBudgetPeriodLabel(
+            readOnly ? period : previewPeriod(startDay),
+            startDay,
+          ).replace('⌄', '')}
         </ThemedText>
         <MotionChevron expanded={open} color={theme.muted} size={16} />
       </MotionPressable>
@@ -71,7 +74,7 @@ export function BudgetPeriodPicker({
           >
             <ThemedText type="sectionHeading">{t('common.periodPreview')}</ThemedText>
             <ThemedText type="small" themeColor="muted">
-              {formatBudgetPeriodLabel(previewPeriod(period, pendingDay), pendingDay)}
+              {formatBudgetPeriodLabel(previewPeriod(pendingDay), pendingDay)}
             </ThemedText>
             <ThemedText type="small" themeColor="muted">
               {t('common.shortMonthNote')}
@@ -152,9 +155,7 @@ export function formatBudgetPeriodLabel(
   return `${formatter.format(start)}–${formatter.format(end)}`;
 }
 
-function previewPeriod(period: { startDate: string; endDate: string }, startDay: number) {
-  const [year, month] = period.startDate.slice(0, 7).split('-').map(Number);
-  const today = `${year}-${String(month).padStart(2, '0')}-${String(Math.min(startDay, new Date(Date.UTC(year, month, 0)).getUTCDate())).padStart(2, '0')}`;
+function previewPeriod(startDay: number, today = dateOnly()) {
   return periodBounds(startDay, today);
 }
 
