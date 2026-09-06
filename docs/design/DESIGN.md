@@ -43,7 +43,7 @@ UI Plan hanya menampilkan Pendapatan, Pengeluaran, dan Goal. Pendapatan menampil
 
 ### Hero surface
 
-Balance card (Beranda) dan available hero (Rencana) memakai surface gelap `pine-2` dengan teks terang — ini elemen paling menonjol di layar, jadi angka di dalamnya tampil terbesar.
+Balance card (Beranda) dan kartu ringkasan plan (Rencana) memakai surface gelap `pine-2` dengan teks terang — ini elemen paling menonjol di layar, jadi angka utama di dalamnya tampil terbesar.
 
 ---
 
@@ -70,8 +70,8 @@ Aturan:
 
 ### Kartu
 
-- **Balance card / available hero**: surface gelap `pine-2`, radius `26px`, shadow lembut `0 12px 28px #1E4A4222`, padding `21px`. Angka utama `32px` (Beranda) / `30px` (Rencana).
-- **Plan snapshot** (Beranda): kartu terang, radius `21px`, progress + mini stats (Pendapatan vs Terpakai).
+- **Balance card** (Beranda): surface gelap `pine-2`, radius `26px`, shadow lembut `0 12px 28px #1E4A4222`, padding `21px`. Angka utama `32px`.
+- **Kartu ringkasan plan** (Rencana): surface gelap `pine-2`, radius `26px`, angka utama Spare budget `30px`; breakdown label-value untuk Pendapatan aktual dan Target Pengeluaran, lalu Tersedia bebas dan Terikat goal. Tanpa progress, persentase, atau donut.
 - **Chart card** (Report): kartu terang, radius `22px`, padding `17px`.
 - **Wallet card**: `119×107px` horizontal scroll, radius `18px`, surface `card`, border `line` hairline tanpa shadow, nama di atas + nominal DM Mono di bawah. Kartu "+ Tambah Wallet" dashed border.
 - **Setting group**: kartu berisi row-row, radius `19px`, divider antar row.
@@ -140,7 +140,7 @@ Aturan:
 | **Empty**                        | Ikon besar lembut + judul + deskripsi + CTA primary (lihat komponen)                                                         |
 | **Over-budget**                  | Progress merah + label "Melebihi Budget" (danger); soft warning saat input transaksi                                         |
 | **Defisit**                      | Net saving negatif: angka merah + kata "Defisit"                                                                             |
-| **Goal tercapai**                | Tanda "Tercapai" hijau; progress penuh; goal berhenti dihitung di spare                                                      |
+| **Goal tercapai**                | Tanda "Tercapai" hijau; progress penuh; status Goal tidak mengubah Spare budget                                             |
 | **Error / toast**                | Toast kecil bottom (di atas tab bar): background `--text`, teks `--bg`, radius `12px`, ikon `✓`, tombol `×`                  |
 | **Status bayar (fixed expense)** | "Lunas ✓" (hijau), "x/y dibayar", "Belum dibayar" (muted)                                                                    |
 
@@ -151,7 +151,7 @@ Aturan:
 - Seluruh warna bertukar via token; **peran tidak berubah** (income tetap hijau, expense tetap merah, dst.) — hanya nilai hex yang menyesuaikan (lihat `design-tokens.md`).
 - Dark palette: background `#12231F`, surface `#19312C`, teks `#EEF5EE`, muted `#A6B5AE`, line `#29443D`, pine terang `#83B5A5`, mint `#20453B`.
 - Hero surface di dark: `#20453B` (sama dengan mint), teks `#E7F3ED`.
-- Spare budget card dark: background `#20453B`, teks `#E7F3ED`.
+- Kartu ringkasan plan di dark: background `#20453B`, teks `#E7F3ED`.
 - Transisi tema: `.3s` background.
 
 ---

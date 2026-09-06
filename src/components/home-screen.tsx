@@ -6,20 +6,17 @@ import { CategoryIcon } from '@/components/category-icon';
 import { ConfirmationModal } from '@/components/confirmation-modal';
 import { CurrencyMark } from '@/components/currency-mark';
 import { FinanceHeroCard } from '@/components/finance-hero-card';
+import {
+  MotionChevron,
+  MotionCollapsible,
+  MotionPressable,
+  MotionScreen,
+  MotionPressable as Pressable,
+} from '@/components/motion';
 import { ThemedInput } from '@/components/themed-input';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { SectionHeader } from '@/components/ui-primitives';
-import {
-  MotionAnimatedView,
-  MotionChevron,
-  MotionCollapsible,
-  MotionPressable,
-  MotionPressable as Pressable,
-  MotionProgressBar,
-  MotionScreen,
-  motionPresets,
-} from '@/components/motion';
 import {
   BottomTabInset,
   Fonts,
@@ -30,8 +27,6 @@ import {
   Typography,
 } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useTranslation } from 'react-i18next';
-import i18n from '@/i18n';
 import { getCategoryLabel } from '@/i18n/categories';
 import { getIntlLocale } from '@/i18n/format';
 import { formatMoney } from '@/lib/money';
@@ -39,21 +34,14 @@ import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import {
   addMockWallet,
   getHomeRecentTransactions,
-  getHomeSnapshot,
   getHomeWallets,
   getTransactionPresentation,
   getWalletTotal,
   restoreMockWallet,
   updateMockWallet,
 } from '@/services/home-service';
-import type {
-  BudgetPeriod,
-  Category,
-  MockBudgetSnapshot,
-  Transaction,
-  Wallet,
-  WalletTint,
-} from '@/types/domain';
+import type { Category, Transaction, Wallet, WalletTint } from '@/types/domain';
+import { useTranslation } from 'react-i18next';
 
 const tintSequence: WalletTint[] = ['pine', 'coral', 'gold', 'goal'];
 
@@ -82,19 +70,20 @@ function HomeHeader({ today = new Date() }: { today?: Date }) {
   );
 }
 
-function BalanceCard({ total, period }: { total: number; period?: BudgetPeriod }) {
+function BalanceCard({
+  total,
+  hasArchivedWallets,
+}: {
+  total: number;
+  hasArchivedWallets: boolean;
+}) {
   const { t } = useTranslation();
   return (
     <FinanceHeroCard
       label={t('common.totalBalance')}
       marker="●"
       amount={total}
-      footer={[
-        {
-          label: t('common.budgetPeriod'),
-          value: period ? formatPeriod(period) : t('common.budgetPeriod'),
-        },
-      ]}
+      note={hasArchivedWallets ? t('common.totalBalanceIncludesArchived') : undefined}
       style={styles.balanceCard}
     />
   );
@@ -245,74 +234,6 @@ function WalletCards({
         </View>
       )}
     </View>
-  );
-}
-
-function ProgressBar({ progress }: { progress: number }) {
-  const theme = useTheme();
-  return (
-    <MotionProgressBar
-      value={progress}
-      color={theme.pine}
-      trackColor={theme.line}
-      style={styles.progressTrack}
-    />
-  );
-}
-
-function PlanSnapshot({
-  onPress,
-  snapshot: snapshotProp,
-}: {
-  onPress: () => void;
-  snapshot?: MockBudgetSnapshot;
-}) {
-  const theme = useTheme();
-  const { t } = useTranslation();
-  const snapshot = snapshotProp ?? getHomeSnapshot();
-  const progress =
-    snapshot.totalIncome > 0 ? (snapshot.totalExpense / snapshot.totalIncome) * 100 : 0;
-  return (
-    <MotionAnimatedView
-      entering={motionPresets.itemEntering}
-      layout={motionPresets.layout}
-      style={[styles.planSnapshot, { backgroundColor: theme.card, borderColor: theme.line }]}
-    >
-      <View style={styles.planHeader}>
-        <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-          {t('common.spareBudget')}
-        </ThemedText>
-        <MotionPressable
-          accessibilityRole="button"
-          accessibilityLabel={t('common.viewPlan')}
-          onPress={onPress}
-          style={styles.planLink}
-        >
-          <ThemedText type="smallBold" themeColor="pine" style={styles.planLinkText}>
-            {t('common.viewPlan')} →
-          </ThemedText>
-        </MotionPressable>
-      </View>
-      <View>
-        <ThemedText type="subtitle" style={styles.planAmount}>
-          {formatMoney(snapshot.spareBudget)}
-        </ThemedText>
-        <ThemedText type="small" themeColor="muted" style={styles.planCaption}>
-          {t('common.stillAllocatable')}
-        </ThemedText>
-      </View>
-      <ProgressBar progress={progress} />
-      <View style={styles.miniStats}>
-        <ThemedText type="small" themeColor="muted" style={styles.miniStat}>
-          {t('common.income')}{' '}
-          <ThemedText style={styles.miniStatValue}>{formatMoney(snapshot.totalIncome)}</ThemedText>
-        </ThemedText>
-        <ThemedText type="small" themeColor="muted" style={styles.miniStat}>
-          {t('common.expense')}{' '}
-          <ThemedText style={styles.miniStatValue}>{formatMoney(snapshot.totalExpense)}</ThemedText>
-        </ThemedText>
-      </View>
-    </MotionAnimatedView>
   );
 }
 
@@ -509,13 +430,10 @@ function WalletForm(props: WalletFormProps) {
 type HomeScreenProps = {
   onTransactionPress?: (transaction: Transaction) => void;
   onDailyPress?: () => void;
-  onPlanPress?: () => void;
   wallets?: Wallet[];
   archivedWallets?: Wallet[];
   transactions?: Transaction[];
   categories?: Category[];
-  snapshot?: MockBudgetSnapshot;
-  period?: BudgetPeriod;
   onWalletSave?: (wallet: Wallet | null, name: string, balance: number) => void | Promise<void>;
   onWalletArchive?: (wallet: Wallet) => void | Promise<void>;
   onWalletRestore?: (wallet: Wallet) => void | Promise<void>;
@@ -524,13 +442,10 @@ type HomeScreenProps = {
 export default function HomeScreen({
   onTransactionPress,
   onDailyPress,
-  onPlanPress,
   wallets: walletsProp,
   archivedWallets: archivedWalletsProp,
   transactions: transactionsProp,
   categories: categoriesProp,
-  snapshot,
-  period,
   onWalletSave,
   onWalletArchive,
   onWalletRestore,
@@ -545,7 +460,10 @@ export default function HomeScreen({
     () => transactionsProp ?? getHomeRecentTransactions(),
     [transactionsProp],
   );
-  const total = useMemo(() => getWalletTotal(wallets), [wallets]);
+  const total = useMemo(
+    () => getWalletTotal([...wallets, ...archivedWallets]),
+    [archivedWallets, wallets],
+  );
 
   const saveWallet = async (name: string, balance: number) => {
     if (onWalletSave) {
@@ -568,7 +486,7 @@ export default function HomeScreen({
         <SafeAreaView style={styles.safeArea}>
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
             <HomeHeader />
-            <BalanceCard total={total} period={period} />
+            <BalanceCard total={total} hasArchivedWallets={archivedWallets.length > 0} />
             <WalletCards
               wallets={wallets}
               archivedWallets={archivedWallets}
@@ -582,7 +500,6 @@ export default function HomeScreen({
                 }
               }}
             />
-            <PlanSnapshot snapshot={snapshot} onPress={onPlanPress ?? (() => undefined)} />
             <View style={styles.recent}>
               <View style={styles.sectionTitle}>
                 <ThemedText type="sectionHeading">{t('common.recent')}</ThemedText>
@@ -663,15 +580,6 @@ export default function HomeScreen({
       />
     </ThemedView>
   );
-}
-
-function formatPeriod(period: BudgetPeriod) {
-  const start = new Date(`${period.startDate}T12:00:00`);
-  const end = new Date(`${period.endDate}T12:00:00`);
-  return `${start.getDate()} — ${end.getDate()} ${new Intl.DateTimeFormat(
-    getIntlLocale(i18n.language === 'en' ? 'en' : 'id'),
-    { month: 'short' },
-  ).format(end)}`;
 }
 
 const styles = StyleSheet.create({
@@ -811,31 +719,6 @@ const styles = StyleSheet.create({
   walletAddLabel: { fontSize: 10, lineHeight: 12 },
   quietAction: { fontSize: 12, lineHeight: 15 },
   pressed: { opacity: 0.7 },
-  planSnapshot: {
-    borderRadius: 21,
-    borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: Layout.sectionGap,
-    padding: 17,
-  },
-  planHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  planLink: { minHeight: 32, justifyContent: 'center', paddingLeft: Spacing.two },
-  planAmount: { fontSize: 25, lineHeight: 28 },
-  planCaption: { fontSize: 11, lineHeight: 14 },
-  planLinkText: { fontSize: 11, lineHeight: 14 },
-  progressTrack: {
-    borderRadius: Radius.pill,
-    height: 5,
-    marginVertical: Spacing.three,
-    overflow: 'hidden',
-  },
-  progressFill: { borderRadius: Radius.pill, height: '100%' },
-  miniStats: { flexDirection: 'row', justifyContent: 'space-between' },
-  miniStatValue: { fontFamily: Fonts.mono, fontSize: 10 },
-  miniStat: { fontSize: 10, lineHeight: 14 },
   recent: { paddingBottom: Spacing.two },
   transactionRow: {
     alignItems: 'center',

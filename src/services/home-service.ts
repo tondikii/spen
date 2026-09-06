@@ -2,10 +2,6 @@ import mockData from '@/data/mock-data';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 import { getMockTransactions } from '@/services/transaction-service';
 
-export function getHomeSnapshot() {
-  return mockData.budgetSnapshot;
-}
-
 export function getTransactionPresentation(
   transaction: Transaction,
   categories: Category[] = mockData.categories,

@@ -2,20 +2,47 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import PlanScreen from '@/components/plan-screen';
 import mockData from '@/data/mock-data';
+import { getPlanView } from '@/services/plan-service';
 
 describe('PlanScreen', () => {
-  it('menampilkan saldo tersedia, spare budget, dan seluruh section plan', async () => {
-    const { getByLabelText, getByText } = await render(<PlanScreen />);
+  it('menampilkan satu ringkasan Spare budget dan Saldo tersedia bersama section plan', async () => {
+    const { getByLabelText, getByText, queryByLabelText, queryByText } = await render(
+      <PlanScreen />,
+    );
 
     expect(getByText('SALDO TERSEDIA')).toBeTruthy();
     expect(getByText('SPARE BUDGET')).toBeTruthy();
+    expect(getByText('ruang rencana periode ini')).toBeTruthy();
+    expect(getByText('Pendapatan aktual')).toBeTruthy();
+    expect(getByText('Target Pengeluaran')).toBeTruthy();
+    expect(getByLabelText('Pendapatan aktual: Rp 6.500.000')).toBeTruthy();
+    expect(getByLabelText('Target Pengeluaran: Rp 3.150.000')).toBeTruthy();
+    expect(getByText('saldo Wallet saat ini')).toBeTruthy();
+    expect(getByText('Tersedia bebas')).toBeTruthy();
+    expect(getByText('Terikat goal')).toBeTruthy();
     expect(getByText('Pendapatan')).toBeTruthy();
     expect(getByText('Pengeluaran')).toBeTruthy();
     expect(getByText('Goal')).toBeTruthy();
-    expect(getByLabelText('SPARE BUDGET 44%')).toBeTruthy();
+    expect(queryByLabelText('SPARE BUDGET 44%')).toBeNull();
+    expect(queryByText('44% dari pendapatan')).toBeNull();
     expect(() => getByText('Fixed expense')).toThrow();
     expect(() => getByText('Alokasi')).toThrow();
     expect(getByText('Tercapai')).toBeTruthy();
+  });
+
+  it('menjelaskan saat target Pengeluaran melebihi Pendapatan aktual', async () => {
+    const planView = getPlanView();
+    const { getByText } = await render(
+      <PlanScreen
+        planView={{
+          ...planView,
+          snapshot: { ...planView.snapshot, spareBudget: -500000 },
+        }}
+      />,
+    );
+
+    expect(getByText('Rp -500.000')).toBeTruthy();
+    expect(getByText('Target Pengeluaran melebihi Pendapatan aktual')).toBeTruthy();
   });
 
   it('mengubah Budget period dan menerapkan saran AI', async () => {
@@ -154,5 +181,4 @@ describe('PlanScreen', () => {
       250000,
     );
   });
-
 });

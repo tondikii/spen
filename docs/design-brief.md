@@ -39,13 +39,13 @@ Gaya visual komponen (kartu, progress bar, chart, sheet, modal, tab bar, ikon) a
 - **Settings** (paling kanan) → karena tidak ada data profil, header tidak punya isi; Settings jadi tab tersendiri (theme, currency, backup/restore, bahasa, tentang).
 
 1. **Beranda (Home)** — hub ringkasan. Urutan (compact, biar CRUD wallet & transaksi fit di satu layar):
-   - **Header**: total saldo semua wallet + nama Budget period (bukan profil — ini isi yang berguna).
+   - **Header**: total Saldo semua Wallet; bila ada Wallet terarsip, nominalnya tetap dihitung dan diberi konteks kecil (bukan profil — ini isi yang berguna).
    - **Wallet cards**: kompak, horizontal scroll (wallet biasanya 2–5). Tap kartu → **detail bottom sheet** (lihat saldo, edit, arsip). Kartu "+ Tambah Wallet" → **form wallet full-screen modal** (keyboard-heavy). Edit/arsip dari sheet yang sama. Hapus permanen hanya jika wallet kosong (belum ada transaksi); jika sudah dipakai → **arsip**.
-   - **Ringkasan budget plan**: progress + spare budget (ringkas; detail di tab Rencana).
+   - **Tanpa kartu budget plan**: ringkasan budget hanya ada di tab Rencana; Beranda fokus pada Saldo total, Wallet, dan transaksi terbaru.
    - **Transaksi terbaru**: list pendek (misal 5, transaksi terbaru) + "Lihat Semua" → buka **view transaksi harian** (daily + stepper).
 2. **Rencana (Plan)** — budget plan bulan ini. Struktur:
    - **Header**: judul "Rencana" + label periode `[1–30 Sep ▾]` (tap → modal ubah tanggal mulai Budget period) + tombol **✨ AI Suggestion** di header (selalu kelihatan).
-   - **Hero**: saldo tersedia (realita) yang dipecah menjadi **Tersedia bebas** (total saldo − saldo wallet goal) dan **Terikat goal**, plus **spare budget** (angka rencana) sebagai elemen terpisah + breakdown kecil (pendapatan − fixed expense − kontribusi goal).
+   - **Kartu ringkasan**: satu kartu dengan **Spare budget** sebagai angka utama + caption "ruang rencana periode ini", breakdown **Pendapatan aktual** dan **Target Pengeluaran**, lalu bagian **Saldo tersedia** dengan **Tersedia bebas** dan **Terikat goal** + caption "saldo Wallet saat ini". Jangan ulangi total saldo, persentase, atau donut.
    - **Section cards**: Pendapatan, Fixed Expense, Goal, Alokasi — tiap section punya header + tombol "+ Tambah".
    - **Fixed expense item**: progress + status bayar ("Lunas ✓", "x/y dibayar", "Belum dibayar") + tombol **"Bayar"** (buka sheet: pilih wallet → nominal default sisa, bisa diubah → konfirmasi → buat transaksi expense). **Fixed expense = alokasi**: progress terisi dari transaksi kategori; tidak ada transaksi otomatis.
    - **Goal item**: progress (saved/target) + kontribusi bulanan.
@@ -105,7 +105,7 @@ Gaya visual komponen (kartu, progress bar, chart, sheet, modal, tab bar, ikon) a
 - Fixed expense: **berperilaku seperti alokasi** — progress terisi dari transaksi kategori; **tidak ada transaksi otomatis**; pembayaran via transaksi biasa atau tombol "Bayar" di Rencana (bisa sebagian).
 - Kategori: income & expense di-seed otomatis, bisa diedit/ditambah/dihapus; transfer punya satu kategori global. Kategori yang sudah dipakai di-archive.
 - Over budget: transaksi boleh melebihi alokasi plan, progress > 100% ditandai (merah/over-budget state); saat input transaksi yang membuat over-budget, tampilkan peringatan lembut (tetap diizinkan).
-- Goal: target + jangka waktu (opsional) + wallet tabungan sendiri (wallet goal, flag tabungan) → progress = saldo wallet goal; menabung = transaksi transfer ke wallet goal (saldo asal turun, saldo goal naik); penarikan darurat diperbolehkan dengan konfirmasi. Saat saldo wallet goal ≥ target ditandai "Tercapai" dan berhenti dihitung di spare.
+- Goal: target + jangka waktu (opsional) + Wallet tabungan yang sudah ada (flag tabungan) → progress = saldo Wallet Goal; menetapkan Goal tidak mengubah saldo/transaksi; penarikan darurat diperbolehkan dengan konfirmasi. Saat saldo Wallet Goal ≥ target ditandai "Tercapai" tanpa mengubah Spare budget.
 - Net saving negatif = "Defisit" (merah).
 - Report: ringkasan (income/expense/net saving), pie expense per kategori (urutan terbesar, drill-down), line chart net saving per periode (default 3 bulan, pilih rentang), AI insight.
 - AI (Groq): suggestion & insight dipicu manual, satu-shot, read-only, mengikuti locale aktif; fallback deterministik saat offline.

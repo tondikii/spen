@@ -23,7 +23,7 @@ Checklist ini memetakan 48 user story pada `docs/spec.md` ke implementasi yang a
 | 15 | ✅ | Goal memakai Wallet Goal; Nabung adalah transfer ke Wallet tersebut. |
 | 15a | ✅ | Penarikan darurat dari Goal memakai konfirmasi dan transaksi. |
 | 16 | ✅ | Goal dapat diedit dan diarsipkan. |
-| 17 | ✅ | Spare budget = target Pendapatan − fixed expense − kontribusi Goal aktif. |
+| 17 | ✅ | Spare budget = Pendapatan aktual − target Pengeluaran; Goal hanya flag Wallet dan tidak mengurangi Spare budget. |
 | 18 | ✅ | AI suggestion dipicu manual dan menerima konteks plan/wallet/goal. |
 | 19 | ✅ | Daftar suggestion terstruktur dengan tombol Terapkan. |
 | 20 | ✅ | Fallback deterministik lokal saat AI tidak tersedia. |
@@ -33,10 +33,10 @@ Checklist ini memetakan 48 user story pada `docs/spec.md` ke implementasi yang a
 | 24 | ✅ | Wallet dipilih eksplisit di form transaksi. |
 | 25 | ✅ | Tap transaksi membuka form edit yang sama; hapus memakai konfirmasi. |
 | 26 | ✅ | Saldo awal menghasilkan transaksi income/expense kategori Saldo Awal, Pendapatan di Plan menghitung semua transaksi income, sedangkan koreksi saldo memakai kategori Penyesuaian Saldo. |
-| 26a | ✅ | Hero Rencana memakai SALDO TERSEDIA bersama dengan Home/Report dan memecah bebas/terikat Goal. |
+| 26a | ✅ | Satu kartu ringkasan Rencana memuat SPARE BUDGET sebagai angka utama, operand Pendapatan aktual/Target Pengeluaran, serta SALDO TERSEDIA yang dipecah menjadi Tersedia bebas/Terikat goal. |
 | 27 | ✅ | Wallet bertransaksi di-archive, bukan dihapus. |
 | 28 | ✅ | Warning over-budget tetap mengizinkan penyimpanan. |
-| 29 | ✅ | Goal tercapai berlabel Tercapai dan tidak dihitung dalam spare budget. |
+| 29 | ✅ | Goal tercapai berlabel Tercapai; saldo Wallet Goal tetap dipisahkan sebagai Terikat goal tanpa memengaruhi Spare budget. |
 | 30 | ✅ | Net saving negatif berlabel Defisit dan memakai warna expense. |
 | 31 | ✅ | Kategori income/expense di-seed otomatis. |
 | 32 | ✅ | Kategori dapat dibuat, diedit, dan diarsipkan melalui form transaksi. |

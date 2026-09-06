@@ -34,7 +34,7 @@ Rentang waktu berdurasi satu bulan tempat pendapatan, pengeluaran, dan goal dini
 _Avoid_: month, bulan kalender
 
 **Budget plan**:
-Rencana bulanan global (satu per aplikasi) yang menyatukan item Pendapatan, Pengeluaran, dan kontribusi goal. Tidak terikat per wallet; Wallet dipilih saat item Pendapatan dibuat agar nominalnya langsung dicatat sebagai transaksi income pada Wallet tersebut. Satu Budget plan aktif per Budget period. Setiap angka uang di plan hanyalah target (rencana, ditulis manual) atau turunan transaksi (realita) — tidak ada angka ketiga; angka realita selalu konsisten dengan saldo Wallet karena keduanya dihitung dari tabel transaksi yang sama.
+Rencana bulanan global (satu per aplikasi) yang menyatukan item Pendapatan, Pengeluaran, dan Goal. Tidak terikat per wallet; Wallet dipilih saat item Pendapatan dibuat agar nominalnya langsung dicatat sebagai transaksi income pada Wallet tersebut. Satu Budget plan aktif per Budget period. Setiap angka uang di plan hanyalah target (rencana, ditulis manual) atau turunan transaksi (realita) — tidak ada angka ketiga; angka realita selalu konsisten dengan saldo Wallet karena keduanya dihitung dari tabel transaksi yang sama.
 _Avoid_: budget (sebagai istilah rencana), per-wallet plan
 
 **Pendapatan**:
@@ -42,7 +42,7 @@ Item Budget plan yang terikat satu kategori income dan memiliki nominal rencana 
 _Avoid_: pemasukan, target pendapatan tunggal
 
 **Spare budget**:
-Sisa pendapatan setelah target Pengeluaran dan kontribusi goal dalam satu Budget plan. Menjadi dasar saran AI dan fallback deterministik.
+Sisa Pendapatan aktual setelah target Pengeluaran dalam satu Budget plan. Pendapatan aktual diturunkan dari transaksi income pada Budget period aktif. Goal tidak mengurangi Spare budget: Goal hanya menandai Wallet yang sudah ada sebagai Wallet tabungan dan tidak membuat transaksi saat dibuat atau diisi. Menjadi dasar saran AI dan fallback deterministik.
 _Avoid_: sisa uang, disposable income
 
 **Pengeluaran (item Plan)**:
@@ -53,7 +53,7 @@ Fixed expense dan Alokasi adalah istilah legacy. Keduanya dimigrasikan dan ditam
 _Avoid_: budget item, spending plan
 
 **Goal**:
-Target menabung pengguna (misal dana nikah, umroh, beli motor) dengan target biaya, jangka waktu opsional, dan wallet tabungan sendiri (wallet goal). Menabung = transaksi transfer ke wallet goal; progress goal = saldo wallet goal (bisa diisi lewat saldo awal wallet goal). Penarikan untuk keadaan darurat = transaksi keluar dari wallet goal (progress turun; app menampilkan konfirmasi, tidak memblokir). Saat saldo wallet goal ≥ target, ditandai "Tercapai" dan berhenti dihitung dalam spare budget. Dapat di-archive.
+Target menabung pengguna (misal dana nikah, umroh, beli motor) dengan target biaya, jangka waktu opsional, dan satu Wallet tabungan yang sudah ada. Menjadikan Wallet sebagai Wallet Goal hanya memberi penanda; saldo Wallet dan transaksi tidak berubah. Progress Goal = saldo Wallet Goal (bisa berasal dari saldo awal atau transaksi yang memang terjadi di Wallet tersebut). Penarikan untuk keadaan darurat = transaksi keluar dari Wallet Goal (progress turun; app menampilkan konfirmasi, tidak memblokir). Saat saldo Wallet Goal ≥ target, ditandai "Tercapai". Goal dan kontribusi bulanannya tidak mengurangi Spare budget. Dapat di-archive.
 _Avoid_: saving target, target
 
 **Category**:
@@ -70,7 +70,7 @@ Pendapatan dikurangi expense dan transfer keluar, ditambah transfer masuk, dalam
 _Avoid_: saving, tabungan bersih
 
 **Saldo tersedia**:
-Total saldo seluruh wallet saat ini (turunan tabel transaksi, lintas periode). Di layar Rencana dipecah menjadi **Tersedia bebas** (total saldo − saldo wallet goal) dan **Terikat goal**. Berbeda dari spare budget: spare adalah angka rencana, saldo tersedia adalah realita.
+Total saldo seluruh wallet saat ini (turunan tabel transaksi, lintas periode). Di layar Rencana dipecah menjadi **Tersedia bebas** (total saldo − saldo wallet goal) dan **Terikat goal**. Berbeda dari spare budget: spare memakai Pendapatan aktual dan target Pengeluaran pada Budget period, saldo tersedia adalah realita lintas periode.
 _Avoid_: available balance, saldo periode
 
 **Currency**:

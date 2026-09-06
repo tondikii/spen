@@ -18,7 +18,8 @@ type FinanceHeroCardProps = {
   amount: number;
   marker?: string;
   amountColor?: string;
-  footer: FinanceHeroFooterItem[];
+  note?: ReactNode;
+  footer?: FinanceHeroFooterItem[];
   style?: StyleProp<ViewStyle>;
 };
 
@@ -27,7 +28,8 @@ export function FinanceHeroCard({
   amount,
   marker,
   amountColor,
-  footer,
+  note,
+  footer = [],
   style,
 }: FinanceHeroCardProps) {
   const theme = useTheme();
@@ -45,21 +47,26 @@ export function FinanceHeroCard({
       <ThemedText style={[styles.amount, { color: amountColor ?? theme.heroText }]}>
         {formatMoney(amount)}
       </ThemedText>
-      <View style={[styles.footer, { borderTopColor: theme.heroDivider }]}>
-        {footer.map((item, index) => (
-          <View
-            key={item.label}
-            style={[styles.footerItem, index === footer.length - 1 && styles.footerItemRight]}
-          >
-            <ThemedText style={[styles.footerLabel, { color: theme.heroMuted }]}>
-              {item.label}
-            </ThemedText>
-            <ThemedText style={[styles.footerValue, { color: item.valueColor ?? theme.heroText }]}>
-              {item.value}
-            </ThemedText>
-          </View>
-        ))}
-      </View>
+      {note && <ThemedText style={[styles.note, { color: theme.heroMuted }]}>{note}</ThemedText>}
+      {footer.length > 0 && (
+        <View style={[styles.footer, { borderTopColor: theme.heroDivider }]}>
+          {footer.map((item, index) => (
+            <View
+              key={item.label}
+              style={[styles.footerItem, index === footer.length - 1 && styles.footerItemRight]}
+            >
+              <ThemedText style={[styles.footerLabel, { color: theme.heroMuted }]}>
+                {item.label}
+              </ThemedText>
+              <ThemedText
+                style={[styles.footerValue, { color: item.valueColor ?? theme.heroText }]}
+              >
+                {item.value}
+              </ThemedText>
+            </View>
+          ))}
+        </View>
+      )}
     </MotionAnimatedView>
   );
 }
@@ -68,6 +75,7 @@ const styles = StyleSheet.create({
   card: { borderRadius: Radius.hero, padding: Layout.pagePadding, ...Shadows.hero },
   label: { fontFamily: Fonts.sans, fontSize: 12, lineHeight: 18 },
   amount: { ...Typography.moneyHero, marginVertical: Spacing.two },
+  note: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
   footer: {
     borderTopWidth: 1,
     flexDirection: 'row',

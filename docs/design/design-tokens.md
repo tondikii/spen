@@ -9,7 +9,7 @@ Slot token & peran. File ini untuk developer (React Native) dan design agent; `D
 | Token       | Light                                 | Dark                                                  | Peran                                                  |
 | ----------- | ------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------ |
 | `--pine`    | `#235B50`                             | `#83B5A5`                                             | Brand utama; aksi, tab aktif, progress, teks penting   |
-| `--pine-2`  | `#17483F`                             | (dark memakai `#20453B` untuk surface gelap)          | Surface hero (balance card, available hero)            |
+| `--pine-2`  | `#17483F`                             | (dark memakai `#20453B` untuk surface gelap)          | Surface hero (balance card, plan summary card)        |
 | `--mint`    | `#DCE5EC` → `#DCE5EC` (lihat catatan) | `#20453B`                                             | Surface pendukung/ikon aktif; background chip terpilih |
 | `--paper`   | `#F6F5F0`                             | `#12231F`                                             | Background utama app                                   |
 | `--card`    | `#FFFEFA`                             | `#19312C`                                             | Surface kartu                                          |
@@ -70,7 +70,7 @@ Font stack: `Nunito Sans` (UI), `Fraunces` (heading & angka besar), `DM Mono` (a
 | ------------- | ------- | ---------------------------------------------------------------------- |
 | Radius kecil  | 9–13px  | Chip, tombol kecil, ikon kategori kecil, calendar cell                 |
 | Radius sedang | 15–19px | Tombol primary, setting group, wallet card, input, FAB (17px)          |
-| Radius besar  | 21–27px | Kartu hero, balance card, plan snapshot, chart card, sheet (27px atas) |
+| Radius besar  | 21–27px | Kartu hero, balance card, plan summary card, chart card, sheet (27px atas) |
 | Radius penuh  | 99px    | AI button, chips, toggle                                               |
 
 ## Spacing
@@ -86,7 +86,7 @@ Font stack: `Nunito Sans` (UI), `Fraunces` (heading & angka besar), `DM Mono` (a
 
 | Elemen                        | Shadow                                                             |
 | ----------------------------- | ------------------------------------------------------------------ |
-| Balance card / available hero | `0 12px 28px #1E4A4222`                                            |
+| Balance card / plan summary card | `0 12px 28px #1E4A4222`                                         |
 | Wallet card                   | `0 8px 18px rgba(33,52,49,.07)`; hover `rgba(33,52,49,.11)`        |
 | FAB (+)                       | `0 5px 15px #235B5066`                                             |
 | Sheet                         | animasi naik `up .25s ease-out` (translateY 20px + opacity .5 → 1) |

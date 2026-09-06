@@ -788,24 +788,15 @@ export async function getDatabasePlanView(database: SQLiteDatabase, today = date
     ]),
   );
   const goalBalance = [...goalBalances.values()].reduce((sum, amount) => sum + amount, 0);
-  const activeGoalContribution = goals.reduce(
-    (sum, goal) =>
-      (goalBalances.get(goal.walletId) ?? 0) >= goal.targetAmount
-        ? sum
-        : sum + goal.monthlyContribution,
-    0,
-  );
   const availableBalance = wallets.reduce((sum, wallet) => sum + wallet.balance, 0);
+  const plannedExpense = visibleExpenseItems.reduce((sum, item) => sum + item.targetAmount, 0);
   const snapshot: MockBudgetSnapshot = {
     totalIncome,
     totalExpense,
     totalTransferIn,
     totalTransferOut,
     netSaving: totalIncome - totalExpense + totalTransferIn - totalTransferOut,
-    spareBudget:
-      totalIncome -
-      expenseItems.reduce((sum, item) => sum + item.targetAmount, 0) -
-      activeGoalContribution,
+    spareBudget: totalIncome - plannedExpense,
     availableBalance,
     freeBalance: availableBalance - goalBalance,
     goalBalance,

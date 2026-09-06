@@ -1,15 +1,7 @@
 import { useEffect, useMemo, useState, type ComponentProps, type ReactNode } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
-import Animated, {
-  cancelAnimation,
-  useAnimatedProps,
-  useReducedMotion,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 
-import { Fonts, Radius, Typography } from '@/constants/theme';
+import { Fonts, Layout, Radius, Shadows, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import { getDatabasePlanView, getPlanView, type PlanItemDraft } from '@/services/plan-service';
@@ -17,7 +9,6 @@ import { aiService, type BudgetAIInput, type BudgetSuggestion } from '@/services
 import { ThemedInput } from '@/components/themed-input';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { FinanceHeroCard } from '@/components/finance-hero-card';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
 import type { BudgetPlanItem, Category, Goal, PlanItemType, Wallet } from '@/types/domain';
@@ -38,12 +29,6 @@ import type { Locale } from '@/types/domain';
 import i18n from '@/i18n';
 import { getCategoryLabel } from '@/i18n/categories';
 import { getErrorTranslationKey } from '@/lib/app-error';
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-const SPARE_DONUT_SIZE = 64;
-const SPARE_DONUT_RADIUS = 25;
-const SPARE_DONUT_STROKE = 6;
-const SPARE_DONUT_CIRCUMFERENCE = 2 * Math.PI * SPARE_DONUT_RADIUS;
 
 type PlanView = ReturnType<typeof getPlanView> | Awaited<ReturnType<typeof getDatabasePlanView>>;
 
@@ -69,6 +54,103 @@ type PlanAction = {
   onPress: () => void | Promise<void>;
   tone?: 'default' | 'danger' | 'primary';
 };
+
+function PlanSummaryMetric({
+  label,
+  value,
+  theme,
+  align = 'left',
+}: {
+  label: string;
+  value: string;
+  theme: ReturnType<typeof useTheme>;
+  align?: 'left' | 'right';
+}) {
+  return (
+    <View
+      accessible
+      accessibilityLabel={`${label}: ${value}`}
+      style={[styles.summaryMetric, align === 'right' && styles.summaryMetricRight]}
+    >
+      <ThemedText style={[styles.summaryMetricLabel, { color: theme.heroMuted }]}>
+        {label}
+      </ThemedText>
+      <ThemedText style={[styles.summaryMetricValue, { color: theme.heroText }]}>
+        {value}
+      </ThemedText>
+    </View>
+  );
+}
+
+function PlanSummaryCard({
+  snapshot,
+  plannedExpense,
+}: {
+  snapshot: PlanView['snapshot'];
+  plannedExpense: number;
+}) {
+  const theme = useTheme();
+  const { t } = useTranslation();
+  const spareIsNegative = snapshot.spareBudget < 0;
+
+  return (
+    <MotionAnimatedView
+      entering={motionPresets.itemEntering}
+      layout={motionPresets.layout}
+      style={[styles.summaryCard, { backgroundColor: theme.pine2 }]}
+    >
+      <ThemedText style={[styles.summaryLabel, { color: theme.heroMuted }]}>
+        {t('common.spareBudget')}
+      </ThemedText>
+      <ThemedText
+        style={[styles.summaryAmount, { color: spareIsNegative ? theme.expense : theme.heroText }]}
+      >
+        {formatMoney(snapshot.spareBudget)}
+      </ThemedText>
+      <ThemedText style={[styles.summaryCaption, { color: theme.heroMuted }]}>
+        {t(spareIsNegative ? 'common.spareBudgetOverPlan' : 'common.spareBudgetPeriod')}
+      </ThemedText>
+
+      <View style={[styles.summaryBreakdown, { borderTopColor: theme.heroDivider }]}>
+        <View style={styles.summaryMetricRow}>
+          <PlanSummaryMetric
+            label={t('common.actualIncome')}
+            value={formatMoney(snapshot.totalIncome)}
+            theme={theme}
+          />
+          <PlanSummaryMetric
+            align="right"
+            label={t('common.expenseTarget')}
+            value={formatMoney(plannedExpense)}
+            theme={theme}
+          />
+        </View>
+      </View>
+
+      <View style={[styles.summaryBalance, { borderTopColor: theme.heroDivider }]}>
+        <ThemedText style={[styles.summarySubheading, { color: theme.heroMuted }]}>
+          {t('common.availableBalance')}
+        </ThemedText>
+        <ThemedText style={[styles.summaryCaption, { color: theme.heroMuted }]}>
+          {t('common.availableBalanceNow')}
+        </ThemedText>
+        <View style={[styles.summaryMetricRow, styles.summaryBalanceMetrics]}>
+          <PlanSummaryMetric
+            label={t('common.freeBalance')}
+            value={formatMoney(snapshot.freeBalance)}
+            theme={theme}
+          />
+          <PlanSummaryMetric
+            align="right"
+            label={t('common.tiedGoal')}
+            value={formatMoney(snapshot.goalBalance)}
+            theme={theme}
+          />
+        </View>
+      </View>
+    </MotionAnimatedView>
+  );
+}
 
 function PlanScreenContent({
   planView = getPlanView(),
@@ -103,7 +185,7 @@ function PlanScreenContent({
   const { t } = useTranslation();
   const locale = (i18n.language === 'en' ? 'en' : 'id') as Locale;
   const { snapshot, plan, goals, wallets, period } = planView;
-  const spareBudgetPercent = sparePercent(snapshot);
+  const plannedExpense = plan.expenseItems.reduce((sum, item) => sum + item.targetAmount, 0);
   const [startDay, setStartDay] = useState(Number(period.startDate.slice(-2)));
   const [aiOpen, setAiOpen] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
@@ -134,7 +216,7 @@ function PlanScreenContent({
             spareBudget: snapshot.spareBudget,
             totalIncome: snapshot.totalIncome,
             fixedExpense: 0,
-            goalContributions: snapshot.goalBalance,
+            goalContributions: 0,
             netSaving: snapshot.netSaving,
           }),
           locale,
@@ -186,10 +268,7 @@ function PlanScreenContent({
   };
 
   return (
-    <ThemedView
-      style={styles.page}
-      onTouchStart={() => setDismissSignal((current) => current + 1)}
-    >
+    <ThemedView style={styles.page} onTouchStart={() => setDismissSignal((current) => current + 1)}>
       {aiError && (
         <ThemedText
           type="small"
@@ -227,35 +306,7 @@ function PlanScreenContent({
             </ThemedText>
           </Pressable>
         </View>
-        <FinanceHeroCard
-          label={t('common.availableBalance')}
-          amount={snapshot.availableBalance}
-          footer={[
-            { label: t('common.freeBalance'), value: formatMoney(snapshot.freeBalance) },
-            { label: t('common.tiedGoal'), value: formatMoney(snapshot.goalBalance) },
-          ]}
-          style={styles.available}
-        />
-        <View style={[styles.spare, { backgroundColor: theme.spareBackground }]}>
-          <View style={styles.spareCopy}>
-            <ThemedText style={[styles.spareLabel, { color: theme.spareText }]}>
-              {t('common.spareBudget')}
-            </ThemedText>
-            <ThemedText style={[styles.spareAmount, { color: theme.spareText }]}>
-              {formatMoney(snapshot.spareBudget)}
-            </ThemedText>
-            <ThemedText style={[styles.spareNote, { color: theme.spareText }]}>
-              {t('common.spareBudgetNote')}
-            </ThemedText>
-          </View>
-          <SpareBudgetDonut
-            accessibilityLabel={`${t('common.spareBudget')} ${spareBudgetPercent}%`}
-            percent={spareBudgetPercent}
-            progressColor={theme.spareText}
-            textColor={theme.spareText}
-            trackColor={theme.pine}
-          />
-        </View>
+        <PlanSummaryCard snapshot={snapshot} plannedExpense={plannedExpense} />
         <PlanSection
           title={t('common.incomePlan')}
           action={t('common.add')}
@@ -503,81 +554,6 @@ export default function PlanScreen(props: ComponentProps<typeof PlanScreenConten
   );
 }
 
-function sparePercent(snapshot: { spareBudget: number; totalIncome: number }) {
-  if (snapshot.totalIncome <= 0) return 0;
-  return Math.max(
-    0,
-    Math.min(100, Math.round((snapshot.spareBudget / snapshot.totalIncome) * 100)),
-  );
-}
-
-function SpareBudgetDonut({
-  accessibilityLabel,
-  percent,
-  progressColor,
-  textColor,
-  trackColor,
-}: {
-  accessibilityLabel: string;
-  percent: number;
-  progressColor: string;
-  textColor: string;
-  trackColor: string;
-}) {
-  const reduceMotion = useReducedMotion();
-  const progress = useSharedValue(0);
-  const target = Math.max(0, Math.min(100, percent)) / 100;
-
-  useEffect(() => {
-    cancelAnimation(progress);
-    progress.value = reduceMotion
-      ? target
-      : withTiming(target, { duration: 700 });
-
-    return () => cancelAnimation(progress);
-  }, [progress, reduceMotion, target]);
-  const animatedProps = useAnimatedProps(() => ({
-    strokeDashoffset: SPARE_DONUT_CIRCUMFERENCE * (1 - progress.value),
-  }));
-
-  return (
-    <View
-      accessible
-      accessibilityLabel={accessibilityLabel}
-      style={styles.spareDonut}
-    >
-      <Svg height={SPARE_DONUT_SIZE} width={SPARE_DONUT_SIZE} viewBox="0 0 64 64">
-        <Circle
-          cx={SPARE_DONUT_SIZE / 2}
-          cy={SPARE_DONUT_SIZE / 2}
-          fill="none"
-          r={SPARE_DONUT_RADIUS}
-          stroke={trackColor}
-          strokeWidth={SPARE_DONUT_STROKE}
-          opacity={0.24}
-        />
-        <AnimatedCircle
-          animatedProps={animatedProps}
-          cx={SPARE_DONUT_SIZE / 2}
-          cy={SPARE_DONUT_SIZE / 2}
-          fill="none"
-          r={SPARE_DONUT_RADIUS}
-          stroke={progressColor}
-          strokeDasharray={`${SPARE_DONUT_CIRCUMFERENCE} ${SPARE_DONUT_CIRCUMFERENCE}`}
-          strokeLinecap="butt"
-          strokeWidth={SPARE_DONUT_STROKE}
-          transform="rotate(-90 32 32)"
-        />
-      </Svg>
-      <View pointerEvents="none" style={styles.spareDonutLabel}>
-        <ThemedText type="code" style={{ color: textColor }}>
-          {percent}%
-        </ThemedText>
-      </View>
-    </View>
-  );
-}
-
 function PlanActionMenu({
   label,
   actions,
@@ -612,8 +588,10 @@ function PlanActionMenu({
         }}
         style={styles.kebabButton}
         hitSlop={8}
-        >
-          <ThemedText type="subtitle" themeColor="muted" style={styles.kebabGlyph}>•••</ThemedText>
+      >
+        <ThemedText type="subtitle" themeColor="muted" style={styles.kebabGlyph}>
+          •••
+        </ThemedText>
       </Pressable>
       {open && (
         <MotionAnimatedView
@@ -632,10 +610,7 @@ function PlanActionMenu({
                 void action.onPress();
               }}
               onTouchStart={(event) => event.stopPropagation()}
-              style={[
-                styles.actionMenuItem,
-                { borderBottomColor: theme.line },
-              ]}
+              style={[styles.actionMenuItem, { borderBottomColor: theme.line }]}
             >
               <ThemedText
                 type="smallBold"
@@ -696,11 +671,17 @@ function PlanPaymentModal({
           style={styles.sheetKeyboard}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <View style={[styles.goalSheet, { backgroundColor: theme.card }]}> 
+          <View style={[styles.goalSheet, { backgroundColor: theme.card }]}>
             <View style={styles.sheetHeader}>
               <ThemedText type="sectionHeading">{title}</ThemedText>
-              <Pressable accessibilityRole="button" accessibilityLabel={t('common.cancel')} onPress={onClose}>
-                <ThemedText type="subtitle" themeColor="muted">×</ThemedText>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.cancel')}
+                onPress={onClose}
+              >
+                <ThemedText type="subtitle" themeColor="muted">
+                  ×
+                </ThemedText>
               </Pressable>
             </View>
             <ScrollView
@@ -727,7 +708,11 @@ function PlanPaymentModal({
                   <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
                     {t('common.sourceWallet').toUpperCase()}
                   </ThemedText>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.goalWallets}>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.goalWallets}
+                  >
                     {activeWallets.map((wallet) => (
                       <Pressable
                         key={wallet.id}
@@ -753,7 +738,9 @@ function PlanPaymentModal({
               )}
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={t(showWalletPicker ? 'common.confirmPayment' : 'common.saveGoalMoney')}
+                accessibilityLabel={t(
+                  showWalletPicker ? 'common.confirmPayment' : 'common.saveGoalMoney',
+                )}
                 onPress={submit}
                 style={[styles.saveGoal, { backgroundColor: theme.pine }]}
               >
@@ -1136,7 +1123,10 @@ function GoalSection({
                   <View style={styles.itemValueActions}>
                     <ThemedText
                       type="code"
-                      style={[styles.itemValueText, { color: achieved ? theme.income : theme.gold }]}
+                      style={[
+                        styles.itemValueText,
+                        { color: achieved ? theme.income : theme.gold },
+                      ]}
                     >
                       {formatMoney(saved)} / {formatMoney(goal.targetAmount)}
                     </ThemedText>
@@ -1146,14 +1136,21 @@ function GoalSection({
                       dismissSignal={dismissSignal}
                       actions={[
                         { icon: '✎', label: t('common.edit'), onPress: () => setEditor(goal) },
-                        { icon: '+', label: t('common.saveGoalMoney'), onPress: () => onOpenSaveAction(goal), tone: 'primary' },
+                        {
+                          icon: '+',
+                          label: t('common.saveGoalMoney'),
+                          onPress: () => onOpenSaveAction(goal),
+                          tone: 'primary',
+                        },
                         {
                           icon: '↙',
                           label: t('common.withdraw'),
                           onPress: () =>
                             setConfirmation({
                               title: t('common.emergencyWithdrawal'),
-                              message: t('common.emergencyWithdrawalCopy', { amount: formatMoney(saved) }),
+                              message: t('common.emergencyWithdrawalCopy', {
+                                amount: formatMoney(saved),
+                              }),
                               confirmLabel: t('common.withdraw'),
                               onConfirm: () => onWithdraw?.(goal, saved),
                             }),
@@ -1489,10 +1486,22 @@ function PlanItemContent({
               dismissSignal={dismissSignal}
               actions={[
                 ...(!income && action
-                  ? [{ icon: '→', label: action, onPress: () => onAction(item), tone: 'primary' as const }]
+                  ? [
+                      {
+                        icon: '→',
+                        label: action,
+                        onPress: () => onAction(item),
+                        tone: 'primary' as const,
+                      },
+                    ]
                   : []),
                 { icon: '✎', label: t('common.edit'), onPress: onEdit },
-                { icon: '×', label: t('common.delete'), onPress: onRequestDelete, tone: 'danger' as const },
+                {
+                  icon: '×',
+                  label: t('common.delete'),
+                  onPress: onRequestDelete,
+                  tone: 'danger' as const,
+                },
               ]}
             />
           )}
@@ -1724,27 +1733,32 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   aiButtonText: { fontSize: 11, lineHeight: 14 },
-  available: { marginBottom: 17 },
-  spare: {
-    alignItems: 'center',
-    borderRadius: 22,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 25,
-    padding: 18,
+  summaryCard: {
+    borderRadius: Radius.hero,
+    marginBottom: Layout.sectionGap,
+    padding: Layout.pagePadding,
+    ...Shadows.hero,
   },
-  spareCopy: { flex: 1 },
-  spareLabel: { fontFamily: Fonts.sans, fontSize: 12, lineHeight: 16, marginBottom: 3 },
-  spareAmount: { fontFamily: Fonts.serifBold, fontSize: 26, lineHeight: 29, letterSpacing: -1.04 },
-  spareNote: { fontFamily: Fonts.sans, fontSize: 9, lineHeight: 13 },
-  spareDonut: {
-    alignItems: 'center',
-    height: SPARE_DONUT_SIZE,
-    justifyContent: 'center',
-    position: 'relative',
-    width: SPARE_DONUT_SIZE,
+  summaryLabel: { ...Typography.eyebrow },
+  summaryAmount: { ...Typography.moneyHero, marginVertical: 8 },
+  summaryCaption: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
+  summaryBreakdown: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    marginTop: 17,
+    paddingTop: 14,
   },
-  spareDonutLabel: { alignItems: 'center', justifyContent: 'center', position: 'absolute' },
+  summaryMetricRow: { flexDirection: 'row', gap: 16 },
+  summaryMetric: { flex: 1 },
+  summaryMetricRight: { alignItems: 'flex-end' },
+  summaryMetricLabel: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
+  summaryMetricValue: { fontFamily: Fonts.monoMedium, fontSize: 12, lineHeight: 16, marginTop: 2 },
+  summaryBalance: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    marginTop: 16,
+    paddingTop: 14,
+  },
+  summarySubheading: { ...Typography.eyebrow, marginBottom: 3 },
+  summaryBalanceMetrics: { marginTop: 12 },
   section: { marginBottom: 28 },
   sectionTitle: {
     alignItems: 'center',

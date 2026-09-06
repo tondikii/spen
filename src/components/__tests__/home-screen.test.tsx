@@ -3,14 +3,33 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import HomeScreen from '@/components/home-screen';
 
 describe('HomeScreen', () => {
-  it('menampilkan ringkasan saldo, Wallet, spare budget, dan transaksi terbaru', async () => {
-    const { getByText } = await render(<HomeScreen />);
+  it('menampilkan ringkasan saldo, Wallet, dan transaksi terbaru tanpa card Spare budget', async () => {
+    const { getByText, queryByText } = await render(<HomeScreen />);
 
     expect(getByText('Rp 9.275.000')).toBeTruthy();
+    expect(getByText(/Saldo total/)).toBeTruthy();
     expect(getByText('Wallet')).toBeTruthy();
-    expect(getByText('SPARE BUDGET')).toBeTruthy();
+    expect(queryByText('termasuk Wallet terarsip')).toBeNull();
+    expect(queryByText('SPARE BUDGET')).toBeNull();
+    expect(queryByText('44% dari pendapatan')).toBeNull();
     expect(getByText('Gaji')).toBeTruthy();
     expect(getByText(/Kopi dan sarapan/)).toBeTruthy();
+  });
+
+  it('memasukkan saldo Wallet terarsip ke Saldo total dan memberi konteks', async () => {
+    const archivedWallet = {
+      id: 'wallet-arsip-total',
+      name: 'Dompet Lama',
+      initialBalance: 125000,
+      balance: 100000,
+      isSavings: false,
+      archived: true,
+      tint: 'gold' as const,
+    };
+    const { getByText } = await render(<HomeScreen archivedWallets={[archivedWallet]} />);
+
+    expect(getByText('Rp 9.375.000')).toBeTruthy();
+    expect(getByText('termasuk Wallet terarsip')).toBeTruthy();
   });
 
   it('membuka form edit langsung saat Wallet ditekan dan menyediakan archive', async () => {

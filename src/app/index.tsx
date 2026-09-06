@@ -12,7 +12,6 @@ import {
   updateWallet,
 } from '@/features/wallet';
 import { getDatabaseTransactionCategories, getDatabaseTransactions } from '@/features/transactions';
-import { getDatabasePlanView } from '@/features/budget';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
 
@@ -26,7 +25,6 @@ export default function HomeRoute() {
         getWalletOverview(database),
         getDatabaseTransactionCategories(database),
         getDatabaseTransactions(database),
-        getDatabasePlanView(database),
       ]),
     [database],
   );
@@ -37,7 +35,6 @@ export default function HomeRoute() {
         archivedWallets: loaded[0].archived,
         categories: loaded[1],
         transactions: loaded[2],
-        plan: loaded[3],
       }
     : null;
   const loadData = async () => retry();
@@ -69,8 +66,6 @@ export default function HomeRoute() {
       archivedWallets={data.archivedWallets}
       transactions={data.transactions}
       categories={data.categories}
-      snapshot={data.plan.snapshot}
-      period={data.plan.period}
       onWalletSave={async (wallet, name, balance) => {
         if (wallet) await updateWallet(database, wallet.id, name, balance);
         else await createWallet(database, name, balance);
@@ -88,7 +83,6 @@ export default function HomeRoute() {
         router.push({ pathname: '/create', params: { transactionId: transaction.id } })
       }
       onDailyPress={() => router.push('/daily' as never)}
-      onPlanPress={() => router.push('/plan' as never)}
     />
   );
 }

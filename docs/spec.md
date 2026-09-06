@@ -29,7 +29,7 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 15. As a pengguna, I want Goal memiliki wallet tabungan sendiri (wallet goal), dan menabung = transaksi transfer ke wallet itu (saldo wallet goal naik, saldo wallet asal turun), so that progress menabung = saldo wallet goal (misal goal 100jt, saldo wallet goal 10jt = 10%).
 15a. As a pengguna, I want penarikan darurat dari wallet goal diperbolehkan dengan konfirmasi, so bahwa saya bisa memakai uang tabungan saat darurat (progress goal turun, saldo tetap konsisten).
 16. As a pengguna, I want mengedit dan mengarsipkan Goal, so that saya bisa memperbarui target atau menonaktifkan goal yang tidak relevan.
-17. As a pengguna, I want Budget plan menghitung spare budget (pendapatan − fixed expense − kontribusi goal), so that saya tahu sisa uang yang bisa dipakai.
+17. As a pengguna, I want Budget plan menghitung spare budget (Pendapatan aktual − target Pengeluaran), so that saya tahu sisa uang yang bisa dipakai.
 18. As a pengguna, I want memicu AI suggestion budget secara manual (satu-shot), so that saya mendapat saran berbahasa Indonesia tentang alokasi spare budget berdasarkan pendapatan, fixed expense, dan goal saya.
 19. As a pengguna, I want AI suggestion menghasilkan daftar saran terstruktur yang tiap itemnya punya tombol "Terapkan", so bahwa saya bisa langsung mengeksekusi saran yang saya setujui tanpa mengubah semua.
 20. As a pengguna, I want AI suggestion memakai fallback deterministik lokal saat AI tidak tersedia, so bahwa saya tetap melihat hitungan spare budget meski offline.
@@ -42,7 +42,7 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 26a. As a pengguna, I want hero Rencana menampilkan saldo tersedia yang dipecah menjadi Tersedia bebas (total saldo − saldo wallet goal) dan Terikat goal, so that saya tahu "uang yang benar-benar bisa kupakai" dan "yang sudah kualokasikan ke tabungan" tanpa plan dan dompet kelihatan beda.
 27. As a pengguna, I want wallet yang sudah dipakai (punya transaksi) tidak bisa dihapus, hanya di-archive, so bahwa data transaksi tidak hilang.
 28. As a pengguna, I want mendapat peringatan lembut saat transaksi membuat alokasi melebihi budget (tetap diizinkan), so bahwa saya sadar sebelum over-budget.
-29. As a pengguna, I want goal yang tercapai ditandai "Tercapai" dan berhenti dihitung dalam spare budget, so bahwa perhitungan spare akurat.
+29. As a pengguna, I want goal yang tercapai ditandai "Tercapai" tanpa mengubah spare budget, so bahwa Goal hanya menjadi penanda Wallet tabungan.
 30. As a pengguna, I want net saving negatif ditampilkan sebagai "Defisit" (merah), so bahwa saya tahu periode itu defisit.
 31. As a pengguna, I want kategori income dan expense di-seed secara otomatis, so that saya bisa langsung memakai kategori yang relevan tanpa setup.
 32. As a pengguna, I want membuat, mengedit, dan menghapus kategori, so that saya bisa menyesuaikan kategori dengan kebutuhan.
@@ -80,18 +80,18 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 - **Transfer**: transaksi khusus netral (dari wallet A ke wallet B), kategori transfer global tunggal, warna warning.
 - **Category**: id, nama, tipe (income/expense/transfer), ikon, warna (income=success, expense=error, transfer=warning), seed sebagai data row (bisa diedit), archived saat sudah dipakai transaksi.
 - **Budget period**: id, tanggal mulai (default tanggal 1), durasi satu bulan. Satu plan global per periode. Periode aktif = periode berjalan (dari tanggal mulai); saat berganti, plan baru kosong dibuat otomatis; plan lama tersimpan untuk report historis.
-- **Budget plan**: global, satu per periode; berisi item Pendapatan, fixed expense, kontribusi goal, dan alokasi.
+- **Budget plan**: global, satu per periode; berisi item Pendapatan, Pengeluaran, dan metadata Goal.
 - **Pendapatan (item plan)**: id, nama (misal "Gaji", "Freelance"), kategori income, nominal (target periode ini). **Realisasi item = total transaksi income kategori tersebut dalam periode aktif**; ringkasan Pendapatan Plan menghitung seluruh transaksi income dalam periode aktif. Tombol "Catat" membuat transaksi income (pilih wallet). Item pendapatan bisa lebih dari satu; masing-masing terikat satu kategori income. **Hapus item pendapatan = hapus juga transaksi income yang dibuat darinya** (undo+redo saldo), sehingga tidak ada realisasi yang menggantung.
 - **Fixed expense**: id, nama, kategori expense, jumlah, **berperilaku seperti alokasi** — progress terisi dari transaksi expense kategori tersebut. **Tidak ada transaksi otomatis**; pembayaran lewat transaksi biasa atau tombol "Bayar" di layar Rencana yang membuat transaksi (bisa sebagian).
 - **Transaction**: id, tipe (income/expense/transfer), wallet (untuk income/expense), kategori, jumlah, tanggal, catatan. **Edit transaksi = undo + redo** (kurangi wallet lama, tambah wallet baru) agar saldo konsisten. **Saldo awal wallet = transaksi ledger otomatis** dengan kategori khusus "Saldo Awal". **Koreksi saldo = transaksi penyesuaian** (kategori khusus "Penyesuaian Saldo", dibuat otomatis saat user mengubah saldo wallet langsung di UI); otomatis masuk ke Pendapatan atau Pengeluaran Plan sesuai tipe transaksinya dan ikut dihitung dalam Laporan pada Budget period tanggal transaksinya.
-- **Spare budget**: pendapatan − fixed expense − kontribusi goal (goal tercapai tidak dihitung). Dasar AI suggestion & fallback deterministik.
+- **Spare budget**: Pendapatan aktual − target Pengeluaran. Pendapatan aktual diturunkan dari transaksi income dalam Budget period aktif. Goal hanya menandai Wallet tabungan yang sudah ada dan tidak mengurangi Spare budget atau membuat transaksi saat dibuat/diisi. Dasar AI suggestion & fallback deterministik.
 - **Invariant plan = dompet**: setiap angka uang di plan adalah target (rencana, ditulis manual) ATAU turunan transaksi (realita) — tidak ada angka ketiga. Saldo wallet, realisasi pendapatan, progress expense, saldo tersedia, dan spare dihitung dari tabel transaksi yang sama, sehingga plan dan dompet selalu konsisten (sinkron by construction, bukan dijaga manual).
 - **Over-budget**: transaksi boleh melebihi alokasi plan (progress > 100%, ditandai merah + label "Melebihi Budget"); saat input transaksi yang membuat over-budget, tampilkan peringatan lembut (tetap diizinkan).
 - **Net saving**: pendapatan − expense − transferOut + transferIn per periode; jika negatif disebut "Defisit" (merah).
 - **Archive**: soft-delete untuk kategori/wallet/goal (flag), bukan hapus permanen; transaksi lama tetap valid.
 - **Currency**: curated list (IDR, USD, SGD, MYR, EUR, GBP, JPY, AUD, SAR, AED); format angka id-ID + simbol currency.
 - **Backup/restore**: JSON berisi semua data + field `version`; restore = timpa semua (bukan merge), dengan konfirmasi; validasi version + pesan error kalau beda.
-- **Goal & saldo**: goal memiliki wallet tabungan sendiri; menabung = transaksi transfer ke wallet goal sehingga saldo riil ikut berpindah. Kontribusi bulanan = (target − saldo wallet goal) ÷ bulan tersisa; tanpa jangka waktu → kontribusi 0. **Saldo tersedia** (realita, diturunkan transaksi) = total saldo seluruh wallet; di layar Rencana dipecah menjadi **Tersedia bebas** (total saldo − saldo wallet goal) dan **Terikat goal**, sehingga "uang di dompet" selalu cocok dengan plan (spare = rencana; saldo tersedia = realita).
+- **Goal & saldo**: Goal memakai Wallet tabungan yang sudah ada; menetapkan Wallet sebagai Wallet Goal hanya memberi flag dan tidak mengubah saldo/transaksi. Progress Goal = saldo Wallet Goal. Kontribusi bulanan adalah metadata target menabung, bukan pengurang Spare budget. **Saldo tersedia** (realita, diturunkan transaksi) = total saldo seluruh wallet; di layar Rencana dipecah menjadi **Tersedia bebas** (total saldo − saldo wallet goal) dan **Terikat goal**, sehingga "uang di dompet" selalu cocok dengan plan (spare = rencana; saldo tersedia = realita).
 - **Alokasi & Fixed expense**: dua konsep dengan perilaku sama — keduanya "item alokasi" di plan, progress dari transaksi kategori. Bedanya semantik: Fixed expense = tagihan tetap (Sewa, Cicilan), Alokasi = budget spending fleksibel (Makan, Transport). Keduanya bisa dihapus/arsip (transaksi lama tetap valid); edit nominal → progress otomatis menyesuaikan (transaksi ÷ nominal baru).
 - **Transfer di report**: netral — tidak muncul di pie chart (expense saja) dan tidak mempengaruhi net saving; tetap muncul di riwayat transaksi (label "Transfer: X → Y").
 
@@ -104,7 +104,7 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 
 ### Layar Rencana (Plan)
 - Header: judul "Rencana" + label periode `[1–30 Sep ▾]` (tap → modal ubah tanggal mulai Budget period) + tombol **AI Suggestion** di header.
-- **Hero spare budget**: angka besar + breakdown kecil (pendapatan − fixed expense − kontribusi goal).
+- **Kartu ringkasan plan**: satu kartu dengan **SPARE BUDGET** sebagai angka utama + caption "ruang rencana periode ini"; breakdown berisi **Pendapatan aktual** dan **Target Pengeluaran**. Bagian **SALDO TERSEDIA** di kartu yang sama menampilkan **Tersedia bebas** dan **Terikat goal** dengan caption "saldo Wallet saat ini". Tidak ada total saldo, persentase, atau donut yang diulang di kartu ini.
 - **Section cards**: Pendapatan, Fixed Expense, Goal, Alokasi — tiap section punya header + tombol "+ Tambah".
 - **Fixed expense item**: progress + status bayar ("Lunas ✓", "x/y dibayar", "Belum dibayar") + tombol **"Bayar"** (buka form bayar → pilih wallet → buat transaksi). **Fixed expense = alokasi**: progress terisi dari transaksi kategori; tidak ada mode "bayar langsung vs dianggarkan" — semua item punya tombol "Bayar" sebagai shortcut, dan progress juga terisi dari transaksi biasa.
 - **Goal item**: progress (saved/target) + kontribusi bulanan.
@@ -137,7 +137,7 @@ Plan menyatukan seluruh transaksi income ke Pendapatan dan seluruh transaksi exp
   - Perhitungan `spare budget` & progress plan (termasuk over budget > 100%)
   - Logika Fixed expense (progress dari transaksi kategori; bayar sebagian via tombol "Bayar")
   - Netralitas Transfer (tidak mengubah total kekayaan / progress plan)
-  - Goal progress (target vs terkumpul; tercapai → berhenti di spare)
+  - Goal progress (target vs terkumpul; tercapai → status berubah, tanpa mengubah spare)
   - Agregasi report (pie per kategori, line net saving per periode, drill-down)
   - Fallback deterministik AI (offline → hitungan lokal)
 - **Prior art**: belum ada test di repo ini (fresh Expo starter). Ini test pertama; pola yang dipakai: unit test murni untuk logika perhitungan + integration test untuk service yang menyentuh DB lokal (in-memory/temp DB via expo-sqlite test setup).
