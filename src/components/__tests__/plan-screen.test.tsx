@@ -3,6 +3,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import PlanScreen from '@/components/plan-screen';
 import mockData from '@/data/mock-data';
 import { getPlanView } from '@/services/plan-service';
+import { getLocalDateInput } from '@/services/transaction-service';
 
 describe('PlanScreen', () => {
   it('menampilkan ringkasan plan yang ringkas bersama section plan', async () => {
@@ -10,18 +11,18 @@ describe('PlanScreen', () => {
       <PlanScreen />,
     );
 
-    expect(getByText('SPARE BUDGET')).toBeTruthy();
+    expect(getByText('SISA ANGGARAN')).toBeTruthy();
     expect(getByText('masih bisa dialokasikan')).toBeTruthy();
-    expect(getByText('Pemasukan Rp 6.500.000')).toBeTruthy();
+    expect(getByText('Pendapatan Rp 6.500.000')).toBeTruthy();
     expect(getByText('Pengeluaran Rp 2.950.000')).toBeTruthy();
     expect(getAllByText('45%').length).toBeGreaterThan(0);
     expect(getByText('Pendapatan')).toBeTruthy();
     expect(getByText('Pengeluaran')).toBeTruthy();
-    expect(getByText('Goal')).toBeTruthy();
+    expect(getByText('Tabungan')).toBeTruthy();
     expect(queryByText('Tersedia bebas')).toBeNull();
     expect(queryByText('Terikat goal')).toBeNull();
     expect(queryByText('SALDO TERSEDIA')).toBeNull();
-    expect(queryByLabelText('SPARE BUDGET 44%')).toBeNull();
+    expect(queryByLabelText('SISA ANGGARAN 44%')).toBeNull();
     expect(queryByText('44% dari pendapatan')).toBeNull();
     expect(() => getByText('Fixed expense')).toThrow();
     expect(() => getByText('Alokasi')).toThrow();
@@ -48,7 +49,9 @@ describe('PlanScreen', () => {
 
     await fireEvent.press(getByLabelText('Pilih rentang Laporan'));
     await fireEvent.press(getByLabelText('Tanggal 5'));
-    await waitFor(() => expect(getByText('5–30 Sep')).toBeTruthy());
+    await fireEvent.press(getByLabelText('Terapkan'));
+    await fireEvent.press(getByLabelText('Terapkan'));
+    await waitFor(() => expect(getByText('5 Sep–4 Okt')).toBeTruthy());
     await fireEvent.press(getByLabelText('Saran AI'));
     await waitFor(() => expect(getByText('Membaca pola keuanganmu…')).toBeTruthy());
     await waitFor(() => expect(getAllByText('Terapkan').length).toBeGreaterThan(0));
@@ -74,8 +77,8 @@ describe('PlanScreen', () => {
     );
 
     await fireEvent.press(getByLabelText('+ Tambah Pendapatan'));
-    await fireEvent.changeText(getByLabelText('Target item plan'), '14000000');
-    await fireEvent.press(getByLabelText('Simpan item plan'));
+    await fireEvent.changeText(getByLabelText('Target item rencana'), '14000000');
+    await fireEvent.press(getByLabelText('Simpan item rencana'));
 
     expect(onPlanItemSave).toHaveBeenCalledWith(
       null,
@@ -94,8 +97,8 @@ describe('PlanScreen', () => {
 
     await fireEvent.press(getByLabelText('Aksi lainnya Internet'));
     await fireEvent.press(getByLabelText('Edit Internet'));
-    await fireEvent.changeText(getByLabelText('Target item plan'), '500000');
-    await fireEvent.press(getByLabelText('Simpan item plan'));
+    await fireEvent.changeText(getByLabelText('Target item rencana'), '500000');
+    await fireEvent.press(getByLabelText('Simpan item rencana'));
 
     expect(onPlanItemSave).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'expense-internet', name: 'Internet' }),
@@ -136,6 +139,7 @@ describe('PlanScreen', () => {
       expect.objectContaining({ id: 'expense-internet' }),
       175000,
       'wallet-bca',
+      getLocalDateInput(),
     );
   });
 
@@ -164,10 +168,10 @@ describe('PlanScreen', () => {
     const onGoalSave = jest.fn();
     const { getByLabelText } = await render(<PlanScreen onGoalSave={onGoalSave} />);
 
-    await fireEvent.press(getByLabelText('+ Tambah Goal'));
-    await fireEvent.changeText(getByLabelText('Nama Goal'), 'Dana Motor');
-    await fireEvent.changeText(getByLabelText('Target Goal'), '10000000');
-    await fireEvent.press(getByLabelText('Simpan Goal'));
+    await fireEvent.press(getByLabelText('+ Tambah Tabungan'));
+    await fireEvent.changeText(getByLabelText('Nama Tabungan'), 'Dana Motor');
+    await fireEvent.changeText(getByLabelText('Target Tabungan'), '10000000');
+    await fireEvent.press(getByLabelText('Simpan Tabungan'));
 
     expect(onGoalSave).toHaveBeenCalledWith(
       null,

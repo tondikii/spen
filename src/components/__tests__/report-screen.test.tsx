@@ -12,7 +12,7 @@ describe('ReportScreen', () => {
     expect(getByText('Laporan')).toBeTruthy();
     expect(getAllByText('Pengeluaran').length).toBeGreaterThan(0);
     expect(getByText('Makan')).toBeTruthy();
-    expect(getAllByText('Net saving').length).toBeGreaterThan(0);
+    expect(getAllByText('Tabungan bersih').length).toBeGreaterThan(0);
     expect(queryByLabelText('Tanya insight')).toBeNull();
   });
 
@@ -42,7 +42,7 @@ describe('ReportScreen', () => {
 
     const { getByText } = await render(<ReportScreen reportView={view} />);
 
-    expect(getByText('Belum ada data net saving')).toBeTruthy();
+    expect(getByText('Belum ada data tabungan bersih')).toBeTruthy();
   });
 
   it('menampilkan loading lalu insight Bahasa Indonesia', async () => {
@@ -60,21 +60,23 @@ describe('ReportScreen', () => {
       <ReportScreen onPeriodStartDayChange={onPeriodStartDayChange} />,
     );
 
-    expect(getByText('1–30 Sep')).toBeTruthy();
+    expect(getByText('1 Sep–30 Sep')).toBeTruthy();
     await fireEvent.press(getByLabelText('Pilih rentang Laporan'));
     await fireEvent.press(getByLabelText('Tanggal 5'));
+    await fireEvent.press(getByLabelText('Terapkan'));
+    await fireEvent.press(getByLabelText('Terapkan'));
 
     expect(onPeriodStartDayChange).toHaveBeenCalledWith(5);
-    expect(getByText('5–30 Sep')).toBeTruthy();
+    expect(getByText('5 Sep–4 Okt')).toBeTruthy();
   });
 
-  it('menampilkan satu picker khusus untuk rentang chart Net saving di dalam card', async () => {
+  it('menampilkan satu picker khusus untuk rentang chart Tabungan bersih di dalam card', async () => {
     const { getByLabelText, getByText } = await render(<ReportScreen />);
 
-    expect(getByLabelText('Pilih rentang Net saving').props.accessibilityState).toEqual({
+    expect(getByLabelText('Pilih rentang Tabungan bersih').props.accessibilityState).toEqual({
       expanded: false,
     });
-    await fireEvent.press(getByLabelText('Pilih rentang Net saving'));
+    await fireEvent.press(getByLabelText('Pilih rentang Tabungan bersih'));
     await fireEvent.press(getByLabelText('Laporan 6 bulan'));
 
     expect(getByText('6 bulan')).toBeTruthy();

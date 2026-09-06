@@ -2,6 +2,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import { TransactionForm } from '@/components/transaction-form';
 import mockData from '@/data/mock-data';
+import { getLocalDateInput } from '@/services/transaction-service';
 
 describe('TransactionForm', () => {
   it('mencatat expense dengan wallet, kategori, nominal, dan catatan', async () => {
@@ -11,7 +12,7 @@ describe('TransactionForm', () => {
     );
 
     await fireEvent.press(getByLabelText('Tipe Pengeluaran'));
-    await fireEvent.press(getByLabelText('Pilih Wallet GoPay'));
+    await fireEvent.press(getByLabelText('Pilih Dompet GoPay'));
     await fireEvent.press(getByLabelText('Kategori Makan'));
     await fireEvent.changeText(getByLabelText('Nominal transaksi'), '45000');
     await fireEvent.changeText(getByLabelText('Catatan transaksi'), 'Kopi');
@@ -73,7 +74,7 @@ describe('TransactionForm', () => {
   });
 
   it('menampilkan peringatan saat income mirip sudah tercatat di hari yang sama', async () => {
-    const existing = { ...mockData.transactions[0], date: '2026-09-02' };
+    const existing = { ...mockData.transactions[0], date: getLocalDateInput() };
     const { getByLabelText, getByText } = await render(
       <TransactionForm
         mode="create"
@@ -84,7 +85,7 @@ describe('TransactionForm', () => {
       />,
     );
 
-    await fireEvent.press(getByLabelText('Pilih Wallet BCA'));
+    await fireEvent.press(getByLabelText('Pilih Dompet BCA'));
     await fireEvent.press(getByLabelText('Kategori Gaji'));
     await fireEvent.changeText(getByLabelText('Nominal transaksi'), '6500000');
 
@@ -137,7 +138,7 @@ describe('TransactionForm', () => {
       />,
     );
 
-    expect(getByText('Tujuan Wallet Goal terkunci')).toBeTruthy();
+    expect(getByText('Tujuan Dompet Tabungan terkunci')).toBeTruthy();
     expect(getAllByText('Dana Nikah').length).toBeGreaterThan(0);
   });
 

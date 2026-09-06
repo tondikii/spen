@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
 
 import {
   MotionAnimatedView,
@@ -8,82 +8,127 @@ import {
   MotionPressable,
   motionPresets,
 } from '@/components/motion';
+import { ConfirmationModal } from '@/components/confirmation-modal';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import i18n from '@/i18n';
 import { getIntlLocale } from '@/i18n/format';
+import { periodBounds } from '@/services/plan-service';
 
-const startDayOptions = [1, 5, 25] as const;
+const startDayOptions = Array.from({ length: 31 }, (_, index) => index + 1);
 
 export function BudgetPeriodPicker({
   period,
   startDay,
   onStartDayChange,
   dismissSignal = 0,
+  readOnly = false,
 }: {
   period: { startDate: string; endDate: string };
   startDay: number;
   onStartDayChange: (day: number) => void | Promise<void>;
   dismissSignal?: number;
+  readOnly?: boolean;
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [pendingDay, setPendingDay] = useState(startDay);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
+  /* eslint-disable react-hooks/set-state-in-effect -- dismissSignal closes an external popover. */
   useEffect(() => {
     setOpen(false);
   }, [dismissSignal]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <View style={styles.anchor}>
       <MotionPressable
         accessibilityRole="button"
         accessibilityLabel={t('common.chooseReportRange')}
-        accessibilityState={{ expanded: open }}
+        accessibilityState={{ expanded: open, disabled: readOnly }}
+        disabled={readOnly}
         onTouchStart={(event) => event.stopPropagation()}
-        onPress={() => setOpen((current) => !current)}
+        onPress={() => {
+          setPendingDay(startDay);
+          setOpen((current) => !current);
+        }}
         style={[styles.dropdown, { borderColor: theme.line }]}
       >
         <ThemedText type="code" themeColor="muted" style={styles.label}>
-          {formatBudgetPeriodLabel(period, startDay).replace('⌄', '')}
+          {formatBudgetPeriodLabel(previewPeriod(period, startDay), startDay).replace('⌄', '')}
         </ThemedText>
         <MotionChevron expanded={open} color={theme.muted} size={16} />
       </MotionPressable>
-      {open && (
-        <MotionAnimatedView
-          entering={motionPresets.itemEntering}
-          onTouchStart={(event) => event.stopPropagation()}
-          style={[styles.popover, { backgroundColor: theme.card, borderColor: theme.line }]}
-        >
-          {startDayOptions.map((day) => (
+      <Modal transparent animationType="slide" visible={open} onRequestClose={() => setOpen(false)}>
+        <View style={[styles.overlay, { backgroundColor: theme.overlay }]}>
+          <MotionAnimatedView
+            entering={motionPresets.itemEntering}
+            onTouchStart={(event) => event.stopPropagation()}
+            style={[styles.sheet, { backgroundColor: theme.card }]}
+          >
+            <ThemedText type="sectionHeading">{t('common.periodPreview')}</ThemedText>
+            <ThemedText type="small" themeColor="muted">
+              {formatBudgetPeriodLabel(previewPeriod(period, pendingDay), pendingDay)}
+            </ThemedText>
+            <ThemedText type="small" themeColor="muted">
+              {t('common.shortMonthNote')}
+            </ThemedText>
+            <View style={styles.grid}>
+              {startDayOptions.map((day) => (
+                <MotionPressable
+                  key={day}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.date', { date: day })}
+                  accessibilityState={{ selected: pendingDay === day }}
+                  onPress={() => setPendingDay(day)}
+                  style={[
+                    styles.option,
+                    { borderColor: theme.line },
+                    pendingDay === day && { backgroundColor: theme.mint, borderColor: theme.pine },
+                  ]}
+                >
+                  <ThemedText type="smallBold" themeColor={pendingDay === day ? 'pine' : 'ink'}>
+                    {day}
+                  </ThemedText>
+                </MotionPressable>
+              ))}
+            </View>
             <MotionPressable
-              key={day}
               accessibilityRole="button"
-              accessibilityLabel={t('common.date', { date: day })}
-              accessibilityState={{ selected: startDay === day }}
+              accessibilityLabel={t('common.applyPeriod')}
               onPress={() => {
+                if (pendingDay === startDay) {
+                  setOpen(false);
+                  return;
+                }
                 setOpen(false);
-                void onStartDayChange(day);
+                setConfirmOpen(true);
               }}
-              style={[
-                styles.option,
-                { borderBottomColor: theme.line },
-                startDay === day && { backgroundColor: theme.mint },
-              ]}
+              style={[styles.apply, { backgroundColor: theme.pine }]}
             >
-              <ThemedText type="smallBold" themeColor={startDay === day ? 'pine' : 'ink'}>
-                {t('common.date', { date: day })}
+              <ThemedText type="smallBold" style={{ color: theme.heroText }}>
+                {t('common.applyPeriod')}
               </ThemedText>
-              {startDay === day && (
-                <ThemedText type="smallBold" themeColor="pine">
-                  ✓
-                </ThemedText>
-              )}
             </MotionPressable>
-          ))}
-        </MotionAnimatedView>
-      )}
+          </MotionAnimatedView>
+        </View>
+      </Modal>
+      <ConfirmationModal
+        visible={confirmOpen}
+        title={t('common.rebasePeriodTitle')}
+        message={t('common.rebasePeriodCopy')}
+        confirmLabel={t('common.applyPeriod')}
+        cancelLabel={t('common.cancel')}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={async () => {
+          setConfirmOpen(false);
+          setOpen(false);
+          await onStartDayChange(pendingDay);
+        }}
+      />
     </View>
   );
 }
@@ -92,14 +137,25 @@ export function formatBudgetPeriodLabel(
   period: { startDate: string; endDate: string },
   startDay: number,
 ) {
-  const start = new Date(
-    `${period.startDate.slice(0, 7)}-${String(startDay).padStart(2, '0')}T12:00:00`,
-  );
+  const start = new Date(`${period.startDate}T12:00:00`);
   const end = new Date(`${period.endDate}T12:00:00`);
-  const month = new Intl.DateTimeFormat(getIntlLocale(i18n.language === 'en' ? 'en' : 'id'), {
-    month: 'short',
-  }).format(end);
-  return `${start.getDate()}–${end.getDate()} ${month}`;
+  const locale = getIntlLocale(i18n.language === 'en' ? 'en' : 'id');
+  const formatter = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' });
+  if (start.getFullYear() !== end.getFullYear()) {
+    const withYear = new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+    return `${withYear.format(start)}–${withYear.format(end)}`;
+  }
+  return `${formatter.format(start)}–${formatter.format(end)}`;
+}
+
+function previewPeriod(period: { startDate: string; endDate: string }, startDay: number) {
+  const [year, month] = period.startDate.slice(0, 7).split('-').map(Number);
+  const today = `${year}-${String(month).padStart(2, '0')}-${String(Math.min(startDay, new Date(Date.UTC(year, month, 0)).getUTCDate())).padStart(2, '0')}`;
+  return periodBounds(startDay, today);
 }
 
 const styles = StyleSheet.create({
@@ -114,24 +170,21 @@ const styles = StyleSheet.create({
   },
   label: { fontSize: 11, lineHeight: 14 },
   anchor: { elevation: 100, position: 'relative', zIndex: 100 },
-  popover: {
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    left: 0,
-    padding: 4,
-    position: 'absolute',
-    top: 34,
-    width: 148,
-    elevation: 100,
-    zIndex: 100,
-  },
+  overlay: { flex: 1, justifyContent: 'flex-end' },
+  sheet: { borderTopLeftRadius: 24, borderTopRightRadius: 24, gap: 10, padding: 21 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   option: {
     alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
     borderRadius: Radius.small,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    minHeight: 38,
-    paddingHorizontal: 11,
+    borderWidth: 1,
+    height: 38,
+    justifyContent: 'center',
+    width: '14.2857%',
+  },
+  apply: {
+    alignItems: 'center',
+    borderRadius: Radius.medium,
+    minHeight: 46,
+    justifyContent: 'center',
   },
 });

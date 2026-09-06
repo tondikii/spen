@@ -17,7 +17,7 @@
       "favicon": "./assets/spen/logo.png"
     },
     "android": {
-      "package": "com.spen",
+      "package": "com.spen.budget.app",
       "icon": "./assets/spen/logo.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/spen/adaptive-icon.png",
@@ -26,16 +26,20 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.spen",
+      "bundleIdentifier": "com.spen.budget.app",
       "icon": "./assets/spen/logo.png"
     },
     "plugins": [
       [
         "expo-splash-screen",
         {
-          "image": "./assets/spen/adaptive-icon.png",
+          "image": "./assets/spen/splash-icon.png",
           "imageWidth": 200,
-          "backgroundColor": "#F6F5F0"
+          "backgroundColor": "#F6F5F0",
+          "dark": {
+            "image": "./assets/spen/splash-icon.png",
+            "backgroundColor": "#12231F"
+          }
         }
       ]
     ],

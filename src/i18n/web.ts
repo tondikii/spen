@@ -4,8 +4,11 @@ import type { Locale } from '@/types/domain';
 export function resolveWebLocale(search = '', navigatorLanguage = ''): Locale {
   const params = new URLSearchParams(search);
   const urlLocale = params.get('locale') ?? params.get('lang');
-  if (urlLocale) return normalizeLocale(urlLocale);
-  return normalizeLocale(navigatorLanguage);
+  if (urlLocale) {
+    const normalized = normalizeLocale(urlLocale);
+    return /^(id|en)(?:-|$)/i.test(urlLocale) ? normalized : 'id';
+  }
+  return /^(id|en)(?:-|$)/i.test(navigatorLanguage) ? normalizeLocale(navigatorLanguage) : 'id';
 }
 
 export function getWebLocale(): Locale {

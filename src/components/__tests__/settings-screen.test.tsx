@@ -49,7 +49,7 @@ describe('SettingsScreen', () => {
     );
 
     await fireEvent.press(getByLabelText('Pilih bahasa aplikasi'));
-    await fireEvent.press(getByLabelText('Pilih bahasa Inggris'));
+    await fireEvent.press(getByLabelText('Pilih bahasa English'));
 
     await waitFor(() => expect(getByText('EN')).toBeTruthy());
   });

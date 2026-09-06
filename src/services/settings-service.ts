@@ -2,7 +2,7 @@ import type { CurrencyCode, ThemeMode, Locale } from '@/types/domain';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 let selectedCurrency: CurrencyCode = 'IDR';
-let selectedLocale: Locale = 'id';
+let selectedLocale: Locale = 'en';
 
 export const currencyOptions: CurrencyCode[] = [
   'IDR',
@@ -43,7 +43,7 @@ export async function getDatabaseSettings(database: SQLiteDatabase) {
       ? (row!.currency as CurrencyCode)
       : ('IDR' as CurrencyCode),
     themeMode: row?.theme_mode === 'dark' ? 'dark' : 'light',
-    locale: row?.locale === 'en' ? 'en' : 'id',
+    locale: row?.locale === 'id' ? 'id' : 'en',
   };
 }
 export async function setDatabaseLocale(database: SQLiteDatabase, locale: Locale) {

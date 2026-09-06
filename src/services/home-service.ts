@@ -12,7 +12,7 @@ export function getTransactionPresentation(
   return {
     categoryName: category?.name ?? 'Transaksi',
     categoryIcon: category?.icon ?? '◇',
-    walletName: wallet?.name ?? 'Wallet',
+    walletName: wallet?.name ?? 'Dompet',
   };
 }
 

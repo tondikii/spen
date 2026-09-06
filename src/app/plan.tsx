@@ -70,7 +70,7 @@ export default function PlanRoute() {
         await deleteDatabasePlanItem(database, item);
         await load();
       }}
-      onItemAction={async (item, amount, walletId) => {
+      onItemAction={async (item, amount, walletId, date) => {
         const now = new Date();
         await saveDatabaseTransaction(database, {
           type: 'expense',
@@ -78,7 +78,7 @@ export default function PlanRoute() {
           toWalletId: null,
           categoryId: item.categoryId,
           amount,
-          date: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
+          date,
           time: now.toTimeString().slice(0, 5),
           note: t('common.planPaymentNote', { name: item.name }),
           sourceExpenseItemId: item.id,
@@ -98,7 +98,7 @@ export default function PlanRoute() {
         spareBudget: planView.snapshot.spareBudget,
         totalIncome: planView.snapshot.totalIncome,
         fixedExpense: planView.plan.expenseItems.reduce((sum, item) => sum + item.targetAmount, 0),
-        goalContributions: planView.goals.reduce((sum, goal) => sum + goal.monthlyContribution, 0),
+        goalContributions: 0,
         netSaving: planView.snapshot.netSaving,
         goals: planView.goals.map((goal) => ({
           name: goal.name,

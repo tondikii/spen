@@ -3,7 +3,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import mockData from '@/data/mock-data';
 import i18n from '@/i18n';
 import { AppError } from '@/lib/app-error';
-import { getDatabaseTransactions } from '@/services/transaction-service';
+import { getDatabaseTransactions, isValidTransactionDate } from '@/services/transaction-service';
 import { createWallet, getWallets } from '@/services/wallet-service';
 import { createGoal } from '@/services/goal-service';
 import type { BudgetSuggestion } from '@/services/ai-service';
@@ -29,6 +29,7 @@ export type PlanItemDraft = {
   targetAmount: number;
   walletId?: string;
   name?: string;
+  date?: string;
 };
 
 export function getPlanView() {
@@ -40,6 +41,7 @@ export function getPlanView() {
     goals: mockData.goals.filter((goal) => !goal.archived),
     wallets: mockData.wallets,
     period: mockData.budgetPeriods[0],
+    startDay: Number(mockData.budgetPeriods[0].startDate.slice(-2)),
   };
 }
 
@@ -73,21 +75,30 @@ type ItemRow = {
   wallet_id?: number | null;
 };
 
-function dateOnly(date = new Date()) {
+export function dateOnly(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-function addMonths(date: string, months: number) {
-  const [year, month, day] = date.split('-').map(Number);
-  const value = new Date(Date.UTC(year, month - 1 + months, day, 12));
-  return `${value.getUTCFullYear()}-${String(value.getUTCMonth() + 1).padStart(2, '0')}-${String(value.getUTCDate()).padStart(2, '0')}`;
+function daysInMonth(year: number, month: number) {
+  return new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
 }
 
-function periodBounds(startDay: number, today = dateOnly()) {
-  const safeDay = Math.min(Math.max(Math.trunc(startDay), 1), 28);
-  let start = `${today.slice(0, 7)}-${String(safeDay).padStart(2, '0')}`;
-  if (today < start) start = addMonths(start, -1);
-  const nextStart = addMonths(start, 1);
+function addMonths(date: string, months: number, anchorDay?: number) {
+  const [year, month, day] = date.split('-').map(Number);
+  const value = new Date(Date.UTC(year, month - 1 + months, 1, 12));
+  const effectiveDay = Math.min(
+    anchorDay ?? day,
+    daysInMonth(value.getUTCFullYear(), value.getUTCMonth() + 1),
+  );
+  return `${value.getUTCFullYear()}-${String(value.getUTCMonth() + 1).padStart(2, '0')}-${String(effectiveDay).padStart(2, '0')}`;
+}
+
+export function periodBounds(startDay: number, today = dateOnly()) {
+  const safeDay = Math.min(Math.max(Math.trunc(startDay), 1), 31);
+  const [currentYear, currentMonth] = today.slice(0, 7).split('-').map(Number);
+  let start = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(Math.min(safeDay, daysInMonth(currentYear, currentMonth))).padStart(2, '0')}`;
+  if (today < start) start = addMonths(start, -1, safeDay);
+  const nextStart = addMonths(start, 1, safeDay);
   const [year, month, day] = nextStart.split('-').map(Number);
   const end = new Date(Date.UTC(year, month - 1, day - 1, 12));
   return {
@@ -176,7 +187,7 @@ function validatePlanItem(draft: PlanItemDraft) {
   databaseId(draft.categoryId);
   if (draft.type === 'income') {
     if (!draft.walletId)
-      throw new AppError('validation', undefined, 'Wallet Pendapatan wajib dipilih');
+      throw new AppError('validation', undefined, 'Dompet Pendapatan wajib dipilih');
     databaseId(draft.walletId);
   }
 }
@@ -187,6 +198,13 @@ export async function createDatabasePlanItem(
 ): Promise<void> {
   validatePlanItem(draft);
   const active = await ensureActiveBudgetPlan(database);
+  const transactionDate = draft.date ?? dateOnly();
+  if (
+    !isValidTransactionDate(transactionDate) ||
+    transactionDate < active.period.start_date ||
+    transactionDate > dateOnly()
+  )
+    throw new AppError('validation', undefined, 'Tanggal transaksi harus berada di Periode aktif');
   await database.withExclusiveTransactionAsync(async (transaction) => {
     const category = await transaction.getFirstAsync<{ id: number }>(
       'SELECT id FROM categories WHERE id = ? AND type = ? AND archived = 0 LIMIT 1;',
@@ -205,7 +223,7 @@ export async function createDatabasePlanItem(
       category.id,
     );
     if (duplicate)
-      throw new AppError('validation', undefined, 'Kategori itu sudah ada di Budget plan');
+      throw new AppError('validation', undefined, 'Kategori itu sudah ada di Rencana Anggaran');
     const categoryName = await transaction.getFirstAsync<{ name: string }>(
       'SELECT name FROM categories WHERE id = ? LIMIT 1;',
       category.id,
@@ -226,7 +244,7 @@ export async function createDatabasePlanItem(
         throw new AppError(
           'notFound',
           undefined,
-          'Wallet Pendapatan tidak ditemukan atau sudah diarsipkan',
+          'Dompet Pendapatan tidak ditemukan atau sudah diarsipkan',
         );
       await transaction.runAsync(
         `INSERT INTO transactions (type, wallet_id, to_wallet_id, category_id, amount, date, time, note, admin_fee, source_income_item_id)
@@ -234,7 +252,7 @@ export async function createDatabasePlanItem(
         wallet.id,
         category.id,
         draft.targetAmount,
-        active.period.start_date,
+        transactionDate,
         i18n.t('common.planIncomeNote', {
           name: categoryName?.name ?? i18n.t('common.uncategorized'),
         }),
@@ -250,6 +268,8 @@ export async function updateDatabasePlanItem(
   draft: PlanItemDraft,
 ): Promise<void> {
   validatePlanItem(draft);
+  if (draft.date && !isValidTransactionDate(draft.date))
+    throw new AppError('validation', undefined, 'Tanggal transaksi tidak valid atau belum terjadi');
   if (item.type !== draft.type)
     throw new AppError('validation', undefined, 'Tipe item plan tidak dapat diubah');
   await database.withExclusiveTransactionAsync(async (transaction) => {
@@ -271,7 +291,7 @@ export async function updateDatabasePlanItem(
       databaseId(item.id),
     );
     if (duplicate)
-      throw new AppError('validation', undefined, 'Kategori itu sudah ada di Budget plan');
+      throw new AppError('validation', undefined, 'Kategori itu sudah ada di Rencana Anggaran');
     const categoryName = await transaction.getFirstAsync<{ name: string }>(
       'SELECT name FROM categories WHERE id = ? LIMIT 1;',
       category.id,
@@ -295,7 +315,7 @@ export async function updateDatabasePlanItem(
         throw new AppError(
           'notFound',
           undefined,
-          'Wallet Pendapatan tidak ditemukan atau sudah diarsipkan',
+          'Dompet Pendapatan tidak ditemukan atau sudah diarsipkan',
         );
       await transaction.runAsync(
         `UPDATE transactions
@@ -309,6 +329,13 @@ export async function updateDatabasePlanItem(
         }),
         databaseId(item.id),
       );
+      if (draft.date) {
+        await transaction.runAsync(
+          'UPDATE transactions SET date = ? WHERE source_income_item_id = ?;',
+          draft.date,
+          databaseId(item.id),
+        );
+      }
     }
   });
 }
@@ -349,7 +376,7 @@ export async function setDatabasePlanItemPaid(
     );
   const numericWalletId = Number(walletId.replace(/^wallet-/, ''));
   if (!Number.isInteger(numericWalletId) || numericWalletId < 1)
-    throw new AppError('validation', undefined, 'Wallet pembayaran tidak valid');
+    throw new AppError('validation', undefined, 'Dompet pembayaran tidak valid');
   const numericItemId = databaseId(item.id);
   await database.withExclusiveTransactionAsync(async (transaction) => {
     const wallet = await transaction.getFirstAsync<{ id: number }>(
@@ -357,7 +384,7 @@ export async function setDatabasePlanItemPaid(
       numericWalletId,
     );
     if (!wallet)
-      throw new AppError('notFound', undefined, 'Belum ada Wallet aktif untuk pembayaran');
+      throw new AppError('notFound', undefined, 'Belum ada Dompet aktif untuk pembayaran');
     const current = await transaction.getFirstAsync<{
       category_id: number;
       target_amount: number;
@@ -508,14 +535,17 @@ export async function applyDatabaseBudgetSuggestion(
 export async function ensureActiveBudgetPlan(database: SQLiteDatabase, today = dateOnly()) {
   let planId = 0;
   let periodId = 0;
+  let startDay = 1;
   await database.withExclusiveTransactionAsync(async (transaction) => {
     const setting = await transaction.getFirstAsync<{ budget_start_day: number }>(
       'SELECT budget_start_day FROM settings WHERE id = 1 LIMIT 1;',
     );
     const bounds = periodBounds(setting?.budget_start_day ?? 1, today);
+    startDay = setting?.budget_start_day ?? 1;
     const configuredPeriod = await transaction.getFirstAsync<PeriodRow>(
-      'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date = ? LIMIT 1;',
+      'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date = ? AND end_date = ? LIMIT 1;',
       bounds.startDate,
+      bounds.endDate,
     );
     const configuredPlan =
       configuredPeriod &&
@@ -529,8 +559,9 @@ export async function ensureActiveBudgetPlan(database: SQLiteDatabase, today = d
       return;
     }
     const existingPeriod = await transaction.getFirstAsync<PeriodRow>(
-      'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date = ? LIMIT 1;',
+      'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date = ? AND end_date = ? LIMIT 1;',
       bounds.startDate,
+      bounds.endDate,
     );
     periodId =
       existingPeriod?.id ??
@@ -559,7 +590,7 @@ export async function ensureActiveBudgetPlan(database: SQLiteDatabase, today = d
     periodId,
   );
   if (!period) throw new AppError('storage', undefined, 'Budget period gagal dibuat');
-  return { period, planId };
+  return { period, planId, startDay };
 }
 
 export async function setBudgetPeriodStartDay(
@@ -570,8 +601,8 @@ export async function setBudgetPeriodStartDay(
   const bounds = periodBounds(startDay, today);
   let periodId = 0;
   let planId = 0;
+  const safeStartDay = Math.min(Math.max(Math.trunc(startDay), 1), 31);
   await database.withExclusiveTransactionAsync(async (transaction) => {
-    const safeStartDay = Math.min(Math.max(Math.trunc(startDay), 1), 28);
     await transaction.runAsync(
       "INSERT OR IGNORE INTO settings (id, currency, theme_mode, budget_start_day) VALUES (1, 'IDR', 'light', ?);",
       safeStartDay,
@@ -581,8 +612,9 @@ export async function setBudgetPeriodStartDay(
       safeStartDay,
     );
     const existing = await transaction.getFirstAsync<PeriodRow>(
-      'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date = ? LIMIT 1;',
+      'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date = ? AND end_date = ? LIMIT 1;',
       bounds.startDate,
+      bounds.endDate,
     );
     periodId =
       existing?.id ??
@@ -612,6 +644,7 @@ export async function setBudgetPeriodStartDay(
       periodId,
     ),
     planId,
+    startDay: safeStartDay,
   };
 }
 
@@ -811,5 +844,5 @@ export async function getDatabasePlanView(database: SQLiteDatabase, today = date
     allocationItems,
     goalIds: goals.map((goal) => goal.id),
   };
-  return { snapshot, plan, goals, wallets, period };
+  return { snapshot, plan, goals, wallets, period, startDay: active.startDay };
 }

@@ -243,7 +243,7 @@ async function insertRows(database: SQLiteDatabase, payload: BackupPayload) {
       row.id,
       row.currency,
       row.theme_mode,
-      row.locale ?? 'id',
+      row.locale ?? 'en',
       row.budget_start_day,
     );
   for (const row of data.budgetPeriods)

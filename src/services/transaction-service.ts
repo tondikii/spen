@@ -7,7 +7,6 @@ import type {
   Transaction,
   TransactionDraft,
   TransactionType,
-  Wallet,
 } from '@/types/domain';
 
 export const TRANSACTION_ICON_CHOICES = [
@@ -131,6 +130,18 @@ function databaseId(value: string | null) {
   return id;
 }
 
+export function getLocalDateInput(date = new Date()) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+export function isValidTransactionDate(value: string, today = getLocalDateInput()) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day, 12));
+  const normalized = `${parsed.getUTCFullYear()}-${String(parsed.getUTCMonth() + 1).padStart(2, '0')}-${String(parsed.getUTCDate()).padStart(2, '0')}`;
+  return normalized === value && value <= today;
+}
+
 function fromDatabaseTransaction(row: DatabaseTransactionRow): Transaction {
   return {
     id: `transaction-${row.id}`,
@@ -216,7 +227,7 @@ async function withExclusiveWrite<T>(
   return result!;
 }
 
-function validateDraft(draft: TransactionDraft) {
+function validateDraft(draft: TransactionDraft, today = getLocalDateInput()) {
   if (!draft.walletId || !Number.isSafeInteger(draft.amount) || draft.amount <= 0) {
     throw new AppError('validation', undefined, 'Wallet dan nominal transaksi wajib diisi');
   }
@@ -229,6 +240,8 @@ function validateDraft(draft: TransactionDraft) {
     throw new AppError('validation', undefined, 'Biaya admin harus berupa angka bulat positif');
   if (draft.type !== 'transfer' && (draft.adminFee ?? 0) !== 0)
     throw new AppError('validation', undefined, 'Biaya admin hanya berlaku untuk Transfer');
+  if (!isValidTransactionDate(draft.date, today))
+    throw new AppError('validation', undefined, 'Tanggal transaksi tidak valid atau belum terjadi');
 }
 
 async function resolveCategoryId(database: SQLiteDatabase, draft: TransactionDraft) {
@@ -246,11 +259,14 @@ export async function saveDatabaseTransaction(
   database: SQLiteDatabase,
   draft: TransactionDraft,
   transactionId?: string,
+  today = getLocalDateInput(),
 ): Promise<Transaction> {
-  validateDraft(draft);
+  validateDraft(draft, today);
   const savedId = await withExclusiveWrite(database, async (connection) => {
     let sourceIncomeItemId = draft.sourceIncomeItemId ? databaseId(draft.sourceIncomeItemId) : null;
-    let sourceExpenseItemId = draft.sourceExpenseItemId ? databaseId(draft.sourceExpenseItemId) : null;
+    let sourceExpenseItemId = draft.sourceExpenseItemId
+      ? databaseId(draft.sourceExpenseItemId)
+      : null;
     const wallet = await connection.getFirstAsync<{ id: number }>(
       'SELECT id FROM wallets WHERE id = ? AND archived = 0 LIMIT 1;',
       databaseId(draft.walletId),

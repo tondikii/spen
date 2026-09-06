@@ -158,7 +158,7 @@ Aturan:
 
 ## 7. Bahasa & Nada
 
-- Seluruh UI dan output AI mengikuti locale aktif (**Bahasa Indonesia** sebagai default, English sebagai alternatif), dengan suara santai namun tenang ("Membaca pola keuanganmu…", "Perlahan ya…", "Mengerti" sebagai tombol tutup insight).
+- Seluruh UI dan output AI mengikuti locale aktif (**English** sebagai default, Bahasa Indonesia sebagai alternatif), dengan suara santai namun tenang ("Reading your money patterns…", "Take it slowly…", "Got it" sebagai tombol tutup insight).
 - Gunakan istilah domain dari `CONTEXT.md` secara konsisten: **Wallet, Budget plan, Budget period, Fixed expense, Goal, Spare budget, Net saving, Saldo tersedia, Transaksi penyesuaian, Alokasi, Transfer** — jangan pakai sinonim yang di-avoid (account, budget item, dll.).
 - Nada AI suggestion/insight: ringkas, jelas, actionable, tanpa menghakimi.
 

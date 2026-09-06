@@ -70,46 +70,66 @@ describe('database report service', () => {
     const food = categories.find((category) => category.name === 'Makan')!.id;
     const transport = categories.find((category) => category.name === 'Transport')!.id;
 
-    await saveDatabaseTransaction(database, {
-      type: 'income',
-      walletId: source.id,
-      toWalletId: null,
-      categoryId: income,
-      amount: 1000,
-      date: '2026-10-02',
-      time: '08:00',
-      note: 'Gaji',
-    });
-    await saveDatabaseTransaction(database, {
-      type: 'expense',
-      walletId: source.id,
-      toWalletId: null,
-      categoryId: food,
-      amount: 300,
-      date: '2026-10-02',
-      time: '09:00',
-      note: 'Makan',
-    });
-    await saveDatabaseTransaction(database, {
-      type: 'expense',
-      walletId: source.id,
-      toWalletId: null,
-      categoryId: transport,
-      amount: 100,
-      date: '2026-10-02',
-      time: '10:00',
-      note: 'Transport',
-    });
-    await saveDatabaseTransaction(database, {
-      type: 'transfer',
-      walletId: source.id,
-      toWalletId: destination.id,
-      categoryId: null,
-      amount: 250,
-      date: '2026-10-03',
-      time: '10:00',
-      note: 'Tabung',
-    });
+    await saveDatabaseTransaction(
+      database,
+      {
+        type: 'income',
+        walletId: source.id,
+        toWalletId: null,
+        categoryId: income,
+        amount: 1000,
+        date: '2026-10-02',
+        time: '08:00',
+        note: 'Gaji',
+      },
+      undefined,
+      '2026-10-10',
+    );
+    await saveDatabaseTransaction(
+      database,
+      {
+        type: 'expense',
+        walletId: source.id,
+        toWalletId: null,
+        categoryId: food,
+        amount: 300,
+        date: '2026-10-02',
+        time: '09:00',
+        note: 'Makan',
+      },
+      undefined,
+      '2026-10-10',
+    );
+    await saveDatabaseTransaction(
+      database,
+      {
+        type: 'expense',
+        walletId: source.id,
+        toWalletId: null,
+        categoryId: transport,
+        amount: 100,
+        date: '2026-10-02',
+        time: '10:00',
+        note: 'Transport',
+      },
+      undefined,
+      '2026-10-10',
+    );
+    await saveDatabaseTransaction(
+      database,
+      {
+        type: 'transfer',
+        walletId: source.id,
+        toWalletId: destination.id,
+        categoryId: null,
+        amount: 250,
+        date: '2026-10-03',
+        time: '10:00',
+        note: 'Tabung',
+      },
+      undefined,
+      '2026-10-10',
+    );
 
     const view = await getDatabaseReportView(database, 3, '2026-10-10');
     expect(view.snapshot).toMatchObject({
@@ -118,7 +138,7 @@ describe('database report service', () => {
       totalTransferIn: 250,
       totalTransferOut: 250,
       netSaving: 600,
-      spareBudget: 1000,
+      spareBudget: 600,
       availableBalance: 600,
       freeBalance: 600,
       goalBalance: 0,

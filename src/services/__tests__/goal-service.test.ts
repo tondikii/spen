@@ -148,7 +148,7 @@ describe('goal service', () => {
         walletId: wallet.id,
         monthlyContribution: 0,
       }),
-    ).rejects.toThrow('Wallet sudah dipakai Goal lain');
+    ).rejects.toThrow('Dompet sudah dipakai Tabungan lain');
   });
 
   it('clears the savings marker from the old Wallet when moving a Goal', async () => {
@@ -182,6 +182,6 @@ describe('goal service', () => {
         walletId: wallet.id,
         monthlyContribution: 0,
       }),
-    ).rejects.toThrow('Wallet Goal tidak ditemukan atau sudah diarsipkan');
+    ).rejects.toThrow('Dompet Tabungan tidak ditemukan atau sudah diarsipkan');
   });
 });

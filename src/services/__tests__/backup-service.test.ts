@@ -86,7 +86,7 @@ describe('backup service', () => {
     expect(
       await database.getAllAsync<{ name: string }>('SELECT name FROM wallets ORDER BY id;'),
     ).toEqual([{ name: 'Hasil Restore' }]);
-    expect(restoredLocale).toBe('id');
+    expect(restoredLocale).toBe('en');
   });
 
   it('returns the locale stored in the restored backup', async () => {

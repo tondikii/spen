@@ -5,29 +5,33 @@ import { currencyOptions, setSelectedLocale } from '@/services/settings-service'
 import { changeLocale } from '@/i18n';
 
 describe('SetupWizard', () => {
-  afterEach(async () => {
-    cleanup();
-    setSelectedLocale('id');
-    await changeLocale('id');
+  beforeEach(async () => {
+    setSelectedLocale('en');
+    await changeLocale('en');
   });
 
-  it('menampilkan pilihan bahasa dan currency tanpa periode atau tipe wallet', async () => {
+  afterEach(async () => {
+    cleanup();
+    setSelectedLocale('en');
+    await changeLocale('en');
+  });
+
+  it('memulai dalam bahasa Inggris dan menampilkan tiga langkah onboarding', async () => {
     const onComplete = jest.fn();
     const { getByLabelText, getByText, queryByText } = await render(
       <SetupWizard onComplete={onComplete} />,
     );
 
-    expect(getByText('Pilih bahasa aplikasi')).toBeTruthy();
-    expect(getByLabelText('Pilih bahasa Bahasa Indonesia')).toBeTruthy();
-    expect(getByLabelText('Pilih bahasa Inggris')).toBeTruthy();
-    await fireEvent.press(getByLabelText('Lanjut'));
-    expect(getByText('Buat rencana untuk uangmu.')).toBeTruthy();
-    await fireEvent.press(getByLabelText('Mulai'));
-    expect(getByText('Buat Wallet')).toBeTruthy();
-    await fireEvent.press(getByLabelText('Lanjut'));
-    expect(getByText('Pilih mata uang')).toBeTruthy();
+    expect(getByText('Choose the app language')).toBeTruthy();
+    expect(getByLabelText('Choose language English')).toBeTruthy();
+    expect(getByLabelText('Choose language Indonesian')).toBeTruthy();
+    await fireEvent.press(getByLabelText('Start'));
+    expect(getByText('Create Wallet')).toBeTruthy();
+    expect(queryByText('Make a plan for your money.')).toBeNull();
+    await fireEvent.press(getByLabelText('Next'));
+    expect(getByText('Choose currency')).toBeTruthy();
     currencyOptions.forEach((option) => {
-      expect(getByLabelText(`Pilih mata uang ${option}`)).toBeTruthy();
+      expect(getByLabelText(`Choose currency ${option}`)).toBeTruthy();
     });
     expect(queryByText(/periode/i)).toBeNull();
     expect(queryByText(/tipe wallet/i)).toBeNull();
@@ -37,28 +41,27 @@ describe('SetupWizard', () => {
     const onComplete = jest.fn();
     const { getByLabelText, getByText } = await render(<SetupWizard onComplete={onComplete} />);
 
-    await fireEvent.press(getByLabelText('Pilih bahasa Inggris'));
+    await fireEvent.press(getByLabelText('Choose language Indonesian'));
 
-    await waitFor(() => expect(getByText('Choose the app language')).toBeTruthy());
+    await waitFor(() => expect(getByText('Pilih bahasa aplikasi')).toBeTruthy());
   });
 
   it('menyimpan wallet pertama dan currency saat masuk ke Spen', async () => {
     const onComplete = jest.fn();
     const { getByLabelText } = await render(<SetupWizard onComplete={onComplete} />);
 
-    await fireEvent.press(getByLabelText('Lanjut'));
-    await fireEvent.press(getByLabelText('Mulai'));
-    await fireEvent.changeText(getByLabelText('Nama Wallet pertama'), 'BCA');
-    await fireEvent.changeText(getByLabelText('Saldo awal Wallet pertama'), '2000000');
-    await fireEvent.press(getByLabelText('Lanjut'));
-    await fireEvent.press(getByLabelText('Pilih mata uang USD'));
-    await fireEvent.press(getByLabelText('Masuk ke Spen'));
+    await fireEvent.press(getByLabelText('Start'));
+    await fireEvent.changeText(getByLabelText('First Wallet name'), 'BCA');
+    await fireEvent.changeText(getByLabelText('First Wallet starting balance'), '2000000');
+    await fireEvent.press(getByLabelText('Next'));
+    await fireEvent.press(getByLabelText('Choose currency USD'));
+    await fireEvent.press(getByLabelText('Enter Spen'));
 
     await waitFor(() =>
       expect(onComplete).toHaveBeenCalledWith(
         [{ name: 'BCA', initialBalance: 2000000 }],
         'USD',
-        'id',
+        'en',
       ),
     );
   });
@@ -67,15 +70,14 @@ describe('SetupWizard', () => {
     const onComplete = jest.fn();
     const { getByLabelText } = await render(<SetupWizard onComplete={onComplete} />);
 
-    await fireEvent.press(getByLabelText('Lanjut'));
-    await fireEvent.press(getByLabelText('Mulai'));
-    await fireEvent.changeText(getByLabelText('Nama Wallet pertama'), 'BCA');
-    await fireEvent.changeText(getByLabelText('Saldo awal Wallet pertama'), '2000000');
-    await fireEvent.press(getByLabelText('Tambah Wallet'));
-    await fireEvent.changeText(getByLabelText('Nama Wallet 2'), 'Tunai');
-    await fireEvent.changeText(getByLabelText('Saldo awal Wallet 2'), '500000');
-    await fireEvent.press(getByLabelText('Lanjut'));
-    await fireEvent.press(getByLabelText('Masuk ke Spen'));
+    await fireEvent.press(getByLabelText('Start'));
+    await fireEvent.changeText(getByLabelText('First Wallet name'), 'BCA');
+    await fireEvent.changeText(getByLabelText('First Wallet starting balance'), '2000000');
+    await fireEvent.press(getByLabelText('Add Wallet'));
+    await fireEvent.changeText(getByLabelText('Wallet name 2'), 'Tunai');
+    await fireEvent.changeText(getByLabelText('Wallet 2 starting balance'), '500000');
+    await fireEvent.press(getByLabelText('Next'));
+    await fireEvent.press(getByLabelText('Enter Spen'));
 
     await waitFor(() =>
       expect(onComplete).toHaveBeenCalledWith(
@@ -84,7 +86,7 @@ describe('SetupWizard', () => {
           { name: 'Tunai', initialBalance: 500000 },
         ],
         'IDR',
-        'id',
+        'en',
       ),
     );
   });
@@ -93,10 +95,10 @@ describe('SetupWizard', () => {
     const onComplete = jest.fn();
     const { getByLabelText, getByText } = await render(<SetupWizard onComplete={onComplete} />);
 
-    await fireEvent.press(getByLabelText('Buka langkah 4'));
-    expect(getByText('Pilih mata uang')).toBeTruthy();
+    await fireEvent.press(getByLabelText('Open step 3'));
+    expect(getByText('Choose currency')).toBeTruthy();
 
-    await fireEvent.press(getByLabelText('Buka langkah 1'));
-    expect(getByText('Pilih bahasa aplikasi')).toBeTruthy();
+    await fireEvent.press(getByLabelText('Open step 1'));
+    expect(getByText('Choose the app language')).toBeTruthy();
   });
 });

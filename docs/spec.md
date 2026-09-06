@@ -6,7 +6,7 @@ Pengguna kesulitan merencanakan dan mengelola keuangan bulanan secara terstruktu
 
 ## Solution
 
-Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai default dan English sebagai locale alternatif, dengan AI dan data lokal di perangkat. Pengguna mengelola beberapa Wallet (tempat uang), menyusun satu Budget plan global per periode (Pendapatan, Pengeluaran, Goal), mencatat transaksi harian (income/expense/transfer), dan melihat report (pie chart expense per kategori, line chart net saving per periode) dengan AI insight. Semua data lokal, tanpa akun server. AI (Groq) dipicu manual, read-only (tidak menulis data); user yang mengeksekusi saran via tombol "Terapkan", dengan fallback deterministik dalam locale aktif.
+Spen adalah aplikasi mobile budget planner dengan English sebagai default dan Bahasa Indonesia sebagai locale alternatif, dengan AI dan data lokal di perangkat. Pengguna mengelola beberapa Wallet (tempat uang), menyusun satu Budget plan global per periode (Pendapatan, Pengeluaran, Goal), mencatat transaksi harian (income/expense/transfer), dan melihat report (pie chart expense per kategori, line chart net saving per periode) dengan AI insight. Semua data lokal, tanpa akun server. AI (Groq) dipicu manual, read-only (tidak menulis data); user yang mengeksekusi saran via tombol "Terapkan", dengan fallback deterministik dalam locale aktif.
 
 ## User Stories
 
@@ -34,7 +34,7 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 19. As a pengguna, I want AI suggestion menghasilkan daftar saran terstruktur yang tiap itemnya punya tombol "Terapkan", so bahwa saya bisa langsung mengeksekusi saran yang saya setujui tanpa mengubah semua.
 20. As a pengguna, I want AI suggestion memakai fallback deterministik lokal saat AI tidak tersedia, so bahwa saya tetap melihat hitungan spare budget meski offline.
 21. As a pengguna, I want AI suggestion bersifat read-only, so that saran tidak mengubah data saya tanpa persetujuan (hanya tombol "Terapkan" yang mengubah plan).
-22. As a pengguna, I want mencatat transaksi harian Income, so that saya bisa melacak pemasukan.
+22. As a pengguna, I want mencatat transaksi harian Income, so that saya bisa melacak pendapatan.
 23. As a pengguna, I want mencatat transaksi harian Expense dengan kategori, so that saya bisa melacak pengeluaran dan progress budget.
 24. As a pengguna, I want memilih wallet secara eksplisit di tiap transaksi, so that saya tahu dari mana uang keluar/masuk.
 25. As a pengguna, I want mengedit dan menghapus transaksi, so that saya bisa memperbaiki catatan yang salah (tap transaksi → form edit yang sama dengan create, dalam edit state).
@@ -79,11 +79,11 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 - **Wallet**: id, nama, saldo awal, archived, flag tabungan (bool, untuk wallet goal). Wallet adalah tempat simpan; tidak punya plan sendiri; tidak punya tipe. **Setiap mutasi saldo, termasuk saldo awal, selalu menjadi transaksi ledger** (income jika bertambah, expense jika berkurang). Saldo awal memakai kategori khusus "Saldo Awal", sedangkan **edit saldo langsung di UI = shortcut yang otomatis membuat transaksi penyesuaian** dengan kategori "Penyesuaian Saldo" (bukan mengubah saldo tanpa jejak). Wallet yang sudah dipakai (punya transaksi) tidak bisa dihapus, hanya di-archive.
 - **Transfer**: transaksi khusus netral (dari wallet A ke wallet B), kategori transfer global tunggal, warna warning.
 - **Category**: id, nama, tipe (income/expense/transfer), ikon, warna (income=success, expense=error, transfer=warning), seed sebagai data row (bisa diedit), archived saat sudah dipakai transaksi.
-- **Budget period**: id, tanggal mulai (default tanggal 1), durasi satu bulan. Satu plan global per periode. Periode aktif = periode berjalan (dari tanggal mulai); saat berganti, plan baru kosong dibuat otomatis; plan lama tersimpan untuk report historis.
+- **Budget period**: id, anchor hari mulai bulanan 1–31, batas akhir otomatis sehari sebelum awal periode berikutnya, durasi satu bulan. Pada bulan pendek, anchor memakai hari terakhir bulan tersebut lalu kembali ke anchor ketika tersedia. Periode aktif dapat direbase; periode lama tetap tersimpan dan plan baru kosong dibuat untuk anchor baru.
 - **Budget plan**: global, satu per periode; berisi item Pendapatan, Pengeluaran, dan metadata Goal.
 - **Pendapatan (item plan)**: id, nama (misal "Gaji", "Freelance"), kategori income, nominal (target periode ini). **Realisasi item = total transaksi income kategori tersebut dalam periode aktif**; ringkasan Pendapatan Plan menghitung seluruh transaksi income dalam periode aktif. Tombol "Catat" membuat transaksi income (pilih wallet). Item pendapatan bisa lebih dari satu; masing-masing terikat satu kategori income. **Hapus item pendapatan = hapus juga transaksi income yang dibuat darinya** (undo+redo saldo), sehingga tidak ada realisasi yang menggantung.
 - **Fixed expense**: id, nama, kategori expense, jumlah, **berperilaku seperti alokasi** — progress terisi dari transaksi expense kategori tersebut. **Tidak ada transaksi otomatis**; pembayaran lewat transaksi biasa atau tombol "Bayar" di layar Rencana yang membuat transaksi (bisa sebagian).
-- **Transaction**: id, tipe (income/expense/transfer), wallet (untuk income/expense), kategori, jumlah, tanggal, catatan. **Edit transaksi = undo + redo** (kurangi wallet lama, tambah wallet baru) agar saldo konsisten. **Saldo awal wallet = transaksi ledger otomatis** dengan kategori khusus "Saldo Awal". **Koreksi saldo = transaksi penyesuaian** (kategori khusus "Penyesuaian Saldo", dibuat otomatis saat user mengubah saldo wallet langsung di UI); otomatis masuk ke Pendapatan atau Pengeluaran Plan sesuai tipe transaksinya dan ikut dihitung dalam Laporan pada Budget period tanggal transaksinya.
+- **Transaction**: id, tipe (income/expense/transfer), wallet (untuk income/expense), kategori, jumlah, tanggal wajib, catatan. Tanggal default ke hari lokal, boleh lampau, masa depan ditolak; transaksi dari Plan dibatasi periode aktif sampai hari ini. Edit mempertahankan tanggal lama dan perubahan tanggal mengubah agregasi periode. **Saldo awal wallet = transaksi ledger otomatis** dengan kategori khusus "Saldo Awal". **Koreksi saldo = transaksi penyesuaian**.
 - **Spare budget**: Pendapatan aktual − target Pengeluaran. Pendapatan aktual diturunkan dari transaksi income dalam Budget period aktif. Goal hanya menandai Wallet tabungan yang sudah ada dan tidak mengurangi Spare budget atau membuat transaksi saat dibuat/diisi. Dasar AI suggestion & fallback deterministik.
 - **Invariant plan = dompet**: setiap angka uang di plan adalah target (rencana, ditulis manual) ATAU turunan transaksi (realita) — tidak ada angka ketiga. Saldo wallet, realisasi pendapatan, progress expense, saldo tersedia, dan spare dihitung dari tabel transaksi yang sama, sehingga plan dan dompet selalu konsisten (sinkron by construction, bukan dijaga manual).
 - **Over-budget**: transaksi boleh melebihi alokasi plan (progress > 100%, ditandai merah + label "Melebihi Budget"); saat input transaksi yang membuat over-budget, tampilkan peringatan lembut (tetap diizinkan).
@@ -103,7 +103,7 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 - **Penting**: untuk rilis produksi, panggilan Groq harus lewat backend tipis (key server-side). MVP native boleh langsung dari app (key dev). Prompt, fallback, dan output mengikuti locale aktif.
 
 ### Layar Rencana (Plan)
-- Header: judul "Rencana" + label periode `[1–30 Sep ▾]` (tap → modal ubah tanggal mulai Budget period) + tombol **AI Suggestion** di header.
+- Header: judul "Rencana" + label periode `[1 Sep–30 Sep ▾]` (tap → bottom sheet grid anchor 1–31, preview, dan konfirmasi) + tombol **AI Suggestion** di header.
 - **Kartu ringkasan plan**: satu kartu dengan **SPARE BUDGET** sebagai angka utama, caption "masih bisa dialokasikan", progress pemakaian Pendapatan, serta mini-stat Pendapatan dan Pengeluaran. Tidak ada saldo tersedia, operand rumus, persentase, atau donut di kartu ini.
 - **Section cards**: Pendapatan, Fixed Expense, Goal, Alokasi — tiap section punya header + tombol "+ Tambah".
 - **Fixed expense item**: progress + status bayar ("Lunas ✓", "x/y dibayar", "Belum dibayar") + tombol **"Bayar"** (buka form bayar → pilih wallet → buat transaksi). **Fixed expense = alokasi**: progress terisi dari transaksi kategori; tidak ada mode "bayar langsung vs dianggarkan" — semua item punya tombol "Bayar" sebagai shortcut, dan progress juga terisi dari transaksi biasa.
@@ -115,7 +115,7 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 - Pie chart: expense per kategori, urut terbesar, dalam Budget period.
 - Line chart: net saving per periode (income − expense − transferOut + transferIn), default 3 bulan, bisa pilih rentang.
 - Drill-down: tap kategori di pie → daftar transaksi kategori itu.
-- Report mengikuti Budget period (tanggal mulai custom).
+- Report mengikuti Budget period (tanggal mulai custom), menyediakan stepper periode tersimpan tanpa periode mendatang. Ringkasan, pie chart, line chart, drill-down, dan insight memakai periode yang sedang dipilih; histori read-only terhadap anchor.
 
 ### Settings
 - Theme light/dark (existing `useTheme`/`useColorScheme` diperluas ke setting persist).
@@ -123,7 +123,7 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 - Currency global (default IDR), **dengan pilihan mata uang lain** (tampilan saja, tanpa konversi).
 
 ### Bahasa
-- UI dan seluruh output AI dalam locale aktif; Bahasa Indonesia menjadi default dan English menjadi alternatif.
+- UI dan seluruh output AI dalam locale aktif; English menjadi default dan Bahasa Indonesia menjadi alternatif.
 
 ## Testing Decisions
 
@@ -165,4 +165,4 @@ Klarifikasi interaksi terbaru: Pendapatan tetap dapat ditambahkan dari Plan deng
 - **Rekomendasi Drizzle version**: `drizzle-orm@rc` / `drizzle-kit@rc` (line v1.0 RC) sesuai docs Drizzle; atau stable `latest` (0.45.x). Pastikan kompatibel dengan expo-sqlite 57.
 - **expo version**: pertahankan `expo` ≥ 57.0.17 (fix regresi memori Hermes di SDK 57).
 - **Proses** (sesuai alur agentic): spec ini → `/to-tickets` untuk memecah jadi tracer-bullet tickets → `/implement` per ticket (tdd + code-review).
-- **Setup wizard** saat pertama buka: pilih bahasa → welcome → buat Wallet pertama (nama + saldo awal) → pilih currency (IDR). Tanggal mulai Budget period diubah dari layar Rencana, bukan di wizard.
+- **Setup wizard** saat pertama buka: pilih bahasa → buat Wallet pertama (nama + saldo awal) → pilih currency (IDR). Tombol langkah pertama berlabel "Start". Tanggal mulai Budget period diubah dari layar Rencana, bukan di wizard.

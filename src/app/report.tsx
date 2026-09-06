@@ -12,12 +12,20 @@ export default function ReportRoute() {
   const { t } = useTranslation();
   const database = useAppDatabase();
   const [months, setMonths] = useState(3);
-  const read = useCallback(() => getReportOverview(database, months), [database, months]);
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
+  const read = useCallback(
+    () => getReportOverview(database, months, undefined, selectedPeriodId),
+    [database, months, selectedPeriodId],
+  );
   const {
     data: reportView,
     error,
     retry,
-  } = useFocusedRead(read, t('common.reportLoadError'), String(months));
+  } = useFocusedRead(
+    read,
+    t('common.reportLoadError'),
+    `${months}:${selectedPeriodId ?? 'active'}`,
+  );
 
   if (error)
     return (
@@ -47,6 +55,9 @@ export default function ReportRoute() {
       }}
       onRangeChange={(nextMonths) => {
         setMonths(nextMonths);
+      }}
+      onPeriodChange={(periodId) => {
+        setSelectedPeriodId(periodId);
       }}
       onCategoryPress={(expense, period) =>
         router.push({

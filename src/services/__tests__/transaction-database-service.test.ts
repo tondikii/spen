@@ -165,7 +165,7 @@ describe('database transaction service', () => {
     expect(edited.id).not.toBe(transaction.id);
     expect((await getWallets(database))[0].balance).toBe(700);
     expect((await getDatabaseTransactions(database)).map((item) => item.note)).toEqual([
-      'Saldo awal Wallet',
+      'Saldo awal Dompet',
       'Makan siang',
     ]);
   });
@@ -190,11 +190,11 @@ describe('database transaction service', () => {
       500,
       '2026-09-02',
       '08:00',
-      'Pendapatan Plan: Gaji',
+      'Pendapatan Rencana: Gaji',
       sourceItem.lastInsertRowId,
     );
     const generated = (await getDatabaseTransactions(database)).find(
-      (item) => item.note === 'Pendapatan Plan: Gaji',
+      (item) => item.note === 'Pendapatan Rencana: Gaji',
     )!;
 
     await saveDatabaseTransaction(

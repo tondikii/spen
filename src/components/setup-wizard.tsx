@@ -25,7 +25,7 @@ import { getSelectedLocale, setSelectedLocale } from '@/services/settings-servic
 import { useTranslation } from 'react-i18next';
 import { MotionPressable as Pressable, MotionScreen } from '@/components/motion';
 
-const totalSteps = 4;
+const totalSteps = 3;
 
 export function SetupWizard({
   onComplete,
@@ -58,7 +58,7 @@ export function SetupWizard({
   const complete = () => {
     onComplete(
       wallets.map((wallet, index) => ({
-        name: wallet.name.trim() || (index === 0 ? 'Wallet utama' : `Wallet ${index + 1}`),
+        name: wallet.name.trim() || (index === 0 ? 'Dompet utama' : `Dompet ${index + 1}`),
         initialBalance: parseMoneyInput(wallet.balance),
       })),
       currency,
@@ -162,20 +162,6 @@ export function SetupWizard({
                       void changeLocale(option);
                     }}
                   />
-                </View>
-
-                <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
-                  <ThemedText
-                    style={[styles.orb, { backgroundColor: theme.mint, color: theme.pine }]}
-                  >
-                    ✦
-                  </ThemedText>
-                  <ThemedText type="title" style={styles.title}>
-                    {t('common.createPlan')}
-                  </ThemedText>
-                  <ThemedText type="small" themeColor="muted" style={styles.lead}>
-                    {t('common.recordAndSetAside')}
-                  </ThemedText>
                 </View>
 
                 <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
@@ -308,7 +294,7 @@ export function SetupWizard({
                 accessible
                 accessibilityRole="button"
                 accessibilityLabel={
-                  step === 1
+                  step === 0
                     ? t('common.start')
                     : step === totalSteps - 1
                       ? t('common.enterSpen')
@@ -320,7 +306,7 @@ export function SetupWizard({
                 style={[styles.primary, { backgroundColor: theme.pine }]}
               >
                 <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-                  {step === 1
+                  {step === 0
                     ? t('common.start')
                     : step === totalSteps - 1
                       ? t('common.enterSpen')
@@ -356,18 +342,6 @@ const styles = StyleSheet.create({
   dot: { borderRadius: Radius.pill, height: 6, width: 29 },
   carouselContent: { flexDirection: 'row' },
   slide: { flex: 1, paddingBottom: Spacing.four },
-  orb: {
-    alignItems: 'center',
-    borderRadius: 30,
-    fontFamily: Fonts.serif,
-    fontSize: 39,
-    height: 82,
-    justifyContent: 'center',
-    marginBottom: 29,
-    paddingTop: 18,
-    textAlign: 'center',
-    width: 82,
-  },
   title: { fontSize: 37, lineHeight: 40, letterSpacing: -1.48 },
   lead: {
     fontSize: 14,

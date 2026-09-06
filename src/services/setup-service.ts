@@ -35,13 +35,13 @@ export async function completeSetup(
   currency: CurrencyCode,
   locale: Locale = getSelectedLocale(),
 ) {
-  if (wallets.length === 0) throw new AppError('validation', undefined, 'Buat minimal satu Wallet');
+  if (wallets.length === 0) throw new AppError('validation', undefined, 'Buat minimal satu Dompet');
   const drafts = wallets.map((wallet) => ({
     name: wallet.name.trim(),
     initialBalance: wallet.initialBalance,
   }));
   if (drafts.some((wallet) => !wallet.name))
-    throw new AppError('validation', undefined, 'Nama Wallet wajib diisi');
+    throw new AppError('validation', undefined, 'Nama Dompet wajib diisi');
   if (drafts.some((wallet) => !Number.isSafeInteger(wallet.initialBalance)))
     throw new AppError('validation', undefined, 'Saldo awal harus berupa angka bulat');
 

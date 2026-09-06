@@ -178,7 +178,7 @@ export const termsDocument: PublicDocument = {
     {
       heading: '1. Tentang Spen',
       paragraphs: [
-        'Spen adalah aplikasi pencatat dan perencana keuangan pribadi. Kamu dapat membuat Budget plan, mencatat transaksi, mengatur Wallet dan Goal, serta melihat ringkasan keuangan.',
+        'Spen adalah aplikasi pencatat dan perencana keuangan pribadi. Kamu dapat membuat Rencana Anggaran, mencatat transaksi, mengatur Dompet dan Tabungan, serta melihat ringkasan keuangan.',
         'Spen dikelola oleh Tondiki Andika di Indonesia. Spen tidak membuat akun dan tidak menyediakan sinkronisasi cloud.',
       ],
     },
@@ -251,7 +251,7 @@ export const privacyDocument: PublicDocument = {
     {
       heading: '2. Data yang disimpan secara lokal',
       paragraphs: [
-        'Data Spen tersimpan lokal di perangkatmu. Data tersebut dapat meliputi nama dan saldo Wallet, transaksi, kategori, Budget plan, Budget period, Goal, pilihan currency, dan pengaturan tema.',
+        'Data Spen tersimpan lokal di perangkatmu. Data tersebut dapat meliputi nama dan saldo Dompet, transaksi, kategori, Rencana Anggaran, Periode Anggaran, Tabungan, pilihan mata uang, dan pengaturan tema.',
         'Spen tidak membuat akun, tidak menyimpan data ke server Spen, dan tidak menyediakan sinkronisasi cloud. Menghapus data aplikasi dari perangkat dapat menghapus data lokal yang belum kamu backup.',
       ],
     },

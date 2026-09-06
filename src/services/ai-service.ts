@@ -130,7 +130,7 @@ function fallbackSuggestions(input: BudgetAIInput): BudgetSuggestion[] {
   return [
     {
       action: 'review_expense',
-      title: en ? 'Organize your Budget plan' : 'Rapikan Budget plan',
+      title: en ? 'Organize your Budget plan' : 'Rapikan Rencana Anggaran',
       description: en
         ? 'Record income and expenses so future suggestions are more useful.'
         : 'Catat pendapatan dan pengeluaran agar saran berikutnya lebih tepat.',
@@ -152,10 +152,10 @@ function fallbackInsight(input: BudgetAIInput): string {
     input.netSaving >= 0
       ? en
         ? 'Net saving is positive — there is room to increase allocations.'
-        : 'Net saving masih positif — masih ada ruang untuk menambah alokasi.'
+        : 'Tabungan bersih masih positif — masih ada ruang untuk menambah alokasi.'
       : en
         ? 'Net saving is negative — review your largest expenses and allocations.'
-        : 'Net saving sedang negatif — cek pengeluaran terbesar dan alokasinya.';
+        : 'Tabungan bersih sedang negatif — cek pengeluaran terbesar dan alokasinya.';
   return `${expenseText} ${savingText}`;
 }
 
@@ -186,7 +186,7 @@ export class AIService {
               role: 'system',
               content: en
                 ? 'You are Spen’s Budget plan assistant. Reply briefly and calmly in English with actionable suggestions. Do not change user data.'
-                : 'Kamu asisten Budget plan Spen. Jawab ringkas dan tenang dalam Bahasa Indonesia, langsung ke saran. Jangan mengubah data pengguna.',
+                : 'Kamu asisten Rencana Anggaran Spen. Jawab ringkas dan tenang dalam Bahasa Indonesia, langsung ke saran. Jangan mengubah data pengguna.',
             },
             { role: 'user', content: JSON.stringify(input) },
           ],

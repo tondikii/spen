@@ -14,6 +14,7 @@ import {
   deleteDatabasePlanItem,
   ensureActiveBudgetPlan,
   getDatabasePlanView,
+  periodBounds,
   setBudgetPeriodStartDay,
   setDatabasePlanItemPaid,
   updateDatabasePlanItem,
@@ -85,6 +86,17 @@ describe('database plan service', () => {
     ).toEqual({ count: 2 });
   });
 
+  it('supports anchor day 31 while clamping shorter months and returning to 31', () => {
+    expect(periodBounds(31, '2026-02-28')).toEqual({
+      startDate: '2026-02-28',
+      endDate: '2026-03-30',
+    });
+    expect(periodBounds(31, '2026-03-31')).toEqual({
+      startDate: '2026-03-31',
+      endDate: '2026-04-29',
+    });
+  });
+
   it('persists the selected start day and reuses the matching historical period', async () => {
     await setBudgetPeriodStartDay(database, 5, '2026-09-10');
     const nextPeriod = await ensureActiveBudgetPlan(database, '2026-10-10');
@@ -133,7 +145,7 @@ describe('database plan service', () => {
     await database.runAsync(
       'INSERT INTO goals (name, target_amount, target_date, wallet_id, monthly_contribution, archived) VALUES (?, ?, ?, ?, ?, 0);',
       'Dana Nikah',
-      500,
+      1000,
       null,
       goalWalletNumber,
       150,
@@ -338,10 +350,10 @@ describe('database plan service', () => {
     const transactions = await database.getAllAsync<{ amount: number; note: string }>(
       `SELECT amount, note FROM transactions WHERE category_id = ? AND note = ?;`,
       Number(category.id.replace('category-', '')),
-      `Pembayaran Plan: ${item.name}`,
+      `Pembayaran Rencana: ${item.name}`,
     );
 
-    expect(transactions).toEqual([{ amount: 200, note: 'Pembayaran Plan: Internet' }]);
+    expect(transactions).toEqual([{ amount: 200, note: 'Pembayaran Rencana: Internet' }]);
   });
 
   it('removes the payment transaction even when unchecking on a later date', async () => {
@@ -366,7 +378,7 @@ describe('database plan service', () => {
     ).toBe(1000);
     expect(
       await database.getFirstAsync<{ count: number }>(
-        "SELECT COUNT(*) AS count FROM transactions WHERE note = 'Pembayaran Plan: Internet';",
+        "SELECT COUNT(*) AS count FROM transactions WHERE note = 'Pembayaran Rencana: Internet';",
       ),
     ).toEqual({ count: 0 });
   });

@@ -27,6 +27,8 @@ import { Fonts, Layout, Radius, Shadows, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import i18n from '@/i18n';
 import { getCategoryLabel } from '@/i18n/categories';
+import { formatDate, getIntlLocale } from '@/i18n/format';
+import { getLocalDateInput } from '@/services/transaction-service';
 import { getErrorTranslationKey } from '@/lib/app-error';
 import { formatMoney } from '@/lib/money';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
@@ -60,6 +62,22 @@ type PlanAction = {
   onPress: () => void | Promise<void>;
   tone?: 'default' | 'danger' | 'primary';
 };
+
+function shiftCalendarMonth(value: string, delta: number) {
+  const [year, month] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1 + delta, 1, 12));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
+function calendarDays(value: string) {
+  const [year, month] = value.split('-').map(Number);
+  return new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
+}
+
+function calendarOffset(value: string) {
+  const [year, month] = value.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, 1, 12)).getUTCDay();
+}
 
 function PlanSummaryCard({ snapshot }: { snapshot: PlanView['snapshot'] }) {
   const theme = useTheme();
@@ -144,7 +162,12 @@ function PlanScreenContent({
   planView?: PlanView;
   categories?: Category[];
   onPeriodStartDayChange?: (day: number) => void | Promise<void>;
-  onItemAction?: (item: BudgetPlanItem, amount: number, walletId: string) => void | Promise<void>;
+  onItemAction?: (
+    item: BudgetPlanItem,
+    amount: number,
+    walletId: string,
+    date: string,
+  ) => void | Promise<void>;
   onPlanItemSave?: (item: BudgetPlanItem | null, draft: PlanItemDraft) => void | Promise<void>;
   onPlanItemDelete?: (item: BudgetPlanItem) => void | Promise<void>;
   onCategorySave?: (category: Category) => Category | Promise<Category>;
@@ -158,8 +181,8 @@ function PlanScreenContent({
   const theme = useTheme();
   const { t } = useTranslation();
   const locale = (i18n.language === 'en' ? 'en' : 'id') as Locale;
-  const { snapshot, plan, goals, wallets, period } = planView;
-  const [startDay, setStartDay] = useState(Number(period.startDate.slice(-2)));
+  const { snapshot, plan, goals, wallets, period, startDay: configuredStartDay } = planView;
+  const [startDay, setStartDay] = useState(configuredStartDay);
   const [aiOpen, setAiOpen] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [applied, setApplied] = useState<string[]>([]);
@@ -378,6 +401,7 @@ function PlanScreenContent({
           type={planItemEditor.type}
           categories={categories}
           wallets={wallets}
+          minDate={period.startDate}
           theme={theme}
           onCategorySave={onCategorySave}
           onClose={() => setPlanItemEditor(null)}
@@ -397,11 +421,17 @@ function PlanScreenContent({
           )}
           wallets={wallets}
           showWalletPicker
+          minDate={period.startDate}
           theme={theme}
           onClose={() => setExpensePaymentEditor(null)}
-          onSubmit={async (amount, walletId) => {
+          onSubmit={async (amount, walletId, date) => {
             if (!walletId) return;
-            await onItemAction?.(expensePaymentEditor, amount, walletId);
+            await onItemAction?.(
+              expensePaymentEditor,
+              amount,
+              walletId,
+              date ?? getLocalDateInput(),
+            );
             setExpensePaymentEditor(null);
           }}
         />
@@ -572,10 +602,12 @@ function PlanActionMenu({
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  /* eslint-disable react-hooks/set-state-in-effect -- dismissSignal closes an external menu. */
   useEffect(() => {
     setOpen(false);
     onOpenChange?.(false);
   }, [dismissSignal, onOpenChange]);
+  /* eslint-enable react-hooks/set-state-in-effect */
   return (
     <View style={[styles.actionMenuAnchor, open && styles.actionMenuAnchorOpen]}>
       <Pressable
@@ -633,6 +665,7 @@ function PlanPaymentModal({
   title,
   amount: initialAmount,
   wallets,
+  minDate,
   showWalletPicker,
   theme,
   onClose,
@@ -642,9 +675,10 @@ function PlanPaymentModal({
   amount: number;
   wallets: Wallet[];
   showWalletPicker: boolean;
+  minDate?: string;
   theme: ReturnType<typeof useTheme>;
   onClose: () => void;
-  onSubmit: (amount: number, walletId?: string) => void | Promise<void>;
+  onSubmit: (amount: number, walletId?: string, date?: string) => void | Promise<void>;
 }) {
   const { t } = useTranslation();
   const activeWallets = wallets
@@ -652,14 +686,18 @@ function PlanPaymentModal({
     .sort((left, right) => right.balance - left.balance);
   const [amount, setAmount] = useState(initialAmount ? formatMoneyInput(initialAmount) : '');
   const [walletId, setWalletId] = useState(activeWallets[0]?.id ?? null);
+  const today = getLocalDateInput();
+  const [date, setDate] = useState(today);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(today.slice(0, 7));
   const submit = () => {
     const parsedAmount = parseMoneyInput(amount);
     if (parsedAmount <= 0) return;
     if (showWalletPicker) {
       if (!walletId) return;
-      void onSubmit(parsedAmount, walletId);
+      void onSubmit(parsedAmount, walletId, date);
     } else {
-      void onSubmit(parsedAmount);
+      void onSubmit(parsedAmount, undefined, date);
     }
   };
 
@@ -706,6 +744,85 @@ function PlanPaymentModal({
                   autoFocus
                 />
               </View>
+              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
+                {t('common.transactionDate')}
+              </ThemedText>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.openCalendar')}
+                onPress={() => setCalendarOpen((current) => !current)}
+                style={[styles.dateButton, { borderColor: theme.line }]}
+              >
+                <ThemedText type="smallBold">
+                  {formatDate(date, i18n.language === 'en' ? 'en' : 'id')}
+                </ThemedText>
+                <ThemedText type="small" themeColor="muted">
+                  {t('common.openCalendar')}
+                </ThemedText>
+              </Pressable>
+              {calendarOpen && (
+                <View style={[styles.calendar, { borderColor: theme.line }]}>
+                  <View style={styles.calendarHeader}>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t('common.previousMonth')}
+                      onPress={() => setCalendarMonth((current) => shiftCalendarMonth(current, -1))}
+                    >
+                      <ThemedText type="smallBold">‹</ThemedText>
+                    </Pressable>
+                    <ThemedText type="smallBold">
+                      {new Intl.DateTimeFormat(
+                        getIntlLocale(i18n.language === 'en' ? 'en' : 'id'),
+                        {
+                          month: 'long',
+                          year: 'numeric',
+                        },
+                      ).format(new Date(`${calendarMonth}-01T12:00:00`))}
+                    </ThemedText>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t('common.nextMonth')}
+                      disabled={calendarMonth >= today.slice(0, 7)}
+                      onPress={() => setCalendarMonth((current) => shiftCalendarMonth(current, 1))}
+                    >
+                      <ThemedText type="smallBold">›</ThemedText>
+                    </Pressable>
+                  </View>
+                  <View style={styles.calendarGrid}>
+                    {Array.from({ length: calendarOffset(calendarMonth) }).map((_, index) => (
+                      <View key={`empty-${index}`} style={styles.calendarDay} />
+                    ))}
+                    {Array.from(
+                      { length: calendarDays(calendarMonth) },
+                      (_, index) => index + 1,
+                    ).map((day) => {
+                      const candidate = `${calendarMonth}-${String(day).padStart(2, '0')}`;
+                      const disabled = candidate > today || (minDate ? candidate < minDate : false);
+                      return (
+                        <Pressable
+                          key={candidate}
+                          accessibilityRole="button"
+                          accessibilityLabel={t('common.selectTransactionDate', {
+                            date: candidate,
+                          })}
+                          disabled={disabled}
+                          onPress={() => {
+                            setDate(candidate);
+                            setCalendarOpen(false);
+                          }}
+                          style={[
+                            styles.calendarDay,
+                            date === candidate && { backgroundColor: theme.mint },
+                            disabled && { opacity: 0.35 },
+                          ]}
+                        >
+                          <ThemedText type="small">{day}</ThemedText>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
               {showWalletPicker && (
                 <>
                   <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
@@ -764,6 +881,7 @@ function PlanItemFormModal({
   type,
   categories: categoriesProp,
   wallets,
+  minDate,
   theme,
   onCategorySave,
   onClose,
@@ -773,6 +891,7 @@ function PlanItemFormModal({
   type: PlanItemType;
   categories: Category[];
   wallets: Wallet[];
+  minDate: string;
   theme: ReturnType<typeof useTheme>;
   onCategorySave?: (category: Category) => Category | Promise<Category>;
   onClose: () => void;
@@ -784,6 +903,10 @@ function PlanItemFormModal({
   const [walletId, setWalletId] = useState<string | null>(
     item?.type === 'income' ? (item.walletId ?? wallets[0]?.id ?? null) : (wallets[0]?.id ?? null),
   );
+  const transactionToday = getLocalDateInput();
+  const [incomeDate, setIncomeDate] = useState(transactionToday);
+  const [incomeCalendarOpen, setIncomeCalendarOpen] = useState(false);
+  const [incomeCalendarMonth, setIncomeCalendarMonth] = useState(transactionToday.slice(0, 7));
   const options = categories.filter(
     (category) =>
       !category.archived &&
@@ -826,6 +949,7 @@ function PlanItemFormModal({
       categoryId,
       targetAmount,
       ...(type === 'income' ? { walletId: walletId as string } : {}),
+      ...(type === 'income' ? { date: incomeDate } : {}),
     });
   };
   return (
@@ -910,6 +1034,88 @@ function PlanItemFormModal({
                       </Pressable>
                     ))}
                   </ScrollView>
+                  <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
+                    {t('common.transactionDate')}
+                  </ThemedText>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.openCalendar')}
+                    onPress={() => setIncomeCalendarOpen((current) => !current)}
+                    style={[styles.dateButton, { borderColor: theme.line }]}
+                  >
+                    <ThemedText type="smallBold">
+                      {formatDate(incomeDate, i18n.language === 'en' ? 'en' : 'id')}
+                    </ThemedText>
+                    <ThemedText type="small" themeColor="muted">
+                      {t('common.openCalendar')}
+                    </ThemedText>
+                  </Pressable>
+                  {incomeCalendarOpen && (
+                    <View style={[styles.calendar, { borderColor: theme.line }]}>
+                      <View style={styles.calendarHeader}>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={t('common.previousMonth')}
+                          onPress={() =>
+                            setIncomeCalendarMonth((current) => shiftCalendarMonth(current, -1))
+                          }
+                        >
+                          <ThemedText type="smallBold">‹</ThemedText>
+                        </Pressable>
+                        <ThemedText type="smallBold">
+                          {new Intl.DateTimeFormat(
+                            getIntlLocale(i18n.language === 'en' ? 'en' : 'id'),
+                            { month: 'long', year: 'numeric' },
+                          ).format(new Date(`${incomeCalendarMonth}-01T12:00:00`))}
+                        </ThemedText>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={t('common.nextMonth')}
+                          disabled={incomeCalendarMonth >= transactionToday.slice(0, 7)}
+                          onPress={() =>
+                            setIncomeCalendarMonth((current) => shiftCalendarMonth(current, 1))
+                          }
+                        >
+                          <ThemedText type="smallBold">›</ThemedText>
+                        </Pressable>
+                      </View>
+                      <View style={styles.calendarGrid}>
+                        {Array.from({ length: calendarOffset(incomeCalendarMonth) }).map(
+                          (_, index) => (
+                            <View key={`income-empty-${index}`} style={styles.calendarDay} />
+                          ),
+                        )}
+                        {Array.from(
+                          { length: calendarDays(incomeCalendarMonth) },
+                          (_, index) => index + 1,
+                        ).map((day) => {
+                          const candidate = `${incomeCalendarMonth}-${String(day).padStart(2, '0')}`;
+                          const disabled = candidate > transactionToday || candidate < minDate;
+                          return (
+                            <Pressable
+                              key={candidate}
+                              accessibilityRole="button"
+                              accessibilityLabel={t('common.selectTransactionDate', {
+                                date: candidate,
+                              })}
+                              disabled={disabled}
+                              onPress={() => {
+                                setIncomeDate(candidate);
+                                setIncomeCalendarOpen(false);
+                              }}
+                              style={[
+                                styles.calendarDay,
+                                incomeDate === candidate && { backgroundColor: theme.mint },
+                                disabled && { opacity: 0.35 },
+                              ]}
+                            >
+                              <ThemedText type="small">{day}</ThemedText>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  )}
                 </>
               )}
               <View style={styles.categoryLabelRow}>
@@ -1889,6 +2095,19 @@ const styles = StyleSheet.create({
   },
   sheetOption: { borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: 15 },
   fieldLabel: { ...Typography.eyebrow, marginTop: 8 },
+  dateButton: {
+    alignItems: 'center',
+    borderRadius: 13,
+    borderWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 44,
+    paddingHorizontal: 12,
+  },
+  calendar: { borderRadius: 13, borderWidth: 1, marginTop: 8, padding: 10 },
+  calendarHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
+  calendarGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  calendarDay: { alignItems: 'center', height: 34, justifyContent: 'center', width: '14.2857%' },
   goalInput: { borderBottomWidth: 1, fontSize: 16, minHeight: 44, paddingHorizontal: 8 },
   moneyInputRow: { alignItems: 'center', flexDirection: 'row', gap: 8 },
   moneyInput: { flex: 1 },

@@ -8,6 +8,15 @@ import i18n, {
 import { formatDate, formatNumber, getIntlLocale } from '@/i18n/format';
 
 describe('localization boundary', () => {
+  beforeEach(async () => {
+    await changeLocale('en');
+  });
+
+  it('starts with English as the app locale', () => {
+    expect(getCurrentLocale()).toBe('en');
+    expect(i18n.t('common.home')).toBe('Home');
+  });
+
   afterEach(async () => {
     await changeLocale('id');
   });
@@ -39,8 +48,8 @@ describe('localization boundary', () => {
     expect(normalizeLocale('en')).toBe('en');
     expect(normalizeLocale('en-US')).toBe('en');
     expect(normalizeLocale('id-ID')).toBe('id');
-    expect(normalizeLocale('fr')).toBe('id');
-    expect(normalizeLocale(undefined)).toBe('id');
+    expect(normalizeLocale('fr')).toBe('en');
+    expect(normalizeLocale(undefined)).toBe('en');
   });
 
   it('formats dates and numbers using the requested locale', () => {

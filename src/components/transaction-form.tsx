@@ -1,12 +1,11 @@
 import { useContext, useMemo, useState, type ReactNode } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
+import { SafeAreaInsetsContext, SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { CATEGORY_ICON_CHOICES, CategoryIcon } from '@/components/category-icon';
 import { CurrencyMark } from '@/components/currency-mark';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { Fonts, Radius, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoney } from '@/lib/money';
@@ -18,6 +17,7 @@ import {
   getActiveTransactionCategories,
   getActiveTransactionWallets,
   getAllocationLimit,
+  getLocalDateInput,
   getTransactionCategories,
   hasSimilarIncome,
   saveMockCategory,
@@ -31,6 +31,8 @@ import type {
 } from '@/types/domain';
 import { MotionPressable as Pressable, MotionScreen } from '@/components/motion';
 import { getCategoryLabel } from '@/i18n/categories';
+import i18n from '@/i18n';
+import { formatDate } from '@/i18n/format';
 import { getErrorTranslationKey } from '@/lib/app-error';
 
 type TransactionFormProps = {
@@ -73,6 +75,27 @@ function chunk<T>(items: readonly T[], size: number) {
     rows.push(items.slice(index, index + size) as T[]);
   }
   return rows;
+}
+
+function monthLabel(value: string, locale: string) {
+  const date = new Date(`${value}-01T12:00:00`);
+  return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(date);
+}
+
+function shiftMonth(value: string, delta: number) {
+  const [year, month] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1 + delta, 1, 12));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
+function daysForMonth(value: string) {
+  const [year, month] = value.split('-').map(Number);
+  return new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
+}
+
+function firstWeekday(value: string) {
+  const [year, month] = value.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, 1, 12)).getUTCDay();
 }
 
 export function TransactionForm({
@@ -119,6 +142,10 @@ export function TransactionForm({
   );
   const [adminFee, setAdminFee] = useState(formatMoneyInput(transaction?.adminFee ?? ''));
   const [note, setNote] = useState(transaction?.note ?? '');
+  const today = getLocalDateInput();
+  const [date, setDate] = useState(transaction?.date ?? today);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState((transaction?.date ?? today).slice(0, 7));
   const [categories, setCategories] = useState<Category[]>(
     categoriesProp ?? getActiveTransactionCategories(),
   );
@@ -214,7 +241,7 @@ export function TransactionForm({
       categoryId: type === 'transfer' ? 'category-transfer' : categoryId,
       amount: numericAmount,
       adminFee: type === 'transfer' ? parseMoneyInput(adminFee) : 0,
-      date: transaction?.date ?? '2026-09-02',
+      date,
       time: transaction?.time ?? '12:00',
       note: note.trim(),
     });
@@ -228,7 +255,7 @@ export function TransactionForm({
       toWalletId: type === 'transfer' ? toWalletId : null,
       categoryId: type === 'transfer' ? null : categoryId,
       amount: numericAmount,
-      date: transaction?.date ?? '2026-09-02',
+      date,
       time: transaction?.time ?? '12:00',
       note: note.trim(),
     },
@@ -236,14 +263,17 @@ export function TransactionForm({
   );
 
   return (
-    <ThemedView style={styles.page}>
+    <SafeAreaView
+      edges={['top']}
+      style={[styles.page, styles.safeArea, { backgroundColor: theme.paper }]}
+    >
       <MotionScreen>
         <View
           style={[
             styles.header,
             {
               borderBottomColor: theme.line,
-              paddingTop: Math.max(insets.top, Spacing.two),
+              paddingTop: Spacing.two,
             },
           ]}
         >
@@ -288,7 +318,9 @@ export function TransactionForm({
                   key={tab.type}
                   wrapperStyle={styles.typeTabWrapper}
                   accessibilityRole="tab"
-                  accessibilityLabel={t('common.transactionType', { type: t(tab.translationKey) })}
+                  accessibilityLabel={t('common.transactionType', {
+                    type: t(tab.translationKey),
+                  })}
                   accessibilityState={{ selected: type === tab.type }}
                   accessibilityHint={t('common.transactionTypeHint')}
                   onPress={() => changeType(tab.type)}
@@ -349,7 +381,7 @@ export function TransactionForm({
                   >
                     <ThemedText type="smallBold">
                       {wallets.find((wallet) => wallet.id === lockedToWalletId)?.name ??
-                        'Wallet Goal'}
+                        t('common.goalWallet')}
                     </ThemedText>
                     <ThemedText type="small" themeColor="muted">
                       {t('common.lockedGoalWallet')}
@@ -596,6 +628,83 @@ export function TransactionForm({
                 </ThemedText>
               </View>
             )}
+            <FieldLabel>{t('common.transactionDate')}</FieldLabel>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('common.openCalendar')}
+              onPress={() => setCalendarOpen((current) => !current)}
+              style={[styles.dateButton, { borderColor: theme.line, backgroundColor: theme.card }]}
+            >
+              <ThemedText type="smallBold">
+                {formatDate(date, i18n.language === 'en' ? 'en' : 'id')}
+              </ThemedText>
+              <ThemedText type="small" themeColor="muted">
+                {t('common.openCalendar')}
+              </ThemedText>
+            </Pressable>
+            {calendarOpen && (
+              <View
+                style={[styles.calendar, { borderColor: theme.line, backgroundColor: theme.card }]}
+              >
+                <View style={styles.calendarHeader}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.previousMonth')}
+                    onPress={() => setCalendarMonth((current) => shiftMonth(current, -1))}
+                    style={styles.calendarArrow}
+                  >
+                    <ThemedText type="smallBold">‹</ThemedText>
+                  </Pressable>
+                  <ThemedText type="smallBold">
+                    {monthLabel(calendarMonth, i18n.language === 'en' ? 'en-US' : 'id-ID')}
+                  </ThemedText>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.nextMonth')}
+                    disabled={calendarMonth >= today.slice(0, 7)}
+                    onPress={() => setCalendarMonth((current) => shiftMonth(current, 1))}
+                    style={styles.calendarArrow}
+                  >
+                    <ThemedText type="smallBold">›</ThemedText>
+                  </Pressable>
+                </View>
+                <View style={styles.calendarGrid}>
+                  {Array.from({ length: firstWeekday(calendarMonth) }).map((_, index) => (
+                    <View key={`empty-${index}`} style={styles.calendarDay} />
+                  ))}
+                  {Array.from({ length: daysForMonth(calendarMonth) }, (_, index) => index + 1).map(
+                    (day) => {
+                      const candidate = `${calendarMonth}-${String(day).padStart(2, '0')}`;
+                      const disabled = candidate > today;
+                      return (
+                        <Pressable
+                          key={candidate}
+                          accessibilityRole="button"
+                          accessibilityLabel={t('common.selectTransactionDate', {
+                            date: candidate,
+                          })}
+                          accessibilityState={{ selected: candidate === date, disabled }}
+                          disabled={disabled}
+                          onPress={() => {
+                            setDate(candidate);
+                            setCalendarOpen(false);
+                          }}
+                          style={[
+                            styles.calendarDay,
+                            candidate === date && { backgroundColor: theme.mint },
+                            disabled && { opacity: 0.35 },
+                          ]}
+                        >
+                          <ThemedText type="small" themeColor={candidate === date ? 'pine' : 'ink'}>
+                            {day}
+                          </ThemedText>
+                        </Pressable>
+                      );
+                    },
+                  )}
+                </View>
+              </View>
+            )}
             <FieldLabel>
               {t('common.notes')}{' '}
               <ThemedText type="small" themeColor="muted">
@@ -707,7 +816,7 @@ export function TransactionForm({
           }}
         />
       </MotionScreen>
-    </ThemedView>
+    </SafeAreaView>
   );
 }
 
@@ -766,6 +875,7 @@ function WalletPicker({
 
 const styles = StyleSheet.create({
   page: { flex: 1 },
+  safeArea: { flex: 1 },
   body: { flex: 1 },
   header: {
     alignItems: 'center',
@@ -847,6 +957,31 @@ const styles = StyleSheet.create({
   categoryCell: { flex: 1, minWidth: 0 },
   categorySpacer: { flex: 1, minWidth: 0 },
   categoryName: { fontSize: 10, lineHeight: 13, textAlign: 'center', width: '100%' },
+  dateButton: {
+    alignItems: 'center',
+    borderRadius: 13,
+    borderWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    minHeight: 46,
+    paddingHorizontal: 12,
+  },
+  calendar: { borderRadius: 13, borderWidth: 1, marginTop: Spacing.one, padding: 10 },
+  calendarHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.one,
+  },
+  calendarArrow: { alignItems: 'center', height: 32, justifyContent: 'center', width: 32 },
+  calendarGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  calendarDay: {
+    alignItems: 'center',
+    borderRadius: Radius.small,
+    height: 36,
+    justifyContent: 'center',
+    width: '14.2857%',
+  },
   categoryEditor: {
     alignSelf: 'stretch',
     borderRadius: 13,

@@ -63,6 +63,7 @@ describe('setup service', () => {
 
   it('reports an incomplete setup without wallets and persists the first wallet plus currency', async () => {
     await expect(getSetupState(database)).resolves.toEqual({ hasWallet: false, currency: 'IDR' });
+    await expect(getDatabaseSettings(database)).resolves.toMatchObject({ locale: 'en' });
 
     await completeSetup(database, [{ name: 'BCA', initialBalance: 2_000_000 }], 'USD', 'en');
 

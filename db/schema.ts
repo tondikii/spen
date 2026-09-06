@@ -155,7 +155,7 @@ export const settings = sqliteTable('settings', {
     .default('light'),
   locale: text('locale', { enum: ['id', 'en'] })
     .notNull()
-    .default('id'),
+    .default('en'),
   budgetStartDay: integer('budget_start_day').notNull().default(1),
 });
 

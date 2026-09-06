@@ -33,7 +33,6 @@ import { getCategoryLabel } from '@/i18n/categories';
 import { getErrorTranslationKey } from '@/lib/app-error';
 import {
   getDatabaseReportView,
-  getReportNetSavingLabel,
   getReportView,
   type ReportExpense,
 } from '@/services/report-service';
@@ -59,20 +58,29 @@ function ReportScreenContent({
   reportView = getReportView(),
   onRangeChange,
   onPeriodStartDayChange,
+  onPeriodChange,
   onCategoryPress,
   aiInput,
 }: {
   reportView?: ReportView;
   onRangeChange?: (months: number) => void | Promise<void>;
   onPeriodStartDayChange?: (day: number) => void | Promise<void>;
+  onPeriodChange?: (periodId: string) => void | Promise<void>;
   onCategoryPress?: (expense: ReportExpense, period: ReportView['period']) => void;
   aiInput?: BudgetAIInput;
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
   const locale = i18n.language === 'en' ? 'en' : 'id';
-  const { snapshot, expenses, period, netSavingByPeriod } = reportView;
-  const [startDay, setStartDay] = useState(Number(period.startDate.slice(-2)));
+  const {
+    snapshot,
+    expenses,
+    period,
+    periods,
+    startDay: configuredStartDay,
+    netSavingByPeriod,
+  } = reportView;
+  const [startDay, setStartDay] = useState(configuredStartDay);
   const [range, setRange] = useState(3);
   const [insightOpen, setInsightOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -81,6 +89,15 @@ function ReportScreenContent({
   const [insightError, setInsightError] = useState('');
   const [rangeOpen, setRangeOpen] = useState(false);
   const [dismissSignal, setDismissSignal] = useState(0);
+  /* eslint-disable react-hooks/set-state-in-effect -- selected period is an external read result. */
+  useEffect(() => {
+    const isActive = period.id === periods[periods.length - 1]?.id;
+    setStartDay(isActive ? configuredStartDay : Number(period.startDate.slice(-2)));
+  }, [configuredStartDay, period.id, period.startDate, periods]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+  const periodIndex = periods.findIndex((candidate) => candidate.id === period.id);
+  const hasPreviousPeriod = periodIndex > 0;
+  const hasNextPeriod = periodIndex >= 0 && periodIndex < periods.length - 1;
   useEffect(() => {
     if (!insightOpen) return;
     let cancelled = false;
@@ -149,10 +166,7 @@ function ReportScreenContent({
   };
 
   return (
-    <ThemedView
-      style={styles.page}
-      onTouchStart={() => setDismissSignal((current) => current + 1)}
-    >
+    <ThemedView style={styles.page} onTouchStart={() => setDismissSignal((current) => current + 1)}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <View>
@@ -163,12 +177,50 @@ function ReportScreenContent({
             <BudgetPeriodPicker
               period={period}
               startDay={startDay}
+              readOnly={periodIndex >= 0 && periodIndex < periods.length - 1}
               dismissSignal={dismissSignal}
               onStartDayChange={(day) => {
                 setStartDay(day);
                 return onPeriodStartDayChange?.(day);
               }}
             />
+            <View style={styles.periodStepper}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.previousReport')}
+                accessibilityState={{ disabled: !hasPreviousPeriod }}
+                disabled={!hasPreviousPeriod}
+                onPress={() => {
+                  if (hasPreviousPeriod) void onPeriodChange?.(periods[periodIndex - 1].id);
+                }}
+                style={[
+                  styles.stepperButton,
+                  { borderColor: theme.line },
+                  !hasPreviousPeriod && styles.disabled,
+                ]}
+              >
+                <ThemedText type="smallBold">‹</ThemedText>
+              </Pressable>
+              <ThemedText type="small" themeColor="muted">
+                {periodIndex + 1} / {periods.length}
+              </ThemedText>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.nextReport')}
+                accessibilityState={{ disabled: !hasNextPeriod }}
+                disabled={!hasNextPeriod}
+                onPress={() => {
+                  if (hasNextPeriod) void onPeriodChange?.(periods[periodIndex + 1].id);
+                }}
+                style={[
+                  styles.stepperButton,
+                  { borderColor: theme.line },
+                  !hasNextPeriod && styles.disabled,
+                ]}
+              >
+                <ThemedText type="smallBold">›</ThemedText>
+              </Pressable>
+            </View>
           </View>
           <Pressable
             accessibilityRole="button"
@@ -185,7 +237,10 @@ function ReportScreenContent({
           </Pressable>
         </View>
         <FinanceHeroCard
-          label={getReportNetSavingLabel(snapshot.netSaving).toUpperCase()}
+          label={(snapshot.netSaving < 0
+            ? t('common.defisit')
+            : t('common.reportNetSaving')
+          ).toUpperCase()}
           amount={snapshot.netSaving}
           amountColor={snapshot.netSaving < 0 ? theme.expense : undefined}
           footer={[
@@ -253,7 +308,7 @@ function ReportScreenContent({
         <ChartCard
           title={t('common.reportNetSaving')}
           trailing={t('common.months', { months: range })}
-            trailingAction={() => setRangeOpen((current) => !current)}
+          trailingAction={() => setRangeOpen((current) => !current)}
           trailingAccessibilityLabel={t('common.chooseNetSavingRange')}
           trailingExpanded={rangeOpen}
           trailingPopover={
@@ -261,7 +316,10 @@ function ReportScreenContent({
               <MotionAnimatedView
                 entering={motionPresets.itemEntering}
                 onTouchStart={(event) => event.stopPropagation()}
-                style={[styles.rangePopover, { backgroundColor: theme.card, borderColor: theme.line }]}
+                style={[
+                  styles.rangePopover,
+                  { backgroundColor: theme.card, borderColor: theme.line },
+                ]}
               >
                 {[3, 6, 12].map((months) => (
                   <Pressable
@@ -644,6 +702,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   eyebrow: { ...Typography.eyebrow },
+  periodStepper: { alignItems: 'center', flexDirection: 'row', gap: 8, marginTop: 8 },
+  stepperButton: {
+    alignItems: 'center',
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    height: 28,
+    justifyContent: 'center',
+    width: 28,
+  },
+  disabled: { opacity: 0.35 },
   aiButton: {
     borderRadius: Radius.pill,
     borderWidth: 1,

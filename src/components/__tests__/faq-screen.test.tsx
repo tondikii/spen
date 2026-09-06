@@ -17,7 +17,7 @@ describe('FaqScreen', () => {
     expect(getByText('Apakah data dan input AI dikirim ke internet?')).toBeTruthy();
     expect(
       queryByText(
-        'Data keuangan tersimpan lokal. Saat kamu memicu AI, ringkasan angka serta nama Wallet, kategori, dan Goal yang diperlukan dikirim ke Groq untuk diproses.',
+        'Data keuangan tersimpan lokal. Saat kamu memicu AI, ringkasan angka serta nama Dompet, kategori, dan Tabungan yang diperlukan dikirim ke Groq untuk diproses.',
       ),
     ).toBeNull();
 
@@ -25,7 +25,7 @@ describe('FaqScreen', () => {
 
     expect(
       getByText(
-        'Data keuangan tersimpan lokal. Saat kamu memicu AI, ringkasan angka serta nama Wallet, kategori, dan Goal yang diperlukan dikirim ke Groq untuk diproses.',
+        'Data keuangan tersimpan lokal. Saat kamu memicu AI, ringkasan angka serta nama Dompet, kategori, dan Tabungan yang diperlukan dikirim ke Groq untuk diproses.',
       ),
     ).toBeTruthy();
   });
@@ -38,10 +38,10 @@ describe('FaqScreen', () => {
     );
     const firstQuestion = 'Apakah data dan input AI dikirim ke internet?';
     const firstAnswer =
-      'Data keuangan tersimpan lokal. Saat kamu memicu AI, ringkasan angka serta nama Wallet, kategori, dan Goal yang diperlukan dikirim ke Groq untuk diproses.';
+      'Data keuangan tersimpan lokal. Saat kamu memicu AI, ringkasan angka serta nama Dompet, kategori, dan Tabungan yang diperlukan dikirim ke Groq untuk diproses.';
     const secondQuestion = 'Apakah AI mengubah data atau tetap bekerja tanpa internet?';
     const secondAnswer =
-      'AI hanya memberi saran atau insight. Data berubah setelah kamu melakukan tindakan seperti Terapkan atau menyimpan Transaksi. Saat layanan AI tidak tersedia, saran Budget plan dan insight report memakai fallback lokal.';
+      'AI hanya memberi saran atau insight. Data berubah setelah kamu melakukan tindakan seperti Terapkan atau menyimpan Transaksi. Saat layanan AI tidak tersedia, saran Rencana Anggaran dan insight report memakai fallback lokal.';
 
     await fireEvent.press(getByLabelText(firstQuestion));
     await fireEvent.press(getByLabelText(secondQuestion));

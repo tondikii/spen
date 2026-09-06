@@ -7,7 +7,11 @@ import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { Locale } from '@/types/domain';
 
-const localeOptions: Locale[] = ['id', 'en'];
+const localeOptions: Locale[] = ['en', 'id'];
+const languageNames: Record<Locale, string> = {
+  en: 'English',
+  id: 'Indonesian',
+};
 
 export function LanguagePicker({
   selected,
@@ -33,7 +37,7 @@ export function LanguagePicker({
           key={option}
           accessibilityRole="button"
           accessibilityLabel={t('common.selectLanguage', {
-            language: t(`common.languageName.${option}`),
+            language: languageNames[option],
           })}
           onPress={() => onSelect(option)}
           style={[
@@ -51,7 +55,7 @@ export function LanguagePicker({
             {option.toUpperCase()}
           </ThemedText>
           <ThemedText type="smallBold" themeColor={selected === option ? 'pine' : 'ink'}>
-            {t(`common.languageName.${option}`)}
+            {languageNames[option]}
           </ThemedText>
         </MotionPressable>
       ))}

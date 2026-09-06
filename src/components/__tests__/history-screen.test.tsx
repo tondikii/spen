@@ -54,7 +54,7 @@ describe('HistoryScreen', () => {
 
     expect(getByText(/BCA/)).toBeTruthy();
     await fireEvent.press(getByLabelText('Filter'));
-    await fireEvent.press(getByLabelText('Pilih Wallet BCA'));
+    await fireEvent.press(getByLabelText('Pilih Dompet BCA'));
     expect(getByText(/Lunch/)).toBeTruthy();
     await fireEvent.press(getByLabelText('Edit transaksi Makan'));
     expect(require('expo-router').router.push).toHaveBeenCalledWith({
