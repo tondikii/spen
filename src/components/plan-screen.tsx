@@ -85,22 +85,33 @@ function PlanSummaryCard({ snapshot }: { snapshot: PlanView['snapshot'] }) {
         {spareIsNegative ? t('common.spareBudgetOverPlan') : t('common.stillAllocatable')}
       </ThemedText>
 
-      <MotionProgressBar
-        value={expenseProgress}
-        color={theme.pine}
-        trackColor={theme.line}
-        style={styles.summaryProgress}
-      />
+      <View style={styles.summaryProgressRow}>
+        <MotionProgressBar
+          value={expenseProgress}
+          color={theme.pine}
+          trackColor={theme.line}
+          style={styles.summaryProgress}
+          accessibilityRole="progressbar"
+          accessibilityValue={{
+            min: 0,
+            max: 100,
+            now: Math.min(Math.max(expenseProgress, 0), 100),
+          }}
+        />
+        <ThemedText type="code" themeColor="muted" style={styles.summaryProgressPercent}>
+          {Math.max(0, Math.round(expenseProgress))}%
+        </ThemedText>
+      </View>
       <View style={styles.summaryStats}>
-        <ThemedText type="small" themeColor="muted" style={styles.summaryStat}>
+        <ThemedText type="small" style={[styles.summaryStat, { color: theme.income }]}>
           {t('common.income')}{' '}
-          <ThemedText style={styles.summaryStatValue}>
+          <ThemedText style={[styles.summaryStatValue, { color: theme.income }]}>
             {formatMoney(snapshot.totalIncome)}
           </ThemedText>
         </ThemedText>
-        <ThemedText type="small" themeColor="muted" style={styles.summaryStat}>
+        <ThemedText type="small" style={[styles.summaryStat, { color: theme.expense }]}>
           {t('common.expense')}{' '}
-          <ThemedText style={styles.summaryStatValue}>
+          <ThemedText style={[styles.summaryStatValue, { color: theme.expense }]}>
             {formatMoney(snapshot.totalExpense)}
           </ThemedText>
         </ThemedText>
@@ -1698,13 +1709,15 @@ const styles = StyleSheet.create({
   summaryLabel: { ...Typography.eyebrow },
   summaryAmount: { ...Typography.moneyHero, marginVertical: 8 },
   summaryCaption: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
+  summaryProgressRow: { alignItems: 'center', flexDirection: 'row', gap: 8, marginTop: 10 },
   summaryProgress: {
     borderRadius: Radius.pill,
+    flex: 1,
     height: 5,
-    marginVertical: Spacing.three,
     overflow: 'hidden',
   },
-  summaryStats: { flexDirection: 'row', justifyContent: 'space-between' },
+  summaryProgressPercent: { minWidth: 34, textAlign: 'right' },
+  summaryStats: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
   summaryStat: { fontSize: 10, lineHeight: 14 },
   summaryStatValue: { fontFamily: Fonts.mono, fontSize: 10 },
   section: { marginBottom: 28 },

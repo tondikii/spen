@@ -6,7 +6,7 @@ import { getPlanView } from '@/services/plan-service';
 
 describe('PlanScreen', () => {
   it('menampilkan ringkasan plan yang ringkas bersama section plan', async () => {
-    const { getByLabelText, getByText, queryByLabelText, queryByText } = await render(
+    const { getAllByText, getByLabelText, getByText, queryByLabelText, queryByText } = await render(
       <PlanScreen />,
     );
 
@@ -14,6 +14,7 @@ describe('PlanScreen', () => {
     expect(getByText('masih bisa dialokasikan')).toBeTruthy();
     expect(getByText('Pemasukan Rp 6.500.000')).toBeTruthy();
     expect(getByText('Pengeluaran Rp 2.950.000')).toBeTruthy();
+    expect(getAllByText('45%').length).toBeGreaterThan(0);
     expect(getByText('Pendapatan')).toBeTruthy();
     expect(getByText('Pengeluaran')).toBeTruthy();
     expect(getByText('Goal')).toBeTruthy();
