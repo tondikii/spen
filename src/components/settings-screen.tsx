@@ -136,6 +136,7 @@ export default function SettingsScreen({
             >
               <SettingRow
                 icon="☼"
+                iconStyle={styles.themeIcon}
                 title={t('common.darkTheme')}
                 detail={t('common.darkThemeDetail')}
               >
@@ -157,6 +158,7 @@ export default function SettingsScreen({
             >
               <SettingRow
                 icon="$"
+                iconStyle={styles.currencyIcon}
                 title={t('common.currency')}
                 detail={t('common.currencyUsedForWallets')}
               >
@@ -219,6 +221,7 @@ export default function SettingsScreen({
             >
               <ActionRow
                 icon="↓"
+                iconStyle={styles.dataIcon}
                 title={t('common.backupData')}
                 detail={busy ? t('common.preparingFile') : t('common.saveDataCopy')}
                 onPress={() => {
@@ -227,6 +230,7 @@ export default function SettingsScreen({
               />
               <ActionRow
                 icon="↑"
+                iconStyle={styles.dataIcon}
                 title={t('common.restoreData')}
                 detail={busy ? t('common.processingFile') : t('common.overwriteFromBackup')}
                 onPress={() => {
@@ -360,11 +364,13 @@ function SettingRow({
 }
 function ActionRow({
   icon,
+  iconStyle,
   title,
   detail,
   onPress,
 }: {
   icon: string;
+  iconStyle?: TextStyle;
   title: string;
   detail: string;
   onPress: () => void;
@@ -381,7 +387,9 @@ function ActionRow({
         pressed && styles.pressed,
       ]}
     >
-      <ThemedText style={[styles.icon, { backgroundColor: theme.mint, color: theme.pine }]}>
+      <ThemedText
+        style={[styles.icon, iconStyle, { backgroundColor: theme.mint, color: theme.pine }]}
+      >
         {icon}
       </ThemedText>
       <View style={styles.copy}>
@@ -435,6 +443,9 @@ const styles = StyleSheet.create({
     width: 35,
   },
   smallIcon: { fontSize: 12, height: 31, lineHeight: 24, width: 31 },
+  themeIcon: { transform: [{ translateY: -2 }] },
+  currencyIcon: { fontSize: 15 },
+  dataIcon: { transform: [{ translateY: -2 }] },
   copy: { flex: 1 },
   rowTitle: { fontSize: 12, lineHeight: 16 },
   rowDetail: { fontSize: 10, lineHeight: 14 },
