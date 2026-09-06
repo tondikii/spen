@@ -5,24 +5,24 @@ import mockData from '@/data/mock-data';
 import { getPlanView } from '@/services/plan-service';
 
 describe('PlanScreen', () => {
-  it('menampilkan satu ringkasan Spare budget dan Saldo tersedia bersama section plan', async () => {
+  it('menampilkan ringkasan plan yang ringkas bersama section plan', async () => {
     const { getByLabelText, getByText, queryByLabelText, queryByText } = await render(
       <PlanScreen />,
     );
 
-    expect(getByText('SALDO TERSEDIA')).toBeTruthy();
     expect(getByText('SPARE BUDGET')).toBeTruthy();
-    expect(getByText('ruang rencana periode ini')).toBeTruthy();
-    expect(getByText('Pendapatan aktual')).toBeTruthy();
-    expect(getByText('Target Pengeluaran')).toBeTruthy();
-    expect(getByLabelText('Pendapatan aktual: Rp 6.500.000')).toBeTruthy();
-    expect(getByLabelText('Target Pengeluaran: Rp 3.150.000')).toBeTruthy();
-    expect(getByText('saldo Wallet saat ini')).toBeTruthy();
     expect(getByText('Tersedia bebas')).toBeTruthy();
     expect(getByText('Terikat goal')).toBeTruthy();
+    expect(getByLabelText('Tersedia bebas: Rp 5.525.000')).toBeTruthy();
+    expect(getByLabelText('Terikat goal: Rp 3.750.000')).toBeTruthy();
     expect(getByText('Pendapatan')).toBeTruthy();
     expect(getByText('Pengeluaran')).toBeTruthy();
     expect(getByText('Goal')).toBeTruthy();
+    expect(queryByText('SALDO TERSEDIA')).toBeNull();
+    expect(queryByText('ruang rencana periode ini')).toBeNull();
+    expect(queryByText('Pendapatan aktual')).toBeNull();
+    expect(queryByText('Target Pengeluaran')).toBeNull();
+    expect(queryByText('saldo Wallet saat ini')).toBeNull();
     expect(queryByLabelText('SPARE BUDGET 44%')).toBeNull();
     expect(queryByText('44% dari pendapatan')).toBeNull();
     expect(() => getByText('Fixed expense')).toThrow();

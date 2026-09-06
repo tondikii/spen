@@ -82,13 +82,7 @@ function PlanSummaryMetric({
   );
 }
 
-function PlanSummaryCard({
-  snapshot,
-  plannedExpense,
-}: {
-  snapshot: PlanView['snapshot'];
-  plannedExpense: number;
-}) {
+function PlanSummaryCard({ snapshot }: { snapshot: PlanView['snapshot'] }) {
   const theme = useTheme();
   const { t } = useTranslation();
   const spareIsNegative = snapshot.spareBudget < 0;
@@ -107,46 +101,24 @@ function PlanSummaryCard({
       >
         {formatMoney(snapshot.spareBudget)}
       </ThemedText>
-      <ThemedText style={[styles.summaryCaption, { color: theme.heroMuted }]}>
-        {t(spareIsNegative ? 'common.spareBudgetOverPlan' : 'common.spareBudgetPeriod')}
-      </ThemedText>
-
-      <View style={[styles.summaryBreakdown, { borderTopColor: theme.heroDivider }]}>
-        <View style={styles.summaryMetricRow}>
-          <PlanSummaryMetric
-            label={t('common.actualIncome')}
-            value={formatMoney(snapshot.totalIncome)}
-            theme={theme}
-          />
-          <PlanSummaryMetric
-            align="right"
-            label={t('common.expenseTarget')}
-            value={formatMoney(plannedExpense)}
-            theme={theme}
-          />
-        </View>
-      </View>
+      {spareIsNegative && (
+        <ThemedText style={[styles.summaryWarning, { color: theme.expense }]}>
+          {t('common.spareBudgetOverPlan')}
+        </ThemedText>
+      )}
 
       <View style={[styles.summaryBalance, { borderTopColor: theme.heroDivider }]}>
-        <ThemedText style={[styles.summarySubheading, { color: theme.heroMuted }]}>
-          {t('common.availableBalance')}
-        </ThemedText>
-        <ThemedText style={[styles.summaryCaption, { color: theme.heroMuted }]}>
-          {t('common.availableBalanceNow')}
-        </ThemedText>
-        <View style={[styles.summaryMetricRow, styles.summaryBalanceMetrics]}>
-          <PlanSummaryMetric
-            label={t('common.freeBalance')}
-            value={formatMoney(snapshot.freeBalance)}
-            theme={theme}
-          />
-          <PlanSummaryMetric
-            align="right"
-            label={t('common.tiedGoal')}
-            value={formatMoney(snapshot.goalBalance)}
-            theme={theme}
-          />
-        </View>
+        <PlanSummaryMetric
+          label={t('common.freeBalance')}
+          value={formatMoney(snapshot.freeBalance)}
+          theme={theme}
+        />
+        <PlanSummaryMetric
+          align="right"
+          label={t('common.tiedGoal')}
+          value={formatMoney(snapshot.goalBalance)}
+          theme={theme}
+        />
       </View>
     </MotionAnimatedView>
   );
@@ -185,7 +157,6 @@ function PlanScreenContent({
   const { t } = useTranslation();
   const locale = (i18n.language === 'en' ? 'en' : 'id') as Locale;
   const { snapshot, plan, goals, wallets, period } = planView;
-  const plannedExpense = plan.expenseItems.reduce((sum, item) => sum + item.targetAmount, 0);
   const [startDay, setStartDay] = useState(Number(period.startDate.slice(-2)));
   const [aiOpen, setAiOpen] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
@@ -306,7 +277,7 @@ function PlanScreenContent({
             </ThemedText>
           </Pressable>
         </View>
-        <PlanSummaryCard snapshot={snapshot} plannedExpense={plannedExpense} />
+        <PlanSummaryCard snapshot={snapshot} />
         <PlanSection
           title={t('common.incomePlan')}
           action={t('common.add')}
@@ -1741,24 +1712,17 @@ const styles = StyleSheet.create({
   },
   summaryLabel: { ...Typography.eyebrow },
   summaryAmount: { ...Typography.moneyHero, marginVertical: 8 },
-  summaryCaption: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
-  summaryBreakdown: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    marginTop: 17,
-    paddingTop: 14,
-  },
-  summaryMetricRow: { flexDirection: 'row', gap: 16 },
+  summaryWarning: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
   summaryMetric: { flex: 1 },
   summaryMetricRight: { alignItems: 'flex-end' },
   summaryMetricLabel: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
   summaryMetricValue: { fontFamily: Fonts.monoMedium, fontSize: 12, lineHeight: 16, marginTop: 2 },
   summaryBalance: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    marginTop: 16,
+    flexDirection: 'row',
+    marginTop: 17,
     paddingTop: 14,
   },
-  summarySubheading: { ...Typography.eyebrow, marginBottom: 3 },
-  summaryBalanceMetrics: { marginTop: 12 },
   section: { marginBottom: 28 },
   sectionTitle: {
     alignItems: 'center',

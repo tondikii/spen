@@ -45,7 +45,7 @@ Gaya visual komponen (kartu, progress bar, chart, sheet, modal, tab bar, ikon) a
    - **Transaksi terbaru**: list pendek (misal 5, transaksi terbaru) + "Lihat Semua" → buka **view transaksi harian** (daily + stepper).
 2. **Rencana (Plan)** — budget plan bulan ini. Struktur:
    - **Header**: judul "Rencana" + label periode `[1–30 Sep ▾]` (tap → modal ubah tanggal mulai Budget period) + tombol **✨ AI Suggestion** di header (selalu kelihatan).
-   - **Kartu ringkasan**: satu kartu dengan **Spare budget** sebagai angka utama + caption "ruang rencana periode ini", breakdown **Pendapatan aktual** dan **Target Pengeluaran**, lalu bagian **Saldo tersedia** dengan **Tersedia bebas** dan **Terikat goal** + caption "saldo Wallet saat ini". Jangan ulangi total saldo, persentase, atau donut.
+   - **Kartu ringkasan**: satu kartu ringkas dengan **Spare budget** sebagai angka utama, lalu **Tersedia bebas** dan **Terikat goal**. Jangan ulangi operand rumus, heading/caption saldo, total saldo, persentase, atau donut.
    - **Section cards**: Pendapatan, Fixed Expense, Goal, Alokasi — tiap section punya header + tombol "+ Tambah".
    - **Fixed expense item**: progress + status bayar ("Lunas ✓", "x/y dibayar", "Belum dibayar") + tombol **"Bayar"** (buka sheet: pilih wallet → nominal default sisa, bisa diubah → konfirmasi → buat transaksi expense). **Fixed expense = alokasi**: progress terisi dari transaksi kategori; tidak ada transaksi otomatis.
    - **Goal item**: progress (saved/target) + kontribusi bulanan.

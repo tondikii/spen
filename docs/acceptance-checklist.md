@@ -33,7 +33,7 @@ Checklist ini memetakan 48 user story pada `docs/spec.md` ke implementasi yang a
 | 24 | ✅ | Wallet dipilih eksplisit di form transaksi. |
 | 25 | ✅ | Tap transaksi membuka form edit yang sama; hapus memakai konfirmasi. |
 | 26 | ✅ | Saldo awal menghasilkan transaksi income/expense kategori Saldo Awal, Pendapatan di Plan menghitung semua transaksi income, sedangkan koreksi saldo memakai kategori Penyesuaian Saldo. |
-| 26a | ✅ | Satu kartu ringkasan Rencana memuat SPARE BUDGET sebagai angka utama, operand Pendapatan aktual/Target Pengeluaran, serta SALDO TERSEDIA yang dipecah menjadi Tersedia bebas/Terikat goal. |
+| 26a | ✅ | Satu kartu ringkasan Rencana memuat SPARE BUDGET sebagai angka utama, Tersedia bebas, dan Terikat goal tanpa operand atau ringkasan saldo berulang. |
 | 27 | ✅ | Wallet bertransaksi di-archive, bukan dihapus. |
 | 28 | ✅ | Warning over-budget tetap mengizinkan penyimpanan. |
 | 29 | ✅ | Goal tercapai berlabel Tercapai; saldo Wallet Goal tetap dipisahkan sebagai Terikat goal tanpa memengaruhi Spare budget. |

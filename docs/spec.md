@@ -104,7 +104,7 @@ Spen adalah aplikasi mobile budget planner dengan Bahasa Indonesia sebagai defau
 
 ### Layar Rencana (Plan)
 - Header: judul "Rencana" + label periode `[1–30 Sep ▾]` (tap → modal ubah tanggal mulai Budget period) + tombol **AI Suggestion** di header.
-- **Kartu ringkasan plan**: satu kartu dengan **SPARE BUDGET** sebagai angka utama + caption "ruang rencana periode ini"; breakdown berisi **Pendapatan aktual** dan **Target Pengeluaran**. Bagian **SALDO TERSEDIA** di kartu yang sama menampilkan **Tersedia bebas** dan **Terikat goal** dengan caption "saldo Wallet saat ini". Tidak ada total saldo, persentase, atau donut yang diulang di kartu ini.
+- **Kartu ringkasan plan**: satu kartu ringkas dengan **SPARE BUDGET** sebagai angka utama, lalu **Tersedia bebas** dan **Terikat goal**. Tidak ada operand rumus, heading saldo, caption tambahan, total saldo, persentase, atau donut di kartu ini.
 - **Section cards**: Pendapatan, Fixed Expense, Goal, Alokasi — tiap section punya header + tombol "+ Tambah".
 - **Fixed expense item**: progress + status bayar ("Lunas ✓", "x/y dibayar", "Belum dibayar") + tombol **"Bayar"** (buka form bayar → pilih wallet → buat transaksi). **Fixed expense = alokasi**: progress terisi dari transaksi kategori; tidak ada mode "bayar langsung vs dianggarkan" — semua item punya tombol "Bayar" sebagai shortcut, dan progress juga terisi dari transaksi biasa.
 - **Goal item**: progress (saved/target) + kontribusi bulanan.
