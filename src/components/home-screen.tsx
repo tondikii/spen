@@ -394,7 +394,7 @@ function WalletForm(props: WalletFormProps) {
                 accessibilityRole="button"
                 accessibilityLabel={t('common.archiveWalletLabel')}
                 onPress={props.onArchive}
-                style={[styles.archiveAction, { borderTopColor: theme.line }]}
+                style={styles.archiveAction}
               >
                 <ThemedText
                   style={[
@@ -758,7 +758,6 @@ const styles = StyleSheet.create({
   formNote: { fontSize: 12, lineHeight: 18, marginBottom: Spacing.five },
   archiveAction: {
     alignItems: 'center',
-    borderTopWidth: 1,
     flexDirection: 'row',
     gap: 12,
     marginTop: Spacing.five,

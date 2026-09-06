@@ -107,6 +107,16 @@ describe('PlanScreen', () => {
     );
   });
 
+  it('menaikkan section saat popup meatball dibuka', async () => {
+    const { getByLabelText, getByTestId } = await render(<PlanScreen />);
+
+    await fireEvent.press(getByLabelText('Aksi lainnya Internet'));
+
+    expect(getByTestId('plan-section-expense').props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ zIndex: expect.any(Number) })]),
+    );
+  });
+
   it('tidak menampilkan toggle pembayaran terpisah pada Pengeluaran', async () => {
     const { queryByLabelText } = await render(<PlanScreen />);
 

@@ -1,34 +1,40 @@
-import { useEffect, useMemo, useState, type ComponentProps, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+} from 'react';
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
-import { Fonts, Layout, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
-import { formatMoney } from '@/lib/money';
-import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
-import { getDatabasePlanView, getPlanView, type PlanItemDraft } from '@/services/plan-service';
-import { aiService, type BudgetAIInput, type BudgetSuggestion } from '@/services/ai-service';
-import { ThemedInput } from '@/components/themed-input';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '@/hooks/use-theme';
-import type { BudgetPlanItem, Category, Goal, PlanItemType, Wallet } from '@/types/domain';
-import { CATEGORY_ICON_CHOICES, CategoryIcon } from '@/components/category-icon';
-import { CurrencyMark } from '@/components/currency-mark';
-import { ConfirmationModal } from '@/components/confirmation-modal';
 import { BudgetPeriodPicker } from '@/components/budget-period-picker';
+import { CATEGORY_ICON_CHOICES, CategoryIcon } from '@/components/category-icon';
+import { ConfirmationModal } from '@/components/confirmation-modal';
+import { CurrencyMark } from '@/components/currency-mark';
 import {
   MotionAnimatedView,
-  MotionPressable as Pressable,
   MotionProgressBar,
   MotionPulse,
   MotionScreen,
+  MotionPressable as Pressable,
   motionPresets,
 } from '@/components/motion';
-import { useTranslation } from 'react-i18next';
-import type { Locale } from '@/types/domain';
+import { ThemedInput } from '@/components/themed-input';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { Fonts, Layout, Radius, Shadows, Typography } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import i18n from '@/i18n';
 import { getCategoryLabel } from '@/i18n/categories';
 import { getErrorTranslationKey } from '@/lib/app-error';
+import { formatMoney } from '@/lib/money';
+import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
+import { aiService, type BudgetAIInput, type BudgetSuggestion } from '@/services/ai-service';
+import { getDatabasePlanView, getPlanView, type PlanItemDraft } from '@/services/plan-service';
+import type { BudgetPlanItem, Category, Goal, Locale, PlanItemType, Wallet } from '@/types/domain';
+import { useTranslation } from 'react-i18next';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type PlanView = ReturnType<typeof getPlanView> | Awaited<ReturnType<typeof getDatabasePlanView>>;
 
@@ -167,6 +173,24 @@ function PlanScreenContent({
   const [expensePaymentEditor, setExpensePaymentEditor] = useState<BudgetPlanItem | null>(null);
   const [goalSavingEditor, setGoalSavingEditor] = useState<Goal | null>(null);
   const [dismissSignal, setDismissSignal] = useState(0);
+  const [openMenuSection, setOpenMenuSection] = useState<'income' | 'expense' | 'goal' | null>(
+    null,
+  );
+  const updateMenuSection = useCallback((section: 'income' | 'expense' | 'goal', open: boolean) => {
+    setOpenMenuSection(open ? section : null);
+  }, []);
+  const handleIncomeMenuOpenChange = useCallback(
+    (open: boolean) => updateMenuSection('income', open),
+    [updateMenuSection],
+  );
+  const handleExpenseMenuOpenChange = useCallback(
+    (open: boolean) => updateMenuSection('expense', open),
+    [updateMenuSection],
+  );
+  const handleGoalMenuOpenChange = useCallback(
+    (open: boolean) => updateMenuSection('goal', open),
+    [updateMenuSection],
+  );
 
   /* eslint-disable react-hooks/set-state-in-effect -- opening the sheet starts its loading state. */
   useEffect(() => {
@@ -278,6 +302,7 @@ function PlanScreenContent({
           title={t('common.incomePlan')}
           action={t('common.add')}
           theme={theme}
+          menuOpen={openMenuSection === 'income'}
           onAction={() => setPlanItemEditor({ type: 'income' })}
         >
           {plan.incomeItems.length ? (
@@ -293,6 +318,7 @@ function PlanScreenContent({
                 onAction={handleItemAction}
                 onEdit={() => setPlanItemEditor({ type: item.type, item })}
                 onDelete={onPlanItemDelete}
+                onMenuOpenChange={handleIncomeMenuOpenChange}
                 dismissSignal={dismissSignal}
               />
             ))
@@ -304,6 +330,8 @@ function PlanScreenContent({
           title={t('common.expensePlan')}
           action={t('common.add')}
           theme={theme}
+          menuOpen={openMenuSection === 'expense'}
+          testID="plan-section-expense"
           onAction={() => setPlanItemEditor({ type: 'expense' })}
         >
           {plan.expenseItems.length ? (
@@ -323,6 +351,7 @@ function PlanScreenContent({
                 onAction={handleItemAction}
                 onEdit={() => setPlanItemEditor({ type: item.type, item })}
                 onDelete={onPlanItemDelete}
+                onMenuOpenChange={handleExpenseMenuOpenChange}
                 dismissSignal={dismissSignal}
               />
             ))
@@ -338,6 +367,8 @@ function PlanScreenContent({
           onArchive={onGoalArchive}
           onOpenSaveAction={setGoalSavingEditor}
           onWithdraw={onGoalWithdraw}
+          menuOpen={openMenuSection === 'goal'}
+          onMenuOpenChange={handleGoalMenuOpenChange}
           dismissSignal={dismissSignal}
         />
       </ScrollView>
@@ -471,18 +502,23 @@ function PlanSection({
   children,
   theme,
   onAction,
+  testID,
+  menuOpen = false,
 }: {
   title: string;
   action: string;
   children: ReactNode;
   theme: ReturnType<typeof useTheme>;
   onAction?: () => void;
+  testID?: string;
+  menuOpen?: boolean;
 }) {
   return (
     <MotionAnimatedView
       entering={motionPresets.itemEntering}
       layout={motionPresets.layout}
-      style={styles.section}
+      style={[styles.section, menuOpen && styles.sectionMenuOpen]}
+      testID={testID}
     >
       <View style={styles.sectionTitle}>
         <ThemedText type="sectionHeading">{title}</ThemedText>
@@ -1031,6 +1067,8 @@ function GoalSection({
   onArchive,
   onOpenSaveAction,
   onWithdraw,
+  menuOpen = false,
+  onMenuOpenChange,
   dismissSignal = 0,
 }: {
   goals: Goal[];
@@ -1040,6 +1078,8 @@ function GoalSection({
   onArchive?: (goal: Goal) => void | Promise<void>;
   onOpenSaveAction: (goal: Goal) => void;
   onWithdraw?: (goal: Goal, amount: number) => void | Promise<void>;
+  menuOpen?: boolean;
+  onMenuOpenChange?: (open: boolean) => void;
   dismissSignal?: number;
 }) {
   const { t } = useTranslation();
@@ -1053,6 +1093,7 @@ function GoalSection({
         title={t('common.goal')}
         action={t('common.add')}
         theme={theme}
+        menuOpen={menuOpen}
         onAction={openNew}
       >
         {goals.length === 0 ? (
@@ -1100,6 +1141,7 @@ function GoalSection({
                     <PlanActionMenu
                       label={goal.name}
                       theme={theme}
+                      onOpenChange={onMenuOpenChange}
                       dismissSignal={dismissSignal}
                       actions={[
                         { icon: '✎', label: t('common.edit'), onPress: () => setEditor(goal) },
@@ -1354,6 +1396,7 @@ function PlanItem(props: {
   onAction: (item: BudgetPlanItem) => void;
   onEdit: () => void;
   onDelete?: (item: BudgetPlanItem) => void | Promise<void>;
+  onMenuOpenChange?: (open: boolean) => void;
   dismissSignal?: number;
 }) {
   const { t } = useTranslation();
@@ -1389,6 +1432,7 @@ function PlanItemContent({
   onPayment,
   onEdit,
   onRequestDelete,
+  onMenuOpenChange,
   dismissSignal = 0,
 }: {
   item: BudgetPlanItem;
@@ -1401,10 +1445,18 @@ function PlanItemContent({
   onPayment?: (item: BudgetPlanItem, paid: boolean) => void | Promise<void>;
   onEdit: () => void;
   onRequestDelete: () => void;
+  onMenuOpenChange?: (open: boolean) => void;
   dismissSignal?: number;
 }) {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const handleMenuOpenChange = useCallback(
+    (open: boolean) => {
+      setMenuOpen(open);
+      onMenuOpenChange?.(open);
+    },
+    [onMenuOpenChange],
+  );
   const itemName = category ? getCategoryLabel(category) : item.name;
   const amount = state?.realizedAmount ?? 0;
   const income = item.type === 'income';
@@ -1449,7 +1501,7 @@ function PlanItemContent({
             <PlanActionMenu
               label={itemName}
               theme={theme}
-              onOpenChange={setMenuOpen}
+              onOpenChange={handleMenuOpenChange}
               dismissSignal={dismissSignal}
               actions={[
                 ...(!income && action
@@ -1685,6 +1737,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   eyebrow: { ...Typography.eyebrow },
+  sectionMenuOpen: { elevation: 10, position: 'relative', zIndex: 10 },
   title: {
     fontFamily: Fonts.serifSemiBold,
     fontSize: 29,
@@ -1801,7 +1854,7 @@ const styles = StyleSheet.create({
   itemActionText: { fontSize: 10, lineHeight: 14 },
   quietAction: { fontSize: 12, lineHeight: 15 },
   progressRow: { alignItems: 'center', flexDirection: 'row', gap: 8, marginTop: 10 },
-  progress: { flex: 1, borderRadius: 9, height: 5, marginBottom: 7, overflow: 'hidden' },
+  progress: { flex: 1, borderRadius: 9, height: 5, overflow: 'hidden' },
   progressPercent: { minWidth: 34, textAlign: 'right' },
   progressFill: { borderRadius: 9, height: '100%' },
   goal: { paddingVertical: 12 },
