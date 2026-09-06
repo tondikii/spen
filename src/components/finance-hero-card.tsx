@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: Spacing.two,
   },
-  footerItem: { flex: 1, fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
+  footerItem: { flex: 1, fontFamily: Fonts.sans, fontSize: 10, lineHeight: 14 },
   footerItemRight: { textAlign: 'right' },
-  footerValue: { fontFamily: Fonts.monoMedium, fontSize: 11, lineHeight: 15 },
+  footerValue: { fontFamily: Fonts.monoMedium, fontSize: 10, lineHeight: 14 },
 });
