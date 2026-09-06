@@ -103,15 +103,15 @@ function PlanSummaryCard({ snapshot }: { snapshot: PlanView['snapshot'] }) {
         </ThemedText>
       </View>
       <View style={styles.summaryStats}>
-        <ThemedText type="small" style={[styles.summaryStat, { color: theme.income }]}>
+        <ThemedText type="small" themeColor="muted" style={styles.summaryStat}>
           {t('common.income')}{' '}
-          <ThemedText style={[styles.summaryStatValue, { color: theme.income }]}>
+          <ThemedText style={styles.summaryStatValue}>
             {formatMoney(snapshot.totalIncome)}
           </ThemedText>
         </ThemedText>
-        <ThemedText type="small" style={[styles.summaryStat, { color: theme.expense }]}>
+        <ThemedText type="small" themeColor="muted" style={styles.summaryStat}>
           {t('common.expense')}{' '}
-          <ThemedText style={[styles.summaryStatValue, { color: theme.expense }]}>
+          <ThemedText style={styles.summaryStatValue}>
             {formatMoney(snapshot.totalExpense)}
           </ThemedText>
         </ThemedText>
