@@ -11,13 +11,14 @@ type TabItem = {
   name: 'index' | 'plan' | 'report' | 'settings';
   translationKey: 'home' | 'plan' | 'report' | 'settings';
   icon: string;
+  iconSize?: number;
 };
 
 const tabs: TabItem[] = [
   { name: 'index', translationKey: 'home', icon: '⌂' },
   { name: 'plan', translationKey: 'plan', icon: '▤' },
-  { name: 'report', translationKey: 'report', icon: '◔' },
-  { name: 'settings', translationKey: 'settings', icon: '☼' },
+  { name: 'report', translationKey: 'report', icon: '◔', iconSize: 23 },
+  { name: 'settings', translationKey: 'settings', icon: '☼', iconSize: 23 },
 ];
 
 export default function AppTabs() {
@@ -56,7 +57,17 @@ export default function AppTabs() {
           options={{
             title: tab.label,
             tabBarAccessibilityLabel: tab.label,
-            tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>{tab.icon}</Text>,
+            tabBarIcon: ({ color }) => (
+              <Text
+                style={[
+                  styles.icon,
+                  tab.iconSize ? { fontSize: tab.iconSize, lineHeight: tab.iconSize + 4 } : null,
+                  { color },
+                ]}
+              >
+                {tab.icon}
+              </Text>
+            ),
           }}
         />
       ))}
@@ -88,7 +99,17 @@ export default function AppTabs() {
           options={{
             title: tab.label,
             tabBarAccessibilityLabel: tab.label,
-            tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>{tab.icon}</Text>,
+            tabBarIcon: ({ color }) => (
+              <Text
+                style={[
+                  styles.icon,
+                  tab.iconSize ? { fontSize: tab.iconSize, lineHeight: tab.iconSize + 4 } : null,
+                  { color },
+                ]}
+              >
+                {tab.icon}
+              </Text>
+            ),
           }}
         />
       ))}
