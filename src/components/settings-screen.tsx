@@ -157,34 +157,6 @@ export default function SettingsScreen({
               style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
             >
               <SettingRow
-                icon="$"
-                iconStyle={styles.currencyIcon}
-                title={t('common.currency')}
-                detail={t('common.currencyUsedForWallets')}
-              >
-                <MotionPressable
-                  accessibilityRole="button"
-                  accessibilityLabel={t('common.chooseCurrency')}
-                  accessibilityState={{ expanded: currencyOpen }}
-                  onPress={() => setCurrencyOpen((open) => !open)}
-                  style={[styles.dropdown, { borderColor: theme.line }]}
-                >
-                  <ThemedText type="smallBold" themeColor="pine">
-                    {currency}
-                  </ThemedText>
-                  <MotionChevron expanded={currencyOpen} color={theme.pine} size={16} />
-                </MotionPressable>
-              </SettingRow>
-              {currencyOpen && (
-                <MotionCollapsible>
-                  <CurrencyPicker
-                    selected={currency}
-                    onSelect={(option) => void chooseCurrency(option)}
-                    withTopBorder
-                  />
-                </MotionCollapsible>
-              )}
-              <SettingRow
                 icon="文"
                 iconStyle={styles.smallIcon}
                 title={t('common.language')}
@@ -208,6 +180,34 @@ export default function SettingsScreen({
                   <LanguagePicker
                     selected={locale}
                     onSelect={(option) => void chooseLocale(option)}
+                    withTopBorder
+                  />
+                </MotionCollapsible>
+              )}
+              <SettingRow
+                icon="$"
+                iconStyle={styles.currencyIcon}
+                title={t('common.currency')}
+                detail={t('common.currencyUsedForWallets')}
+              >
+                <MotionPressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.chooseCurrency')}
+                  accessibilityState={{ expanded: currencyOpen }}
+                  onPress={() => setCurrencyOpen((open) => !open)}
+                  style={[styles.dropdown, { borderColor: theme.line }]}
+                >
+                  <ThemedText type="smallBold" themeColor="pine">
+                    {currency}
+                  </ThemedText>
+                  <MotionChevron expanded={currencyOpen} color={theme.pine} size={16} />
+                </MotionPressable>
+              </SettingRow>
+              {currencyOpen && (
+                <MotionCollapsible>
+                  <CurrencyPicker
+                    selected={currency}
+                    onSelect={(option) => void chooseCurrency(option)}
                     withTopBorder
                   />
                 </MotionCollapsible>
