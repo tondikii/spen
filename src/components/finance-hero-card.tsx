@@ -51,19 +51,21 @@ export function FinanceHeroCard({
       {footer.length > 0 && (
         <View style={[styles.footer, { borderTopColor: theme.heroDivider }]}>
           {footer.map((item, index) => (
-            <View
+            <ThemedText
               key={item.label}
-              style={[styles.footerItem, index === footer.length - 1 && styles.footerItemRight]}
+              style={[
+                styles.footerItem,
+                { color: theme.heroMuted },
+                index === footer.length - 1 && styles.footerItemRight,
+              ]}
             >
-              <ThemedText style={[styles.footerLabel, { color: theme.heroMuted }]}>
-                {item.label}
-              </ThemedText>
+              {item.label}{' '}
               <ThemedText
                 style={[styles.footerValue, { color: item.valueColor ?? theme.heroText }]}
               >
                 {item.value}
               </ThemedText>
-            </View>
+            </ThemedText>
           ))}
         </View>
       )}
@@ -82,8 +84,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: Spacing.two,
   },
-  footerItem: { alignItems: 'baseline', flex: 1, flexDirection: 'row', gap: 4 },
-  footerItemRight: { justifyContent: 'flex-end' },
-  footerLabel: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
+  footerItem: { flex: 1, fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
+  footerItemRight: { textAlign: 'right' },
   footerValue: { fontFamily: Fonts.monoMedium, fontSize: 11, lineHeight: 15 },
 });

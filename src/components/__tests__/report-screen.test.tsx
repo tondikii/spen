@@ -16,6 +16,24 @@ describe('ReportScreen', () => {
     expect(queryByLabelText('Tanya insight')).toBeNull();
   });
 
+  it('merender Pendapatan dan Pengeluaran panjang sebagai satu baris footer', async () => {
+    const view = getReportView();
+    const reportView = {
+      ...view,
+      snapshot: {
+        ...view.snapshot,
+        totalIncome: 12_345_678_901,
+        totalExpense: 9_876_543_210,
+        netSaving: 2_469_135_691,
+      },
+    };
+
+    const { getByText } = await render(<ReportScreen reportView={reportView} />);
+
+    expect(getByText('Pendapatan Rp 12.345.678.901')).toBeTruthy();
+    expect(getByText('Pengeluaran Rp 9.876.543.210')).toBeTruthy();
+  });
+
   it('menampilkan empty state saat saving trend belum memiliki data', async () => {
     const view = { ...getReportView(), netSavingByPeriod: [] };
 
