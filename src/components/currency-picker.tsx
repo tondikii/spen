@@ -34,6 +34,7 @@ export function CurrencyPicker({
           accessibilityRole="button"
           accessibilityLabel={t('common.chooseCurrencyOption', { currency: option })}
           onPress={() => onSelect(option)}
+          wrapperStyle={styles.currencyWrapper}
           style={[
             styles.currency,
             {
@@ -65,6 +66,7 @@ const styles = StyleSheet.create({
     padding: 13,
     rowGap: 8,
   },
+  currencyWrapper: { width: '22.5%' },
   currency: {
     alignItems: 'center',
     borderRadius: 10,
@@ -73,6 +75,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 10,
     paddingVertical: 8,
+    width: '100%',
   },
   currencySymbol: { fontFamily: Fonts.mono, fontSize: 11 },
 });

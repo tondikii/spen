@@ -40,6 +40,7 @@ export function LanguagePicker({
             language: languageNames[option],
           })}
           onPress={() => onSelect(option)}
+          wrapperStyle={styles.languageWrapper}
           style={[
             styles.language,
             {
@@ -71,6 +72,7 @@ const styles = StyleSheet.create({
     padding: 13,
     rowGap: 8,
   },
+  languageWrapper: { width: '47%' },
   language: {
     alignItems: 'center',
     borderRadius: 10,
@@ -79,6 +81,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 10,
     paddingVertical: 8,
+    width: '100%',
   },
   languageCode: { fontFamily: Fonts.mono, fontSize: 11 },
 });
