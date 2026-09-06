@@ -67,8 +67,9 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    columnGap: 8,
     padding: 13,
+    rowGap: 8,
   },
   language: {
     alignItems: 'center',
