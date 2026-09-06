@@ -156,7 +156,7 @@ export default function SettingsScreen({
               style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
             >
               <SettingRow
-                icon="¤"
+                icon="$"
                 title={t('common.currency')}
                 detail={t('common.currencyUsedForWallets')}
               >
@@ -421,11 +421,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
     fontFamily: Fonts.mono,
-    fontSize: 12,
-    height: 31,
+    fontSize: 18,
+    height: 35,
     justifyContent: 'center',
+    lineHeight: 35,
     textAlign: 'center',
-    width: 31,
+    textAlignVertical: 'center',
+    width: 35,
   },
   copy: { flex: 1 },
   rowTitle: { fontSize: 12, lineHeight: 16 },

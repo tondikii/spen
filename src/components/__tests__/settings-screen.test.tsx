@@ -23,6 +23,7 @@ describe('SettingsScreen', () => {
 
     expect(getByText('Tema gelap')).toBeTruthy();
     expect(getByText('Mata Uang')).toBeTruthy();
+    expect(getByText('$')).toBeTruthy();
     expect(getByText('Backup data')).toBeTruthy();
     expect(getByText('Spen')).toBeTruthy();
   });
