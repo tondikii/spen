@@ -102,7 +102,7 @@ type IconName = (typeof CATEGORY_ICON_CHOICES)[number];
 
 export function CategoryIcon({
   name,
-  size = 22,
+  size = 24,
   color = '#235B50',
   style,
 }: {
@@ -114,7 +114,11 @@ export function CategoryIcon({
   if (name && CATEGORY_ICON_CHOICES.includes(name as IconName)) {
     return <MaterialCommunityIcons name={name as IconName} size={size} color={color} />;
   }
-  return <Text style={[styles.legacy, { color, fontSize: size }, style]}>{name || '◈'}</Text>;
+  return (
+    <Text style={[styles.legacy, { color, fontSize: size, lineHeight: size + 4 }, style]}>
+      {name || '◈'}
+    </Text>
+  );
 }
 
 const styles = StyleSheet.create({

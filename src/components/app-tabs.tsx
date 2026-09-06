@@ -1,4 +1,5 @@
 import { Tabs, useRouter } from 'expo-router';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -10,14 +11,14 @@ import { MotionPressable } from '@/components/motion';
 type TabItem = {
   name: 'index' | 'plan' | 'report' | 'settings';
   translationKey: 'home' | 'plan' | 'report' | 'settings';
-  icon: string;
+  icon: 'home-variant-outline' | 'clipboard-text-outline' | 'chart-pie-outline' | 'cog-outline';
 };
 
 const tabs: TabItem[] = [
-  { name: 'index', translationKey: 'home', icon: '⌂' },
-  { name: 'plan', translationKey: 'plan', icon: '▤' },
-  { name: 'report', translationKey: 'report', icon: '◔' },
-  { name: 'settings', translationKey: 'settings', icon: '☼' },
+  { name: 'index', translationKey: 'home', icon: 'home-variant-outline' },
+  { name: 'plan', translationKey: 'plan', icon: 'clipboard-text-outline' },
+  { name: 'report', translationKey: 'report', icon: 'chart-pie-outline' },
+  { name: 'settings', translationKey: 'settings', icon: 'cog-outline' },
 ];
 
 export default function AppTabs() {
@@ -56,7 +57,9 @@ export default function AppTabs() {
           options={{
             title: tab.label,
             tabBarAccessibilityLabel: tab.label,
-            tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>{tab.icon}</Text>,
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons name={tab.icon} size={24} color={color} />
+            ),
           }}
         />
       ))}
@@ -88,7 +91,9 @@ export default function AppTabs() {
           options={{
             title: tab.label,
             tabBarAccessibilityLabel: tab.label,
-            tabBarIcon: ({ color }) => <Text style={[styles.icon, { color }]}>{tab.icon}</Text>,
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons name={tab.icon} size={24} color={color} />
+            ),
           }}
         />
       ))}
@@ -146,11 +151,6 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.sansBold,
     fontSize: 9,
     lineHeight: 12,
-  },
-  icon: {
-    fontFamily: Fonts.sans,
-    fontSize: 19,
-    lineHeight: 22,
   },
   addButton: {
     alignItems: 'center',

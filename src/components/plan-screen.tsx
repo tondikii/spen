@@ -1783,7 +1783,7 @@ function LegacyPlanItem({
       <View style={[styles.item, { borderBottomColor: theme.line }]}>
         <View style={styles.planItemTop}>
           <View style={[styles.categoryIcon, { backgroundColor: iconBackground }]}>
-            <ThemedText style={{ color: iconColor }}>{category?.icon ?? '◈'}</ThemedText>
+            <CategoryIcon name={category?.icon} color={iconColor} />
           </View>
           <View style={styles.itemCopy}>
             <ThemedText type="smallBold" style={styles.itemName}>
@@ -1836,7 +1836,7 @@ function LegacyPlanItem({
     <View style={[styles.item, { borderBottomColor: theme.line }]}>
       <View style={styles.planItemTop}>
         <View style={[styles.categoryIcon, { backgroundColor: iconBackground }]}>
-          <ThemedText style={{ color: iconColor }}>{category?.icon ?? '◈'}</ThemedText>
+          <CategoryIcon name={category?.icon} color={iconColor} />
         </View>
         <View style={styles.itemCopy}>
           <ThemedText type="smallBold" style={styles.itemName}>
