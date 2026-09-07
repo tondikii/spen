@@ -79,9 +79,10 @@ export function SectionHeader({
           accessibilityLabel={action}
           hitSlop={8}
           onPress={onPress}
+          wrapperStyle={styles.sectionAction}
           style={styles.quietAction}
         >
-          <ThemedText type="smallBold" style={{ color: theme.pine }}>
+          <ThemedText type="smallBold" style={{ color: theme.pine }} numberOfLines={1}>
             {action}
           </ThemedText>
         </MotionPressable>
@@ -175,6 +176,7 @@ const styles = StyleSheet.create({
   headerCopy: { flex: 1, gap: Spacing.one },
   eyebrow: Typography.eyebrow,
   sectionHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
+  sectionAction: { flexShrink: 0 },
   quietAction: { minHeight: 44, justifyContent: 'center', paddingHorizontal: Spacing.two },
   primary: {
     alignItems: 'center',

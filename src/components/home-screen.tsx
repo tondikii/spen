@@ -107,8 +107,9 @@ function WalletCards({
           accessibilityLabel={t('common.addWalletLabel')}
           hitSlop={8}
           onPress={onAdd}
+          wrapperStyle={styles.sectionAction}
         >
-          <ThemedText type="smallBold" themeColor="pine">
+          <ThemedText type="smallBold" themeColor="pine" numberOfLines={1}>
             {t('common.addWalletLabel')}
           </ThemedText>
         </Pressable>
@@ -283,7 +284,7 @@ function RecentTransaction({
         </ThemedText>
       </View>
       <View style={styles.transactionAmount}>
-        <ThemedText type="smallBold" themeColor={typeColor} style={styles.transactionAmountText}>
+        <ThemedText type="code" themeColor={typeColor} style={styles.transactionAmountText}>
           {sign} {formatMoney(transaction.amount)}
         </ThemedText>
         <ThemedText type="small" themeColor="muted" style={styles.transactionTime}>
@@ -354,9 +355,6 @@ function WalletForm(props: WalletFormProps) {
             keyboardShouldPersistTaps="handled"
             automaticallyAdjustKeyboardInsets
           >
-            <ThemedText type="small" themeColor="muted" style={styles.formNote}>
-              {t('common.walletFormNote')}
-            </ThemedText>
             <ThemedText type="code" themeColor="muted" style={styles.formLabel}>
               {t('common.walletName').toUpperCase()}
             </ThemedText>
@@ -504,8 +502,9 @@ export default function HomeScreen({
                   accessibilityRole="button"
                   accessibilityLabel={t('common.viewAllTransactions')}
                   onPress={onDailyPress ?? (() => undefined)}
+                  wrapperStyle={styles.sectionAction}
                 >
-                  <ThemedText type="smallBold" themeColor="pine">
+                  <ThemedText type="smallBold" themeColor="pine" numberOfLines={1}>
                     {t('common.viewAll')}
                   </ThemedText>
                 </Pressable>
@@ -607,6 +606,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
+  sectionAction: { flexShrink: 0 },
   walletSection: { marginBottom: Spacing.six },
   archivedWallets: {
     borderRadius: 19,

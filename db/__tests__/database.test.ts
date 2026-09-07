@@ -2,7 +2,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import migrations from '../../drizzle/migrations';
 import { configureDatabase } from '../database';
-import { seedDefaultCategories } from '../seed';
+import { DEFAULT_CATEGORIES, seedDefaultCategories } from '../seed';
 
 describe('database foundation', () => {
   // Node 24's built-in SQLite gives Jest a real temporary database without
@@ -77,8 +77,32 @@ describe('database foundation', () => {
       'SELECT COUNT(*) AS count FROM categories;',
     );
 
-    expect(firstCount?.count).toBe(12);
-    expect(secondCount?.count).toBe(12);
+    expect(firstCount?.count).toBe(DEFAULT_CATEGORIES.length);
+    expect(secondCount?.count).toBe(DEFAULT_CATEGORIES.length);
     expect(await database.getFirstAsync('SELECT id FROM settings WHERE id = 1;')).toBeTruthy();
+  });
+
+  it('seeds recognizable icons and refreshes icons for built-in categories', async () => {
+    expect(
+      await database.getAllAsync<{ system_key: string; icon: string }>(
+        'SELECT system_key, icon FROM categories ORDER BY id;',
+      ),
+    ).toEqual(
+      DEFAULT_CATEGORIES.map((category) => ({
+        system_key: category.systemKey,
+        icon: category.icon,
+      })),
+    );
+
+    await database.runAsync(
+      "UPDATE categories SET icon = 'legacy-symbol' WHERE system_key = 'salary';",
+    );
+    await seedDefaultCategories(database);
+
+    expect(
+      await database.getFirstAsync<{ icon: string }>(
+        "SELECT icon FROM categories WHERE system_key = 'salary';",
+      ),
+    ).toEqual({ icon: 'cash-multiple' });
   });
 });

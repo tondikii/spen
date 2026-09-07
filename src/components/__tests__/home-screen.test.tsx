@@ -1,8 +1,17 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
 import HomeScreen from '@/components/home-screen';
+import { changeLocale } from '@/i18n';
 
 describe('HomeScreen', () => {
+  it('menampilkan label View all secara utuh pada locale English', async () => {
+    await changeLocale('en');
+
+    const { getByText } = await render(<HomeScreen />);
+
+    expect(getByText('View all', { exact: true })).toHaveProp('numberOfLines', 1);
+  });
+
   it('menampilkan ringkasan saldo, Wallet, dan transaksi terbaru tanpa card Spare budget', async () => {
     const { getAllByLabelText, getByText, queryByText } = await render(<HomeScreen />);
 

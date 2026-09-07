@@ -41,6 +41,29 @@ describe('TransactionForm', () => {
     expect(tabs.every((tab) => tab.parent?.props.style?.[0]?.flex === 1)).toBe(true);
   });
 
+  it('merender picker kategori dalam empat kolom', async () => {
+    const { getByTestId } = await render(
+      <TransactionForm mode="create" onClose={jest.fn()} onSave={jest.fn()} />,
+    );
+
+    expect(getByTestId('category-row-0').children).toHaveLength(4);
+  });
+
+  it('mencari kategori berdasarkan nama', async () => {
+    const { getByLabelText, getByText, queryByLabelText } = await render(
+      <TransactionForm mode="create" onClose={jest.fn()} onSave={jest.fn()} />,
+    );
+
+    await fireEvent.press(getByLabelText('Tipe Pengeluaran'));
+    await fireEvent.changeText(getByLabelText('Cari kategori'), 'kesehatan');
+
+    expect(getByLabelText('Kategori Kesehatan')).toBeTruthy();
+    expect(queryByLabelText('Kategori Makan')).toBeNull();
+
+    await fireEvent.changeText(getByLabelText('Cari kategori'), 'tidak ada');
+    expect(getByText('Kategori tidak ditemukan.')).toBeTruthy();
+  });
+
   it('membuka edit state dengan data terisi dan tombol hapus', async () => {
     const onSave = jest.fn();
     const onDelete = jest.fn();
@@ -99,14 +122,14 @@ describe('TransactionForm', () => {
 
     await fireEvent.press(getByLabelText('Tipe Pengeluaran'));
     await fireEvent.press(getByLabelText('Kelola kategori'));
-    await fireEvent.changeText(getByLabelText('Nama kategori baru'), 'Kesehatan');
+    await fireEvent.changeText(getByLabelText('Nama kategori baru'), 'Koleksi');
     await fireEvent.press(getByLabelText('Simpan kategori'));
     await fireEvent.press(getByLabelText('Kelola kategori'));
-    await fireEvent(getByLabelText('Kategori Kesehatan'), 'longPress');
-    await fireEvent.press(getByLabelText('Arsipkan kategori Kesehatan'));
+    await fireEvent(getByLabelText('Kategori Koleksi'), 'longPress');
+    await fireEvent.press(getByLabelText('Arsipkan kategori Koleksi'));
     await fireEvent.press(getByLabelText('Arsipkan'));
 
-    expect(queryByLabelText('Kategori Kesehatan')).toBeNull();
+    expect(queryByLabelText('Kategori Koleksi')).toBeNull();
   });
 
   it('menerima preset dari aksi plan untuk membuka form transaksi siap catat', async () => {

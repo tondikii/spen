@@ -343,7 +343,25 @@ export async function updateDatabasePlanItem(
 export async function deleteDatabasePlanItem(
   database: SQLiteDatabase,
   item: BudgetPlanItem,
+  today = dateOnly(),
 ): Promise<void> {
+  if (item.isAutomatic && (item.type === 'income' || item.type === 'expense')) {
+    const active = await ensureActiveBudgetPlan(database, today);
+    const categoryId = databaseId(item.categoryId);
+    await database.withExclusiveTransactionAsync(async (transaction) => {
+      const result = await transaction.runAsync(
+        'DELETE FROM transactions WHERE type = ? AND category_id = ? AND date BETWEEN ? AND ?;',
+        item.type,
+        categoryId,
+        active.period.start_date,
+        active.period.end_date,
+      );
+      if (result.changes === 0)
+        throw new AppError('notFound', undefined, 'Transaksi item plan tidak ditemukan');
+    });
+    return;
+  }
+
   const itemId = databaseId(item.id);
   await database.withExclusiveTransactionAsync(async (transaction) => {
     if (item.type === 'income') {

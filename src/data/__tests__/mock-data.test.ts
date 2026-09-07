@@ -1,4 +1,6 @@
 import mockData from '@/data/mock-data';
+import { CATEGORY_ICON_CHOICES } from '@/components/category-icon';
+import { DEFAULT_CATEGORIES } from '../../../db/seed';
 
 describe('mockData', () => {
   it('menyediakan data wallet, kategori, dan transaksi untuk layar UI', () => {
@@ -19,6 +21,15 @@ describe('mockData', () => {
     expect(transfer?.walletId).toBe('wallet-bca');
     expect(transfer?.toWalletId).toBe('wallet-dana-nikah');
     expect(mockData.categories.some((category) => category.name === 'Saldo Awal')).toBe(true);
+    expect(mockData.categories).toHaveLength(DEFAULT_CATEGORIES.length);
+    expect(mockData.categories.map(({ systemKey, icon }) => ({ systemKey, icon }))).toEqual(
+      DEFAULT_CATEGORIES.map(({ systemKey, icon }) => ({ systemKey, icon })),
+    );
+    expect(
+      mockData.categories.every((category) =>
+        CATEGORY_ICON_CHOICES.includes(category.icon as (typeof CATEGORY_ICON_CHOICES)[number]),
+      ),
+    ).toBe(true);
 
     const adjustment = mockData.transactions.find(
       (transaction) => transaction.type === 'adjustment',

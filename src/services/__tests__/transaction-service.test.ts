@@ -13,7 +13,8 @@ describe('transaction service', () => {
   });
 
   it('mengarsipkan kategori tanpa menghapus row-nya', () => {
-    const categories = [mockData.categories[3]];
+    const makan = mockData.categories.find((category) => category.id === 'category-makan')!;
+    const categories = [makan];
     const archived = archiveMockCategory(categories, 'category-makan');
 
     expect(archived).toEqual([{ ...categories[0], archived: true }]);

@@ -15,6 +15,7 @@ describe('localization boundary', () => {
   it('starts with English as the app locale', () => {
     expect(getCurrentLocale()).toBe('en');
     expect(i18n.t('common.home')).toBe('Home');
+    expect(i18n.t('common.viewAll')).toBe('View all');
   });
 
   afterEach(async () => {
@@ -26,10 +27,13 @@ describe('localization boundary', () => {
     const enKeys = Object.keys(resources.en.translation.common).sort();
     const idErrorKeys = Object.keys(resources.id.translation.errors).sort();
     const enErrorKeys = Object.keys(resources.en.translation.errors).sort();
+    const idCategoryKeys = Object.keys(resources.id.translation.categories).sort();
+    const enCategoryKeys = Object.keys(resources.en.translation.categories).sort();
 
     expect(supportedLocales).toEqual(['id', 'en']);
     expect(enKeys).toEqual(idKeys);
     expect(enErrorKeys).toEqual(idErrorKeys);
+    expect(enCategoryKeys).toEqual(idCategoryKeys);
   });
 
   it('changes the active locale through one public boundary', async () => {

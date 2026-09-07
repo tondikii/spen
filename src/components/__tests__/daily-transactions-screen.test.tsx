@@ -10,7 +10,7 @@ describe('DailyTransactionsScreen', () => {
       <DailyTransactionsScreen />,
     );
 
-    expect(getByText('Harian')).toBeTruthy();
+    expect(getByText('Transaksi Harian')).toBeTruthy();
     expect(getByLabelText('Tutup form transaksi')).toBeTruthy();
     expect(getByText('Hari Ini')).toBeTruthy();
     expect(getAllByText(/Rp 6\.500\.000/).length).toBeGreaterThanOrEqual(1);

@@ -325,7 +325,7 @@ function DailyTransaction({
       </View>
       <View style={styles.transactionAmount}>
         <ThemedText
-          type="smallBold"
+          type="code"
           style={[styles.transactionAmountText, { color }]}
           numberOfLines={1}
         >

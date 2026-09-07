@@ -113,8 +113,9 @@ function PlanSummaryCard({ snapshot }: { snapshot: PlanView['snapshot'] }) {
         <MotionProgressBar
           value={expenseProgress}
           color={theme.pine}
-          trackColor={theme.line}
+          trackColor={theme.heroDivider}
           style={styles.summaryProgress}
+          accessibilityLabel={t('common.spareBudget')}
           accessibilityRole="progressbar"
           accessibilityValue={{
             min: 0,
@@ -313,9 +314,15 @@ function PlanScreenContent({
             accessibilityLabel={t('common.aiSuggestion')}
             accessibilityHint={t('common.aiSuggestion')}
             onPress={() => setAiOpen(true)}
+            wrapperStyle={styles.aiAction}
             style={[styles.aiButton, { borderColor: theme.line, backgroundColor: theme.mint }]}
           >
-            <ThemedText type="smallBold" themeColor="pine" style={styles.aiButtonText}>
+            <ThemedText
+              type="smallBold"
+              themeColor="pine"
+              style={styles.aiButtonText}
+              numberOfLines={1}
+            >
               ✦ {t('common.aiSuggestion')}
             </ThemedText>
           </Pressable>
@@ -1337,13 +1344,7 @@ function GoalSection({
                     </ThemedText>
                   </View>
                   <View style={styles.itemValueActions}>
-                    <ThemedText
-                      type="code"
-                      style={[
-                        styles.itemValueText,
-                        { color: achieved ? theme.income : theme.gold },
-                      ]}
-                    >
+                    <ThemedText type="code" style={[styles.itemValueText, { color: theme.gold }]}>
                       {formatMoney(saved)} / {formatMoney(goal.targetAmount)}
                     </ThemedText>
                     <PlanActionMenu
@@ -1696,42 +1697,40 @@ function PlanItemContent({
             </ThemedText>
           ) : null}
         </View>
-        <View style={styles.itemValueActions}>
+        <View testID={`plan-value-actions-${item.id}`} style={styles.itemValueActions}>
+          <PlanActionMenu
+            label={itemName}
+            theme={theme}
+            onOpenChange={handleMenuOpenChange}
+            dismissSignal={dismissSignal}
+            actions={[
+              ...(!income && action
+                ? [
+                    {
+                      icon: '→',
+                      label: action,
+                      onPress: () => onAction(item),
+                      tone: 'primary' as const,
+                    },
+                  ]
+                : []),
+              { icon: '✎', label: t('common.edit'), onPress: onEdit },
+              {
+                icon: '×',
+                label: t('common.delete'),
+                onPress: onRequestDelete,
+                tone: 'danger' as const,
+              },
+            ]}
+          />
           <ThemedText
             type="code"
-            style={[styles.itemValueText, { color: income ? theme.income : theme.ink }]}
+            style={[styles.itemValueText, { color: income ? theme.income : theme.expense }]}
           >
             {income
               ? formatMoney(incomeAmount)
               : `${formatMoney(amount)} / ${formatMoney(item.targetAmount)}`}
           </ThemedText>
-          {!item.isAutomatic && (
-            <PlanActionMenu
-              label={itemName}
-              theme={theme}
-              onOpenChange={handleMenuOpenChange}
-              dismissSignal={dismissSignal}
-              actions={[
-                ...(!income && action
-                  ? [
-                      {
-                        icon: '→',
-                        label: action,
-                        onPress: () => onAction(item),
-                        tone: 'primary' as const,
-                      },
-                    ]
-                  : []),
-                { icon: '✎', label: t('common.edit'), onPress: onEdit },
-                {
-                  icon: '×',
-                  label: t('common.delete'),
-                  onPress: onRequestDelete,
-                  tone: 'danger' as const,
-                },
-              ]}
-            />
-          )}
         </View>
       </View>
       {!income && (
@@ -1852,10 +1851,7 @@ function LegacyPlanItem({
             {subtitle}
           </ThemedText>
         </View>
-        <ThemedText
-          type="code"
-          style={[styles.itemValueText, { color: state?.overBudget ? theme.expense : theme.ink }]}
-        >
+        <ThemedText type="code" style={[styles.itemValueText, { color: theme.expense }]}>
           {formatMoney(amountLabel)} / {formatMoney(item.targetAmount)}
         </ThemedText>
       </View>
@@ -1960,6 +1956,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
+  aiAction: { flexShrink: 0 },
   aiButtonText: { fontSize: 11, lineHeight: 14 },
   summaryCard: {
     borderRadius: Radius.hero,
@@ -2002,10 +1999,10 @@ const styles = StyleSheet.create({
   },
   itemCopy: { flex: 1, minWidth: 0 },
   itemValueActions: {
-    alignItems: 'center',
+    alignItems: 'flex-end',
     elevation: 100,
-    flexDirection: 'row',
-    gap: 3,
+    flexDirection: 'column',
+    gap: 1,
     position: 'relative',
     zIndex: 100,
   },

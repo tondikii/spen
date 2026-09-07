@@ -21,6 +21,7 @@ describe('UI primitives', () => {
     );
 
     expect(getByText('Beranda')).toBeTruthy();
+    expect(getByText('Tambah Wallet')).toHaveProp('numberOfLines', 1);
     expect(getByLabelText('Tercapai')).toBeTruthy();
     fireEvent.press(getByLabelText('Tambah Wallet'));
     fireEvent.press(getByLabelText('Simpan'));

@@ -1,6 +1,8 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import PlanScreen from '@/components/plan-screen';
+import { AppThemeProvider } from '@/components/theme-provider';
 import mockData from '@/data/mock-data';
 import { getPlanView } from '@/services/plan-service';
 import { getLocalDateInput } from '@/services/transaction-service';
@@ -27,6 +29,29 @@ describe('PlanScreen', () => {
     expect(() => getByText('Fixed expense')).toThrow();
     expect(() => getByText('Alokasi')).toThrow();
     expect(getByText('Tercapai')).toBeTruthy();
+  });
+
+  it('mewarnai nominal Pengeluaran merah dan nominal Goal gold', async () => {
+    const { getByText } = await render(<PlanScreen />);
+
+    expect(StyleSheet.flatten(getByText('Rp 175.000 / Rp 350.000').props.style)).toEqual(
+      expect.objectContaining({ color: '#C85C55' }),
+    );
+    expect(StyleSheet.flatten(getByText('Rp 1.750.000 / Rp 15.000.000').props.style)).toEqual(
+      expect.objectContaining({ color: '#BD8A30' }),
+    );
+  });
+
+  it('membuat track progress Spare Budget tetap terlihat di dark mode', async () => {
+    const { getByLabelText } = await render(
+      <AppThemeProvider initialMode="dark">
+        <PlanScreen />
+      </AppThemeProvider>,
+    );
+
+    expect(StyleSheet.flatten(getByLabelText('SISA ANGGARAN').props.style)).toEqual(
+      expect.objectContaining({ backgroundColor: '#FFFFFF1F' }),
+    );
   });
 
   it('menjelaskan saat target Pengeluaran melebihi Pendapatan aktual', async () => {
@@ -120,6 +145,14 @@ describe('PlanScreen', () => {
     );
   });
 
+  it('menempatkan meatball di atas nominal item plan', async () => {
+    const { getByTestId } = await render(<PlanScreen />);
+
+    expect(getByTestId('plan-value-actions-expense-internet').props.style).toEqual(
+      expect.objectContaining({ flexDirection: 'column' }),
+    );
+  });
+
   it('tidak menampilkan toggle pembayaran terpisah pada Pengeluaran', async () => {
     const { queryByLabelText } = await render(<PlanScreen />);
 
@@ -162,6 +195,45 @@ describe('PlanScreen', () => {
     expect(onPlanItemDelete).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'income-item-gaji', name: 'Gaji' }),
     );
+  });
+
+  it('menampilkan meatball untuk item income dan expense otomatis', async () => {
+    const planView = getPlanView();
+    const { getByLabelText } = await render(
+      <PlanScreen
+        planView={{
+          ...planView,
+          plan: {
+            ...planView.plan,
+            incomeItems: [
+              ...planView.plan.incomeItems,
+              {
+                id: 'income-category-freelance',
+                type: 'income',
+                name: 'Freelance otomatis',
+                categoryId: 'category-freelance',
+                targetAmount: 0,
+                isAutomatic: true,
+              },
+            ],
+            expenseItems: [
+              ...planView.plan.expenseItems,
+              {
+                id: 'expense-category-transport',
+                type: 'expense',
+                name: 'Transport otomatis',
+                categoryId: 'category-transport',
+                targetAmount: 180000,
+                isAutomatic: true,
+              },
+            ],
+          },
+        }}
+      />,
+    );
+
+    expect(getByLabelText('Aksi lainnya Freelance otomatis')).toBeTruthy();
+    expect(getByLabelText('Aksi lainnya Transport otomatis')).toBeTruthy();
   });
 
   it('membuka form Goal baru dan mengirim draft yang diisi pengguna', async () => {

@@ -331,6 +331,78 @@ describe('database plan service', () => {
     ).toBe(10);
   });
 
+  it('menghapus transaksi sumber saat item income dan expense otomatis dihapus', async () => {
+    const wallet = await createWallet(database, 'BCA', 1000);
+    const categories = await getDatabaseTransactionCategories(database);
+    const incomeCategory = categories.find((item) => item.name === 'Bonus')!;
+    const expenseCategory = categories.find((item) => item.name === 'Transport')!;
+
+    await saveDatabaseTransaction(database, {
+      type: 'income',
+      walletId: wallet.id,
+      toWalletId: null,
+      categoryId: incomeCategory.id,
+      amount: 500,
+      date: '2026-09-03',
+      time: '10:00',
+      note: 'Bonus proyek',
+    });
+    await saveDatabaseTransaction(database, {
+      type: 'expense',
+      walletId: wallet.id,
+      toWalletId: null,
+      categoryId: expenseCategory.id,
+      amount: 200,
+      date: '2026-09-04',
+      time: '11:00',
+      note: 'Ojek',
+    });
+    await saveDatabaseTransaction(database, {
+      type: 'expense',
+      walletId: wallet.id,
+      toWalletId: null,
+      categoryId: expenseCategory.id,
+      amount: 300,
+      date: '2026-08-31',
+      time: '12:00',
+      note: 'Periode sebelumnya',
+    });
+
+    const view = await getDatabasePlanView(database, '2026-09-10');
+    const incomeItem = view.plan.incomeItems.find((item) => item.categoryId === incomeCategory.id)!;
+    const expenseItem = view.plan.expenseItems.find(
+      (item) => item.categoryId === expenseCategory.id,
+    )!;
+    expect(incomeItem.isAutomatic).toBe(true);
+    expect(expenseItem.isAutomatic).toBe(true);
+
+    await deleteDatabasePlanItem(database, incomeItem, '2026-09-10');
+    await deleteDatabasePlanItem(database, expenseItem, '2026-09-10');
+
+    expect(
+      await database.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) AS count FROM transactions WHERE category_id = ? AND type = ? AND date BETWEEN ? AND ?;',
+        Number(incomeCategory.id.replace('category-', '')),
+        'income',
+        '2026-09-01',
+        '2026-09-30',
+      ),
+    ).toEqual({ count: 0 });
+    expect(
+      await database.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) AS count FROM transactions WHERE category_id = ? AND type = ?;',
+        Number(expenseCategory.id.replace('category-', '')),
+        'expense',
+      ),
+    ).toEqual({ count: 1 });
+    expect((await getDatabasePlanView(database, '2026-09-10')).plan.incomeItems).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: incomeItem.id })]),
+    );
+    expect((await getDatabasePlanView(database, '2026-09-10')).plan.expenseItems).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: expenseItem.id })]),
+    );
+  });
+
   it('creates one expense transaction when the payment toggle is enabled', async () => {
     const wallet = await createWallet(database, 'BCA', 1000);
     const category = (await getDatabaseTransactionCategories(database)).find(

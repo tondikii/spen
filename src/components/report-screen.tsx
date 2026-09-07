@@ -229,9 +229,15 @@ function ReportScreenContent({
               setLoading(true);
               setInsightOpen(true);
             }}
+            wrapperStyle={styles.aiAction}
             style={[styles.aiButton, { borderColor: theme.line, backgroundColor: theme.mint }]}
           >
-            <ThemedText type="smallBold" themeColor="pine" style={styles.aiButtonText}>
+            <ThemedText
+              type="smallBold"
+              themeColor="pine"
+              style={styles.aiButtonText}
+              numberOfLines={1}
+            >
               ✦ {t('common.reportAskAi')}
             </ThemedText>
           </Pressable>
@@ -720,6 +726,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
+  aiAction: { flexShrink: 0 },
   aiButtonText: { fontSize: 11, lineHeight: 14 },
   summary: { marginBottom: 24 },
   metric: { flex: 1, gap: 5, minHeight: 58 },

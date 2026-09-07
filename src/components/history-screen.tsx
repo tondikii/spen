@@ -337,7 +337,7 @@ function HistoryTransaction({
         </ThemedText>
       </View>
       <View style={styles.amount}>
-        <ThemedText type="smallBold" style={{ color }}>
+        <ThemedText type="code" style={{ color }}>
           {income ? '+' : transfer ? '↔' : '−'} {formatMoney(transaction.amount)}
         </ThemedText>
         <ThemedText type="small" themeColor="muted">

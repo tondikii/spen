@@ -69,6 +69,8 @@ const tabs: { type: TransactionType; translationKey: string }[] = [
   { type: 'transfer', translationKey: 'categories.transfer' },
 ];
 
+const CATEGORY_COLUMNS = 4;
+
 function chunk<T>(items: readonly T[], size: number) {
   const rows: T[][] = [];
   for (let index = 0; index < items.length; index += size) {
@@ -171,20 +173,29 @@ export function TransactionForm({
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState('');
   const [categoryIcon, setCategoryIcon] = useState<string>(CATEGORY_ICON_CHOICES[0]);
+  const [categoryQuery, setCategoryQuery] = useState('');
   const [categoryActions, setCategoryActions] = useState<Category | null>(null);
   const [categorySaving, setCategorySaving] = useState(false);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
   const selectedCategoryType = type === 'transfer' ? 'transfer' : type;
-  const visibleCategories = useMemo(
+  const locale = i18n.language === 'en' ? 'en-US' : 'id-ID';
+  const transactionCategories = useMemo(
     () => getTransactionCategories(categories, selectedCategoryType),
     [categories, selectedCategoryType],
   );
+  const visibleCategories = useMemo(() => {
+    const normalizedQuery = categoryQuery.trim().toLocaleLowerCase(locale);
+    if (!normalizedQuery) return transactionCategories;
+    return transactionCategories.filter((category) =>
+      getCategoryLabel(category).toLocaleLowerCase(locale).includes(normalizedQuery),
+    );
+  }, [categoryQuery, locale, transactionCategories]);
   const categoryRows = useMemo(() => {
     const rows: (Category | null)[][] = [];
-    for (let index = 0; index < visibleCategories.length; index += 3) {
-      const row = visibleCategories.slice(index, index + 3) as (Category | null)[];
-      while (row.length < 3) row.push(null);
+    for (let index = 0; index < visibleCategories.length; index += CATEGORY_COLUMNS) {
+      const row = visibleCategories.slice(index, index + CATEGORY_COLUMNS) as (Category | null)[];
+      while (row.length < CATEGORY_COLUMNS) row.push(null);
       rows.push(row);
     }
     return rows;
@@ -193,7 +204,6 @@ export function TransactionForm({
   const numericAmount = parseMoneyInput(amount);
   const allocationLimit = allocationLimitProp ?? getAllocationLimit(categoryId);
   const overBudget = type === 'expense' && allocationLimit > 0 && numericAmount > allocationLimit;
-  const locale = i18n.language === 'en' ? 'en-US' : 'id-ID';
   const calendarWeekdays = useMemo(() => getWeekdayLabels(locale), [locale]);
   const visibleCalendarDates = useMemo(() => getCalendarDates(calendarMonth), [calendarMonth]);
 
@@ -204,6 +214,7 @@ export function TransactionForm({
 
   const changeType = (nextType: TransactionType) => {
     setType(nextType);
+    setCategoryQuery('');
     if (nextType === 'transfer') {
       setCategoryId(null);
     } else if (
@@ -467,6 +478,16 @@ export function TransactionForm({
                     </ThemedText>
                   </Pressable>
                 </View>
+                <ThemedInput
+                  accessibilityLabel={t('common.searchCategory')}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholder={t('common.searchCategory')}
+                  returnKeyType="search"
+                  value={categoryQuery}
+                  onChangeText={setCategoryQuery}
+                  style={styles.categorySearch}
+                />
                 <ScrollView
                   style={styles.categoryScroll}
                   contentContainerStyle={styles.categoryGrid}
@@ -474,7 +495,11 @@ export function TransactionForm({
                   showsVerticalScrollIndicator={false}
                 >
                   {categoryRows.map((row, rowIndex) => (
-                    <View key={`category-row-${rowIndex}`} style={styles.categoryRow}>
+                    <View
+                      key={`category-row-${rowIndex}`}
+                      testID={`category-row-${rowIndex}`}
+                      style={styles.categoryRow}
+                    >
                       {row.map((category, columnIndex) =>
                         category ? (
                           <Pressable
@@ -514,6 +539,11 @@ export function TransactionForm({
                     </View>
                   ))}
                 </ScrollView>
+                {visibleCategories.length === 0 && (
+                  <ThemedText type="small" themeColor="muted" style={styles.categorySearchEmpty}>
+                    {t('common.categoryNotFound')}
+                  </ThemedText>
+                )}
                 {categoryEditorOpen && (
                   <View
                     style={[
@@ -978,6 +1008,8 @@ const styles = StyleSheet.create({
     maxHeight: 236,
     width: '100%',
   },
+  categorySearch: { marginTop: Spacing.one },
+  categorySearchEmpty: { paddingVertical: Spacing.three, textAlign: 'center' },
   categoryGrid: {
     gap: Spacing.two,
     width: '100%',
@@ -989,6 +1021,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 3,
     height: 78,
+    justifyContent: 'center',
     padding: 9,
     width: '100%',
   },
