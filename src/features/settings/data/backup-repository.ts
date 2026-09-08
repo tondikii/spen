@@ -151,7 +151,7 @@ export function parseBackupPayload(value: string | unknown): BackupPayload {
   if (!keys.every((key) => isArrayOfRecords(data[key]))) {
     throw new AppError('backupInvalid', undefined, 'Struktur file backup tidak lengkap atau rusak');
   }
-  const totalRecords = keys.reduce((total, key) => total + data[key].length, 0);
+  const totalRecords = keys.reduce((total, key) => total + (data[key] as unknown[]).length, 0);
   if (totalRecords > BACKUP_MAX_RECORDS)
     throw new AppError('backupInvalid', undefined, 'File backup berisi terlalu banyak data');
   return parsed as unknown as BackupPayload;

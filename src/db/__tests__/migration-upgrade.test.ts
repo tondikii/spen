@@ -9,7 +9,7 @@ type Sqlite = {
   prepare(source: string): {
     get(...params: unknown[]): Record<string, unknown> | undefined;
     all(...params: unknown[]): Record<string, unknown>[];
-    run(...params: unknown[]): { lastInsertRowId: number };
+    run(...params: unknown[]): { changes: number; lastInsertRowid: number };
   };
   close(): void;
 };
@@ -31,7 +31,7 @@ function tableNames(sqlite: Sqlite): string[] {
       `SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name;`,
     )
     .all()
-    .map((row) => row.name);
+    .map((row) => row.name as string);
 }
 
 const allMigrations = Object.values(migrations.migrations);
