@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
 import * as Linking from 'expo-linking';
 
-import SettingsScreen from '@/components/settings-screen';
+import { SettingsScreen } from '@/features/settings';
 import { AppThemeProvider } from '@/components/theme-provider';
 import { changeLocale } from '@/i18n';
 import { setSelectedLocale } from '@/services/settings-service';

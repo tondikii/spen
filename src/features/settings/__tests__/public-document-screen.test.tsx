@@ -1,7 +1,7 @@
 import { fireEvent, render } from '@testing-library/react-native';
 
 import { AppThemeProvider } from '@/components/theme-provider';
-import PublicDocumentScreen from '@/components/public-document-screen';
+import { PublicDocumentScreen } from '@/features/settings';
 import { termsDocument } from '@/lib/public-documents';
 
 describe('PublicDocumentScreen', () => {

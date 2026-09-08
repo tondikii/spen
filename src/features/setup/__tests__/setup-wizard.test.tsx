@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
 
-import { SetupWizard } from '@/components/setup-wizard';
+import { SetupWizard } from '@/features/setup';
 import { currencyOptions, setSelectedLocale } from '@/services/settings-service';
 import { changeLocale } from '@/i18n';
 

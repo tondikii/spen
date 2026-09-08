@@ -8,7 +8,7 @@ import {
   getDatabaseTransactionCategories,
   saveDatabaseTransaction,
 } from '@/services/transaction-service';
-import { readDailyView } from '@/features/daily';
+import { readDailyView } from '../read';
 
 type TempSQLite = {
   exec(source: string): void;

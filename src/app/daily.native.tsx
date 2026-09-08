@@ -1,8 +1,7 @@
-import DailyTransactionsScreen from '@/components/daily-transactions-screen';
+import { DailyTransactionsScreen, readDailyView } from '@/features/daily';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { todayISO } from '@/lib/date';
-import { readDailyView } from '@/features/daily';
 import { DataState } from '@/components/screen-skeleton';
 import useAppDatabase from '@/db/database-provider';
 import { useFocusedRead } from '@/hooks/use-focused-read';

@@ -1,4 +1,4 @@
-import PublicDocumentScreen from '@/components/public-document-screen';
+import { PublicDocumentScreen } from '@/features/settings';
 import { termsDocument } from '@/lib/public-documents';
 
 export default function TermsRoute() {

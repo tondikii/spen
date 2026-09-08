@@ -1,4 +1,4 @@
-import SettingsScreen from '@/components/settings-screen';
+import { SettingsScreen } from '@/features/settings';
 import { useRouter } from 'expo-router';
 import useAppDatabase from '@/db/database-provider';
 

@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import PublicDocumentScreen from '@/components/public-document-screen';
+import { PublicDocumentScreen } from '@/features/settings';
 import { AppThemeProvider } from '@/components/theme-provider';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';

@@ -1,6 +1,6 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
-import DailyTransactionsScreen from '@/components/daily-transactions-screen';
+import { DailyTransactionsScreen } from '@/features/daily';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
 jest.mock('expo-router', () => ({ router: { back: jest.fn(), push: jest.fn() } }));

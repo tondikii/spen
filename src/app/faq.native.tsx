@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 
-import FaqScreen from '@/components/faq-screen';
+import { FaqScreen } from '@/features/settings';
 
 export default function FaqRoute() {
   const router = useRouter();
