@@ -15,7 +15,7 @@ import { ThemedView } from '@/components/themed-view';
 import { BoxedCard, PageHeader } from '@/components/ui-primitives';
 import { ConfirmationModal } from '@/components/confirmation-modal';
 import { useAppTheme } from '@/components/theme-provider';
-import { BottomTabInset, Fonts, Radius, Typography } from '@/constants/theme';
+import { BottomTabInset, Fonts, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
   createBackupFile,
@@ -444,8 +444,6 @@ const styles = StyleSheet.create({
   rowTitle: { fontSize: 12, lineHeight: 16 },
   rowDetail: { fontSize: 10, lineHeight: 14 },
   chevron: { fontSize: 22, lineHeight: 26 },
-  toggle: { borderRadius: Radius.pill, height: 22, padding: 3, width: 37 },
-  toggleKnob: { backgroundColor: '#FFFFFF', borderRadius: Radius.pill, height: 16, width: 16 },
   dropdown: {
     alignItems: 'center',
     borderRadius: 10,
