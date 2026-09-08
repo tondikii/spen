@@ -5,10 +5,7 @@ import { configureDatabase } from '@/db/client';
 import { seedDefaultCategories } from '@/db/seed';
 import { ensureActiveBudgetPlan } from '@/features/plan';
 import { readReportView } from '@/features/report';
-import {
-  getDatabaseTransactionCategories,
-  saveDatabaseTransaction,
-} from '@/features/transactions';
+import { getDatabaseTransactionCategories, saveDatabaseTransaction } from '@/features/transactions';
 import { createWallet, updateWallet } from '@/features/wallet';
 
 type TempSQLite = {

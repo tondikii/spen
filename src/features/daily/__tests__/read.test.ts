@@ -4,10 +4,7 @@ import migrations from '../../../../drizzle/migrations';
 import { configureDatabase } from '@/db/client';
 import { seedDefaultCategories } from '@/db/seed';
 import { createWallet } from '@/features/wallet';
-import {
-  getDatabaseTransactionCategories,
-  saveDatabaseTransaction,
-} from '@/features/transactions';
+import { getDatabaseTransactionCategories, saveDatabaseTransaction } from '@/features/transactions';
 import { readDailyView } from '../read';
 
 type TempSQLite = {
