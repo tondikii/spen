@@ -32,19 +32,9 @@ import { useTheme } from '@/hooks/use-theme';
 import { useIntlLocale } from '@/hooks/use-locale';
 import { formatMoney } from '@/lib/money';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
-import {
-  addMockWallet,
-  getHomeRecentTransactions,
-  getHomeWallets,
-  getWalletTotal,
-  restoreMockWallet,
-  updateMockWallet,
-} from '@/services/home-service';
+import { getWalletTotal } from '@/lib/presentation';
 import type { Category, Transaction, Wallet } from '@/types/domain';
-import { WALLET_TINT_SEQUENCE } from '@/constants/domain';
 import { useTranslation } from 'react-i18next';
-
-const tintSequence = WALLET_TINT_SEQUENCE;
 
 function HomeHeader({ today = new Date() }: { today?: Date }) {
   const intlLocale = useIntlLocale();
@@ -242,8 +232,8 @@ function RecentTransaction({
 }: {
   transaction: Transaction;
   wallets: Wallet[];
-  categories?: Category[];
-  onPress?: () => void;
+  categories: Category[];
+  onPress: () => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -375,55 +365,39 @@ function WalletForm(props: WalletFormProps) {
 }
 
 type HomeScreenProps = {
-  onTransactionPress?: (transaction: Transaction) => void;
-  onDailyPress?: () => void;
-  wallets?: Wallet[];
-  archivedWallets?: Wallet[];
-  transactions?: Transaction[];
-  categories?: Category[];
-  onWalletSave?: (wallet: Wallet | null, name: string, balance: number) => void | Promise<void>;
-  onWalletArchive?: (wallet: Wallet) => void | Promise<void>;
-  onWalletRestore?: (wallet: Wallet) => void | Promise<void>;
+  wallets: Wallet[];
+  archivedWallets: Wallet[];
+  transactions: Transaction[];
+  categories: Category[];
+  onTransactionPress: (transaction: Transaction) => void;
+  onDailyPress: () => void;
+  onWalletSave: (wallet: Wallet | null, name: string, balance: number) => void | Promise<void>;
+  onWalletArchive: (wallet: Wallet) => void | Promise<void>;
+  onWalletRestore: (wallet: Wallet) => void | Promise<void>;
 };
 
 export default function HomeScreen({
   onTransactionPress,
   onDailyPress,
-  wallets: walletsProp,
-  archivedWallets: archivedWalletsProp,
-  transactions: transactionsProp,
-  categories: categoriesProp,
+  wallets,
+  archivedWallets,
+  transactions,
+  categories,
   onWalletSave,
   onWalletArchive,
   onWalletRestore,
-}: HomeScreenProps = {}) {
-  const theme = useTheme();
+}: HomeScreenProps) {
   const { t } = useTranslation();
-  const [wallets, setWallets] = useState<Wallet[]>(walletsProp ?? getHomeWallets);
-  const [archivedWallets, setArchivedWallets] = useState<Wallet[]>(archivedWalletsProp ?? []);
   const [formWallet, setFormWallet] = useState<Wallet | 'new' | null>(null);
   const [walletToArchive, setWalletToArchive] = useState<Wallet | null>(null);
-  const recentTransactions = useMemo(
-    () => transactionsProp ?? getHomeRecentTransactions(),
-    [transactionsProp],
-  );
+  const recentTransactions = useMemo(() => transactions.slice(0, 3), [transactions]);
   const total = useMemo(
     () => getWalletTotal([...wallets, ...archivedWallets]),
     [archivedWallets, wallets],
   );
 
   const saveWallet = async (name: string, balance: number) => {
-    if (onWalletSave) {
-      await onWalletSave(formWallet && formWallet !== 'new' ? formWallet : null, name, balance);
-      setFormWallet(null);
-      return;
-    }
-    if (formWallet && formWallet !== 'new') {
-      setWallets((current) => updateMockWallet(current, formWallet.id, name, balance));
-    } else {
-      const tint = tintSequence[wallets.length % tintSequence.length];
-      setWallets((current) => addMockWallet(current, name, balance ?? 0, tint));
-    }
+    await onWalletSave(formWallet && formWallet !== 'new' ? formWallet : null, name, balance);
     setFormWallet(null);
   };
 
@@ -439,13 +413,7 @@ export default function HomeScreen({
               archivedWallets={archivedWallets}
               onSelect={(wallet) => setFormWallet(wallet)}
               onAdd={() => setFormWallet('new')}
-              onRestore={(wallet) => {
-                if (onWalletRestore) void onWalletRestore(wallet);
-                else {
-                  setArchivedWallets((current) => current.filter((item) => item.id !== wallet.id));
-                  setWallets((current) => restoreMockWallet([...current, wallet], wallet.id));
-                }
-              }}
+              onRestore={onWalletRestore}
             />
             <View style={styles.recent}>
               <View style={styles.sectionTitle}>
@@ -453,7 +421,7 @@ export default function HomeScreen({
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={t('common.viewAllTransactions')}
-                  onPress={onDailyPress ?? (() => undefined)}
+                  onPress={onDailyPress}
                   wrapperStyle={styles.sectionAction}
                 >
                   <ThemedText type="smallBold" themeColor="pine" numberOfLines={1}>
@@ -474,8 +442,8 @@ export default function HomeScreen({
                     key={transaction.id}
                     transaction={transaction}
                     wallets={wallets}
-                    categories={categoriesProp}
-                    onPress={onTransactionPress ? () => onTransactionPress(transaction) : undefined}
+                    categories={categories}
+                    onPress={() => onTransactionPress(transaction)}
                   />
                 ))
               )}
@@ -506,11 +474,7 @@ export default function HomeScreen({
         onCancel={() => setWalletToArchive(null)}
         onConfirm={async () => {
           if (!walletToArchive) return;
-          if (onWalletArchive) await onWalletArchive(walletToArchive);
-          else {
-            setWallets((current) => current.filter((item) => item.id !== walletToArchive.id));
-            setArchivedWallets((current) => [...current, { ...walletToArchive, archived: true }]);
-          }
+          await onWalletArchive(walletToArchive);
           setWalletToArchive(null);
           setFormWallet(null);
         }}
@@ -636,8 +600,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
   },
   walletChevron: { fontSize: 17, lineHeight: 18 },
-  quietAction: { fontSize: 12, lineHeight: 15 },
-  pressed: { opacity: 0.7 },
   recent: { paddingBottom: Spacing.two },
   formPage: { flex: 1 },
   formHeader: {
@@ -656,7 +618,6 @@ const styles = StyleSheet.create({
   },
   formBody: { flex: 1 },
   formContent: { gap: Spacing.two, paddingHorizontal: 21, paddingVertical: 24 },
-  formNote: { fontSize: 12, lineHeight: 18, marginBottom: Spacing.five },
   archiveAction: {
     alignItems: 'center',
     flexDirection: 'row',

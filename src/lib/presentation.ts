@@ -1,4 +1,4 @@
-import type { Transaction } from '@/types/domain';
+import type { Category, Transaction, Wallet } from '@/types/domain';
 
 export function getDailyTransactions(date: string, transactions: Transaction[]) {
   return transactions
@@ -16,4 +16,22 @@ export function getDailyTotals(transactions: Transaction[]) {
     },
     { income: 0, expense: 0 },
   );
+}
+
+export function getTransactionPresentation(
+  transaction: Transaction,
+  categories: Category[],
+  wallets: Wallet[],
+) {
+  const category = categories.find((item) => item.id === transaction.categoryId);
+  const wallet = wallets.find((item) => item.id === transaction.walletId);
+  return {
+    categoryName: category?.name ?? 'Transaksi',
+    categoryIcon: category?.icon ?? '◇',
+    walletName: wallet?.name ?? 'Dompet',
+  };
+}
+
+export function getWalletTotal(wallets: Wallet[]) {
+  return wallets.reduce((total, wallet) => total + wallet.balance, 0);
 }

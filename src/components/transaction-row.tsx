@@ -8,7 +8,7 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getCategoryLabel } from '@/i18n/categories';
 import { formatMoney } from '@/lib/money';
-import { getTransactionPresentation } from '@/services/home-service';
+import { getTransactionPresentation } from '@/lib/presentation';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
 /**
@@ -25,8 +25,8 @@ export function TransactionRow({
   style,
 }: {
   transaction: Transaction;
-  categories?: Category[];
-  wallets?: Wallet[];
+  categories: Category[];
+  wallets: Wallet[];
   onPress?: () => void;
   /** Builds the accessibility label from the resolved category name; used only when `onPress` is set. */
   accessibilityLabel?: (categoryName: string) => string;
@@ -34,7 +34,7 @@ export function TransactionRow({
 }) {
   const theme = useTheme();
   const presentation = getTransactionPresentation(transaction, categories, wallets);
-  const category = categories?.find((item) => item.id === transaction.categoryId);
+  const category = categories.find((item) => item.id === transaction.categoryId);
   const categoryName = category ? getCategoryLabel(category) : presentation.categoryName;
   const income = transaction.type === 'income';
   const expense = transaction.type === 'expense';
