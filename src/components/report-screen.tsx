@@ -25,6 +25,7 @@ import { BudgetPeriodPicker } from '@/components/budget-period-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomTabInset, Fonts, Motion, Radius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useLocale } from '@/hooks/use-locale';
 import { formatMoney } from '@/lib/money';
 import { aiService, type BudgetAIInput } from '@/services/ai-service';
 import { useTranslation } from 'react-i18next';
@@ -32,11 +33,7 @@ import i18n from '@/i18n';
 import { getIntlLocale } from '@/i18n/format';
 import { getCategoryLabel } from '@/i18n/categories';
 import { getErrorTranslationKey } from '@/lib/app-error';
-import {
-  getDatabaseReportView,
-  getReportView,
-  type ReportExpense,
-} from '@/services/report-service';
+import { getDatabaseReportView, type ReportExpense } from '@/services/report-service';
 import {
   MotionAnimatedView,
   MotionChevron,
@@ -52,25 +49,24 @@ const ClipPathCompat = ClipPath as unknown as ComponentType<{
   children?: ReactNode;
 }>;
 
-type ReportView =
-  ReturnType<typeof getReportView> | Awaited<ReturnType<typeof getDatabaseReportView>>;
+type ReportView = Awaited<ReturnType<typeof getDatabaseReportView>>;
 
 function ReportScreenContent({
-  reportView = getReportView(),
+  reportView,
   onRangeChange,
   onPeriodStartDayChange,
   onPeriodChange,
   aiInput,
 }: {
-  reportView?: ReportView;
-  onRangeChange?: (months: number) => void | Promise<void>;
-  onPeriodStartDayChange?: (day: number) => void | Promise<void>;
-  onPeriodChange?: (periodId: string) => void | Promise<void>;
+  reportView: ReportView;
+  onRangeChange: (months: number) => void | Promise<void>;
+  onPeriodStartDayChange: (day: number) => void | Promise<void>;
+  onPeriodChange: (periodId: string) => void | Promise<void>;
   aiInput?: BudgetAIInput;
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const locale = i18n.language === 'en' ? 'en' : 'id';
+  const locale = useLocale();
   const {
     snapshot,
     expenses,
@@ -149,7 +145,7 @@ function ReportScreenContent({
   const updateRange = (months: number) => {
     setRange(months);
     setRangeOpen(false);
-    void onRangeChange?.(months);
+    void onRangeChange(months);
   };
 
   return (
@@ -168,7 +164,7 @@ function ReportScreenContent({
               dismissSignal={dismissSignal}
               onStartDayChange={(day) => {
                 setStartDay(day);
-                return onPeriodStartDayChange?.(day);
+                return onPeriodStartDayChange(day);
               }}
             />
             <View style={styles.periodStepper}>
@@ -178,7 +174,7 @@ function ReportScreenContent({
                 accessibilityState={{ disabled: !hasPreviousPeriod }}
                 disabled={!hasPreviousPeriod}
                 onPress={() => {
-                  if (hasPreviousPeriod) void onPeriodChange?.(periods[periodIndex - 1].id);
+                  if (hasPreviousPeriod) void onPeriodChange(periods[periodIndex - 1].id);
                 }}
                 style={[
                   styles.stepperButton,
@@ -197,7 +193,7 @@ function ReportScreenContent({
                 accessibilityState={{ disabled: !hasNextPeriod }}
                 disabled={!hasNextPeriod}
                 onPress={() => {
-                  if (hasNextPeriod) void onPeriodChange?.(periods[periodIndex + 1].id);
+                  if (hasNextPeriod) void onPeriodChange(periods[periodIndex + 1].id);
                 }}
                 style={[
                   styles.stepperButton,
@@ -244,7 +240,7 @@ function ReportScreenContent({
         />
         <ChartCard
           title={t('common.reportExpenses')}
-          trailing={formatMonth(period.endDate)}
+          trailing={formatMonth(period.endDate, locale)}
           theme={theme}
         >
           {expenses.length === 0 ? (
@@ -339,7 +335,7 @@ function ReportScreenContent({
                       values: chartPoints
                         .map(
                           (point) =>
-                            `${formatMonthShort(point.period.startDate)} ${formatMoney(point.netSaving)}`,
+                            `${formatMonthShort(point.period.startDate, locale)} ${formatMoney(point.netSaving)}`,
                         )
                         .join(', '),
                     })}
@@ -355,7 +351,7 @@ function ReportScreenContent({
               <View style={styles.months}>
                 {chartPoints.map((point) => (
                   <ThemedText key={point.period.id} type="small" themeColor="muted">
-                    {formatMonthShort(point.period.startDate)}
+                    {formatMonthShort(point.period.startDate, locale)}
                   </ThemedText>
                 ))}
               </View>
@@ -432,13 +428,13 @@ function ReportScreenContent({
   );
 }
 
-function formatMonth(date: string) {
-  return new Intl.DateTimeFormat(getIntlLocale(i18n.language === 'en' ? 'en' : 'id'), {
+function formatMonth(date: string, locale: 'id' | 'en') {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
     month: 'long',
   }).format(new Date(`${date}T12:00:00`));
 }
-function formatMonthShort(date: string) {
-  return new Intl.DateTimeFormat(getIntlLocale(i18n.language === 'en' ? 'en' : 'id'), {
+function formatMonthShort(date: string, locale: 'id' | 'en') {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
     month: 'short',
   }).format(new Date(`${date}T12:00:00`));
 }
