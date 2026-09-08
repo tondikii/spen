@@ -1,6 +1,5 @@
 import { StyleSheet, View } from 'react-native';
 
-import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getSelectedCurrency } from '@/services/settings-service';
 import type { CurrencyCode } from '@/types/domain';

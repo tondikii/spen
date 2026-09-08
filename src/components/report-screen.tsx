@@ -703,7 +703,6 @@ const styles = StyleSheet.create({
   aiAction: { flexShrink: 0 },
   aiButtonText: { fontSize: 11, lineHeight: 14 },
   summary: { marginBottom: 24 },
-  metric: { flex: 1, gap: 5, minHeight: 58 },
   card: { marginBottom: 16, padding: 18 },
   cardHeader: {
     alignItems: 'center',
@@ -736,12 +735,6 @@ const styles = StyleSheet.create({
   },
   dot: { borderRadius: 4, height: 8, width: 8 },
   legendName: { flex: 1, fontSize: 11 },
-  rangeRow: {
-    flexDirection: 'row',
-    gap: 14,
-    justifyContent: 'flex-end',
-    marginTop: 10,
-  },
   chart: {
     alignItems: 'flex-end',
     borderBottomWidth: 1,
