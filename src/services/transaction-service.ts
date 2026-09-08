@@ -75,6 +75,21 @@ export async function getDatabaseTransactionsInMonth(
   return rows.map(fromDatabaseTransaction);
 }
 
+export async function getDatabaseRecentTransactions(
+  database: SQLiteDatabase,
+  limit: number,
+): Promise<Transaction[]> {
+  const rows = await database.getAllAsync<DatabaseTransactionRow>(
+    `SELECT t.id, t.type, t.wallet_id, t.to_wallet_id, t.category_id, t.amount, t.date, t.time, t.note, t.admin_fee,
+            t.is_initial, COALESCE(c.is_adjustment, 0) AS is_adjustment,
+            t.source_income_item_id, t.source_expense_item_id
+     FROM transactions t LEFT JOIN categories c ON c.id = t.category_id
+     ORDER BY t.date DESC, t.time DESC, t.id DESC LIMIT ?;`,
+    limit,
+  );
+  return rows.map(fromDatabaseTransaction);
+}
+
 export async function getDatabaseTransaction(
   database: SQLiteDatabase,
   transactionId: string,

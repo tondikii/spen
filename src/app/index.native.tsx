@@ -4,14 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 import HomeScreen from '@/components/home-screen';
 import { DataState } from '@/components/screen-skeleton';
-import {
-  archiveWallet,
-  createWallet,
-  getWalletOverview,
-  restoreWallet,
-  updateWallet,
-} from '@/features/wallet';
-import { getDatabaseTransactionCategories, getDatabaseTransactions } from '@/features/transactions';
+import { readHomeView } from '@/features/home';
+import { archiveWallet, createWallet, restoreWallet, updateWallet } from '@/features/wallet';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
 
@@ -19,26 +13,9 @@ export default function HomeRoute() {
   const { t } = useTranslation();
   const router = useRouter();
   const database = useAppDatabase();
-  const read = useCallback(
-    () =>
-      Promise.all([
-        getWalletOverview(database),
-        getDatabaseTransactionCategories(database),
-        getDatabaseTransactions(database),
-      ]),
-    [database],
-  );
-  const { data: loaded, error, retry } = useFocusedRead(read, t('common.homeLoadError'));
-  const data = loaded
-    ? {
-        wallets: loaded[0].active,
-        archivedWallets: loaded[0].archived,
-        categories: loaded[1],
-        transactions: loaded[2],
-      }
-    : null;
-  const loadData = async () => retry();
-  const refreshData = async () => loadData();
+  const read = useCallback(() => readHomeView(database), [database]);
+  const { data, error, retry } = useFocusedRead(read, t('common.homeLoadError'));
+  const refreshData = useCallback(async () => retry(), [retry]);
 
   if (error)
     return (
@@ -47,7 +24,7 @@ export default function HomeRoute() {
         title={t('common.homeNotReady')}
         description={t('errors.unknown')}
         onRetry={() => {
-          void loadData();
+          void refreshData();
         }}
       />
     );
@@ -62,9 +39,9 @@ export default function HomeRoute() {
 
   return (
     <HomeScreen
-      wallets={data.wallets.filter((wallet) => !wallet.archived)}
+      wallets={data.wallets}
       archivedWallets={data.archivedWallets}
-      transactions={data.transactions}
+      transactions={data.recentTransactions}
       categories={data.categories}
       onWalletSave={async (wallet, name, balance) => {
         if (wallet) await updateWallet(database, wallet.id, name, balance);
@@ -80,7 +57,7 @@ export default function HomeRoute() {
         await refreshData();
       }}
       onTransactionPress={(transaction) =>
-        router.push({ pathname: '/create', params: { transactionId: transaction.id } })
+        router.push({ pathname: '/create', params: { transactionId: transaction.id } } as never)
       }
       onDailyPress={() => router.push('/daily' as never)}
     />
