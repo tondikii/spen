@@ -7,7 +7,7 @@ import {
   motionPresets,
 } from '@/components/ui/motion';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Spacing } from '@/theme';
 
 export function PlanSection({
   title,

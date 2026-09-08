@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/motion';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
-import { BottomTabInset, Fonts, Radius, Typography } from '@/constants/theme';
+import { BottomTabInset, Fonts, Radius, Typography } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
 import { formatMonth, formatMonthShort } from '@/i18n/format';

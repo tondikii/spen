@@ -2,7 +2,7 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { ThemedText, type ThemedTextProps } from '@/components/ui/themed-text';
 import { PrimaryButton } from '@/components/ui/ui-primitives';
-import { Radius } from '@/constants/theme';
+import { Radius } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /**

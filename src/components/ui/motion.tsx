@@ -25,7 +25,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { Motion } from '@/constants/theme';
+import { Motion } from '@/theme';
 
 /**
  * Shared motion builders. Keep these outside render functions so Reanimated

@@ -10,7 +10,7 @@ import { MotionPressable as Pressable } from '@/components/ui/motion';
 import { ThemedInput } from '@/components/ui/themed-input';
 import { ThemedText } from '@/components/ui/themed-text';
 import { FieldLabel, MoneyField } from '@/components/ui/form-fields';
-import { Radius } from '@/constants/theme';
+import { Radius } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
 import { getCategoryLabel } from '@/i18n/categories';

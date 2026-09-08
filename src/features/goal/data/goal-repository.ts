@@ -4,7 +4,7 @@ import i18n from '@/i18n';
 import { AppError } from '@/lib/app-error';
 import { todayISO } from '@/lib/date';
 import { parseRequiredPrefixedId, withExclusiveWrite } from '@/lib/db-helpers';
-import { SYSTEM_CATEGORY_NAMES } from '@/constants/domain';
+import { SYSTEM_CATEGORY_NAMES } from '@/lib/domain/constants';
 import {
   getDatabaseTransaction,
   getDatabaseTransactionCategories,

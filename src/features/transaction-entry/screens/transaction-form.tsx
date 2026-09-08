@@ -10,7 +10,7 @@ import { ThemedInput } from '@/components/ui/themed-input';
 import { ThemedText } from '@/components/ui/themed-text';
 import { WalletPicker } from '@/components/ui/wallet-picker';
 import { MotionPressable as Pressable, MotionScreen } from '@/components/ui/motion';
-import { Fonts, Radius, Spacing } from '@/constants/theme';
+import { Fonts, Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { todayISO } from '@/lib/date';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';

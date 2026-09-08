@@ -3,7 +3,7 @@ import type { ComponentProps } from 'react';
 import { StyleSheet } from 'react-native';
 
 import PlanScreen from '@/features/plan';
-import { AppThemeProvider } from '@/components/theme-provider';
+import { AppThemeProvider } from '@/providers/theme-provider';
 import { todayISO } from '@/lib/date';
 import type { BudgetPeriod, BudgetPlan, Category, Goal, Wallet } from '@/types/domain';
 

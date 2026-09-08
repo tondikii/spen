@@ -1,6 +1,6 @@
 import { TextInput, type TextInputProps } from 'react-native';
 
-import { Fonts } from '@/constants/theme';
+import { Fonts } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export function ThemedInput({ style, placeholderTextColor, ...props }: TextInputProps) {

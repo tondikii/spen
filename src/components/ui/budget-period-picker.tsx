@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/motion';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import i18n from '@/i18n';
 import { getIntlLocale } from '@/i18n/format';

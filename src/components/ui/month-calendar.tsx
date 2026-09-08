@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { MotionPressable } from '@/components/ui/motion';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Radius } from '@/constants/theme';
+import { Radius } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
 import { getIntlLocale } from '@/i18n/format';

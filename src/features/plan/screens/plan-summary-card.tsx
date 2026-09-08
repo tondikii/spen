@@ -2,7 +2,7 @@ import { FinanceHeroCard } from '@/components/ui/finance-hero-card';
 import { MotionProgressBar } from '@/components/ui/motion';
 import { ThemedText } from '@/components/ui/themed-text';
 import { View, StyleSheet } from 'react-native';
-import { Fonts, Layout, Radius, Typography } from '@/constants/theme';
+import { Fonts, Layout, Radius, Typography } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoney } from '@/lib/money';
 import { useTranslation } from 'react-i18next';

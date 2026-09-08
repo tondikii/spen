@@ -13,7 +13,7 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 import { CurrencyMark } from '@/components/ui/currency-mark';
 import { CurrencyPicker } from '@/components/ui/currency-picker';
-import { Fonts, Radius, Spacing, Typography } from '@/constants/theme';
+import { Fonts, Radius, Spacing, Typography } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import { ThemedInput } from '@/components/ui/themed-input';

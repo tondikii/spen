@@ -6,7 +6,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useTranslation } from 'react-i18next';
 
 import { SetupWizard, completeSetup, getSetupState } from '@/features/setup';
-import { Fonts, Shadows, Spacing } from '@/constants/theme';
+import { Fonts, Shadows, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { MotionPressable } from '@/components/ui/motion';
 

@@ -8,7 +8,7 @@ import {
 } from 'react';
 import { StatusBar } from 'expo-status-bar';
 
-import { Colors, type ColorScheme, type Theme } from '@/constants/theme';
+import { Colors, type ColorScheme, type Theme } from '@/theme';
 import type { ThemeMode } from '@/types/domain';
 
 type ThemeContextValue = {

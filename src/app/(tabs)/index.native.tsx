@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { DataState } from '@/components/feedback/data-state';
 import HomeScreen, { readHomeView } from '@/features/home';
 import { archiveWallet, createWallet, restoreWallet, updateWallet } from '@/features/wallet';
-import useAppDatabase from '@/db/database-provider';
+import useAppDatabase from '@/providers/database-provider';
 import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function HomeRoute() {

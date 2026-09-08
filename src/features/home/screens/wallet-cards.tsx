@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { BoxedCard } from '@/components/ui/ui-primitives';
 import { MotionChevron, MotionCollapsible, MotionPressable } from '@/components/ui/motion';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Fonts, Radius, Spacing } from '@/constants/theme';
+import { Fonts, Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoney } from '@/lib/money';
 import type { Wallet } from '@/types/domain';

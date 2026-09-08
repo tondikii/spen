@@ -14,8 +14,8 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 import { BoxedCard, PageHeader } from '@/components/ui/ui-primitives';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
-import { useAppTheme } from '@/components/theme-provider';
-import { BottomTabInset, Fonts, Typography } from '@/constants/theme';
+import { useAppTheme } from '@/providers/theme-provider';
+import { BottomTabInset, Fonts, Typography } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
   createBackupFile,

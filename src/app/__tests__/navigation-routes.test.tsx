@@ -3,7 +3,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 import FaqRoute from '@/app/faq.native';
 import PrivacyRoute from '@/app/privacy';
 import TermsRoute from '@/app/terms';
-import { AppThemeProvider } from '@/components/theme-provider';
+import { AppThemeProvider } from '@/providers/theme-provider';
 
 const mockReplace = jest.fn();
 const mockBack = jest.fn();

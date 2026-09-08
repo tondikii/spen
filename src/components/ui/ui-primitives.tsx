@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Radius, Shadows, Spacing, Typography } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemedText } from '@/components/ui/themed-text';
 import { MotionAnimatedView, MotionPressable, motionPresets } from '@/components/ui/motion';

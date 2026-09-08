@@ -8,7 +8,7 @@ import { BudgetPeriodPicker } from '@/components/ui/budget-period-picker';
 import { MotionPressable as Pressable, MotionScreen } from '@/components/ui/motion';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
-import { Fonts, Radius } from '@/constants/theme';
+import { Fonts, Radius } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { todayISO } from '@/lib/date';
 import type { BudgetPlanItem, Category, Goal, PlanItemType } from '@/types/domain';

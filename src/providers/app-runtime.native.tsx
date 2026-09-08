@@ -7,7 +7,7 @@ import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 
-import { AppThemeProvider, useAppTheme } from '@/components/theme-provider';
+import { AppThemeProvider, useAppTheme } from '@/providers/theme-provider';
 import { SpenSplash } from '@/components/ui/brand-assets';
 import { getSetupState } from '@/features/setup';
 import { getDatabaseSettings, setDatabaseThemeMode } from '@/features/settings';

@@ -11,7 +11,7 @@ import {
 
 import { MotionAnimatedView, MotionPressable, motionPresets } from '@/components/ui/motion';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /**

@@ -8,7 +8,7 @@ import { MotionPressable as Pressable } from '@/components/ui/motion';
 import { ThemedInput } from '@/components/ui/themed-input';
 import { ThemedText } from '@/components/ui/themed-text';
 import { FieldLabel } from '@/components/ui/form-fields';
-import { Fonts, Radius, Spacing } from '@/constants/theme';
+import { Fonts, Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getErrorTranslationKey } from '@/lib/app-error';
 import { getCategoryLabel } from '@/i18n/categories';

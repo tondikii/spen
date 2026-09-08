@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { PublicDocumentScreen } from '@/features/settings';
-import { AppThemeProvider } from '@/components/theme-provider';
+import { AppThemeProvider } from '@/providers/theme-provider';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 import { privacyDocument, termsDocument } from '@/lib/public-documents';

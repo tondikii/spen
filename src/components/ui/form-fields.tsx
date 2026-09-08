@@ -4,7 +4,7 @@ import { StyleSheet, View, type StyleProp, type TextStyle, type ViewStyle } from
 import { CurrencyMark } from '@/components/ui/currency-mark';
 import { ThemedInput } from '@/components/ui/themed-input';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Spacing, Typography } from '@/constants/theme';
+import { Spacing, Typography } from '@/theme';
 
 /** Shared lowercase-eyebrow form label used above inputs across every form. */
 export function FieldLabel({

@@ -1,7 +1,7 @@
 import { fireEvent, render } from '@testing-library/react-native';
 
 import { FaqScreen } from '@/features/settings';
-import { AppThemeProvider } from '@/components/theme-provider';
+import { AppThemeProvider } from '@/providers/theme-provider';
 import { faqEntries } from '@/lib/faq';
 
 describe('FaqScreen', () => {

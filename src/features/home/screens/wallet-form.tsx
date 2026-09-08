@@ -7,7 +7,7 @@ import { ThemedInput } from '@/components/ui/themed-input';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 import { FieldLabel, MoneyField } from '@/components/ui/form-fields';
-import { Spacing } from '@/constants/theme';
+import { Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import type { Wallet } from '@/types/domain';

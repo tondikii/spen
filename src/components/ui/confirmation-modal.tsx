@@ -1,7 +1,7 @@
 import { Modal, StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
-import { Radius, Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/theme';
 import { ThemedText } from '@/components/ui/themed-text';
 import { MotionAnimatedView, MotionPressable, motionPresets } from '@/components/ui/motion';
 

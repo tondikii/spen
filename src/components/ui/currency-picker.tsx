@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { CURRENCY_SYMBOLS } from '@/components/ui/currency-mark';
 import { MotionPressable } from '@/components/ui/motion';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Fonts } from '@/constants/theme';
+import { Fonts } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { currencyOptions } from '@/lib/selection';
 import type { CurrencyCode } from '@/types/domain';

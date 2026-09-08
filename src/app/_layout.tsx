@@ -14,7 +14,7 @@ import {
 } from '@expo-google-fonts/nunito-sans';
 import { StyleSheet, View } from 'react-native';
 
-import AppRuntime from '@/components/app-runtime';
+import AppRuntime from '@/providers/app-runtime';
 import { SpenSplash } from '@/components/ui/brand-assets';
 
 // Keep the native splash visible until fonts and the selected runtime are ready.

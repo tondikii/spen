@@ -10,7 +10,7 @@ import { MotionPressable as Pressable, MotionScreen } from '@/components/ui/moti
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 import { TransactionRow } from '@/components/ui/transaction-row';
-import { BottomTabInset, Layout, MaxContentWidth, Spacing, Typography } from '@/constants/theme';
+import { BottomTabInset, Layout, MaxContentWidth, Spacing, Typography } from '@/theme';
 import { useIntlLocale } from '@/hooks/use-locale';
 import { walletTotal } from '@/lib/domain/ledger';
 import type { Category, Transaction, Wallet } from '@/types/domain';

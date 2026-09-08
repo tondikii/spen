@@ -15,7 +15,7 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 import { TransactionRow } from '@/components/ui/transaction-row';
 import { MonthCalendar } from '@/components/ui/month-calendar';
-import { Fonts, Layout, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
+import { Fonts, Layout, MaxContentWidth, Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
 import { formatDayLabel, formatDayMonth, formatWeekdayDate } from '@/i18n/format';

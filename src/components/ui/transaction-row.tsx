@@ -4,7 +4,7 @@ import { CategoryIcon } from '@/components/ui/category-icon';
 import { MotionPressable } from '@/components/ui/motion';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getCategoryLabel } from '@/i18n/categories';
 import { formatMoney } from '@/lib/money';

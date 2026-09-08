@@ -5,7 +5,7 @@ import { AppError } from '@/lib/app-error';
 import { parseRequiredPrefixedId, withExclusiveWrite } from '@/lib/db-helpers';
 import type { Wallet } from '@/types/domain';
 import type { WalletRow } from '@/types/db-rows';
-import { SYSTEM_CATEGORY_NAMES, WALLET_TINTS } from '@/constants/domain';
+import { SYSTEM_CATEGORY_NAMES, WALLET_TINTS } from '@/lib/domain/constants';
 
 const TINTS = WALLET_TINTS;
 const INITIAL_BALANCE_CATEGORY_NAME = SYSTEM_CATEGORY_NAMES.openingBalance;

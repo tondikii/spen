@@ -7,7 +7,7 @@ import { periodBounds } from '@/lib/domain/period';
 import { parseRequiredPrefixedId } from '@/lib/db-helpers';
 import { createWallet } from '@/features/wallet';
 import { createGoal } from '@/features/goal';
-import { SYSTEM_CATEGORY_NAMES } from '@/constants/domain';
+import { SYSTEM_CATEGORY_NAMES } from '@/lib/domain/constants';
 import type { BudgetSuggestion } from '@/lib/ai-service';
 import type {
   BudgetPlan,
