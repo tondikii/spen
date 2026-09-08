@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import type { StyleProp, ViewStyle } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { CategoryIcon } from '@/components/ui/category-icon';
@@ -7,41 +10,42 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
 import { formatDate } from '@/i18n/format';
+import { Spacing } from '@/theme';
 
-/** Tanggal transaksi: tombol pembuka kalender + grid bulannya. */
-export function FormDateField({
+/**
+ * Tanggal transaksi: tombol pembuka kalender + grid bulannya. Memiliki
+ * state kalender sendiri; batas tanggal opsional lewat `minDate`/`maxDate`
+ * (format `YYYY-MM-DD`).
+ */
+export function DateField({
   date,
-  calendarOpen,
-  onToggle,
   onSelect,
-  calendarMonth,
-  onMonthChange,
-  maxMonth,
-  styles,
+  minDate,
+  maxDate,
+  style,
 }: {
   date: string;
-  calendarOpen: boolean;
-  onToggle: () => void;
   onSelect: (candidate: string) => void;
-  calendarMonth: string;
-  onMonthChange: (month: string) => void;
-  maxMonth: string;
-  styles: {
-    dateButton: object;
-    dateButtonText: object;
-  };
+  minDate?: string;
+  maxDate?: string;
+  style?: StyleProp<ViewStyle>;
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
   const locale = useLocale();
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(date.slice(0, 7));
   return (
     <>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('common.openCalendar')}
         accessibilityState={{ expanded: calendarOpen }}
-        onPress={onToggle}
-        style={[styles.dateButton, { borderColor: theme.line, backgroundColor: theme.card }]}
+        onPress={() => {
+          if (!calendarOpen) setCalendarMonth(date.slice(0, 7));
+          setCalendarOpen((open) => !open);
+        }}
+        style={[styles.dateButton, { borderColor: theme.line, backgroundColor: theme.card }, style]}
       >
         <CategoryIcon name="calendar-month-outline" color={theme.pine} size={19} />
         <ThemedText type="smallBold" style={styles.dateButtonText}>
@@ -53,12 +57,15 @@ export function FormDateField({
         <MonthCalendar
           month={calendarMonth}
           selected={date}
-          maxMonth={maxMonth}
+          maxMonth={maxDate?.slice(0, 7)}
           onSelect={(candidate) => {
             onSelect(candidate);
+            setCalendarOpen(false);
           }}
-          onMonthChange={onMonthChange}
-          isDisabled={(candidate) => candidate > maxMonth}
+          onMonthChange={setCalendarMonth}
+          isDisabled={(candidate) =>
+            (maxDate ? candidate > maxDate : false) || (minDate ? candidate < minDate : false)
+          }
           disableOutOfMonth
           selectedVariant="mint"
         />
@@ -66,3 +73,16 @@ export function FormDateField({
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  dateButton: {
+    alignItems: 'center',
+    borderRadius: 13,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: Spacing.two,
+    minHeight: 48,
+    paddingHorizontal: 12,
+  },
+  dateButtonText: { flex: 1 },
+});

@@ -24,7 +24,7 @@ import type {
   Wallet,
 } from '@/types/domain';
 
-import { FormDateField } from './form-date-field';
+import { DateField } from '@/components/ui/date-field';
 import { TransactionCategoryPicker } from './transaction-category-picker';
 
 type TransactionFormProps = {
@@ -116,8 +116,6 @@ export function TransactionForm({
   const [note, setNote] = useState(transaction?.note ?? '');
   const today = todayISO();
   const [date, setDate] = useState(transaction?.date ?? today);
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState((transaction?.date ?? today).slice(0, 7));
   const [categories, setCategories] = useState<Category[]>(categoriesProp);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
 
@@ -139,11 +137,6 @@ export function TransactionForm({
     ) {
       setCategoryId(null);
     }
-  };
-
-  const toggleCalendar = () => {
-    if (!calendarOpen) setCalendarMonth(date.slice(0, 7));
-    setCalendarOpen((current) => !current);
   };
 
   const numericAmount = parseMoneyInput(amount);
@@ -392,19 +385,7 @@ export function TransactionForm({
               </View>
             )}
             <FieldLabel>{t('common.transactionDate')}</FieldLabel>
-            <FormDateField
-              date={date}
-              calendarOpen={calendarOpen}
-              onToggle={toggleCalendar}
-              onSelect={(candidate) => {
-                setDate(candidate);
-                setCalendarOpen(false);
-              }}
-              calendarMonth={calendarMonth}
-              onMonthChange={setCalendarMonth}
-              maxMonth={today.slice(0, 7)}
-              styles={styles}
-            />
+            <DateField date={date} onSelect={setDate} maxDate={today} />
             <FieldLabel>
               {t('common.notes')}{' '}
               <ThemedText type="small" themeColor="muted">
@@ -509,16 +490,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 34,
   },
-  dateButton: {
-    alignItems: 'center',
-    borderRadius: 13,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: Spacing.two,
-    minHeight: 48,
-    paddingHorizontal: 12,
-  },
-  dateButtonText: { flex: 1 },
   amountInput: {
     borderBottomWidth: 1,
     fontFamily: Fonts.serif,

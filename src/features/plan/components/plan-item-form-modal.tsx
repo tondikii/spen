@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { CATEGORY_ICON_CHOICES, CategoryIcon } from '@/components/ui/category-icon';
-import { MonthCalendar } from '@/components/ui/month-calendar';
+import { DateField } from '@/components/ui/date-field';
 import { SheetModal } from './sheet-modal';
 import { WalletPicker } from '@/components/ui/wallet-picker';
 import { MotionPressable as Pressable } from '@/components/ui/motion';
@@ -12,9 +12,7 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { FieldLabel, MoneyField } from '@/components/ui/form-fields';
 import { Radius } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useLocale } from '@/hooks/use-locale';
 import { getCategoryLabel } from '@/i18n/categories';
-import { formatDate } from '@/i18n/format';
 import { chunk } from '@/utils/array';
 import { formatMoneyInput, parseMoneyInput } from '@/utils/money-input';
 import { todayISO } from '@/utils/date';
@@ -44,7 +42,6 @@ export function PlanItemFormModal({
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const locale = useLocale();
   const [categories, setCategories] = useState(categoriesProp);
   const [target, setTarget] = useState(item ? formatMoneyInput(item.targetAmount) : '');
   const [walletId, setWalletId] = useState<string | null>(
@@ -52,8 +49,6 @@ export function PlanItemFormModal({
   );
   const transactionToday = todayISO();
   const [incomeDate, setIncomeDate] = useState(transactionToday);
-  const [incomeCalendarOpen, setIncomeCalendarOpen] = useState(false);
-  const [incomeCalendarMonth, setIncomeCalendarMonth] = useState(transactionToday.slice(0, 7));
   const options = categories.filter(
     (category) =>
       !category.archived &&
@@ -129,31 +124,12 @@ export function PlanItemFormModal({
             <FieldLabel>{t('common.incomeWallet')}</FieldLabel>
             <WalletPicker wallets={wallets} selected={walletId} onSelect={setWalletId} />
             <FieldLabel>{t('common.transactionDate')}</FieldLabel>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('common.openCalendar')}
-              onPress={() => setIncomeCalendarOpen((current) => !current)}
-              style={[planSheetStyles.dateButton, { borderColor: theme.line }]}
-            >
-              <ThemedText type="smallBold">{formatDate(incomeDate, locale)}</ThemedText>
-              <ThemedText type="small" themeColor="muted">
-                {t('common.openCalendar')}
-              </ThemedText>
-            </Pressable>
-            {incomeCalendarOpen && (
-              <MonthCalendar
-                month={incomeCalendarMonth}
-                selected={incomeDate}
-                maxMonth={transactionToday.slice(0, 7)}
-                onSelect={(candidate) => {
-                  setIncomeDate(candidate);
-                  setIncomeCalendarOpen(false);
-                }}
-                onMonthChange={setIncomeCalendarMonth}
-                isDisabled={(candidate) => candidate > transactionToday || candidate < minDate}
-                selectedVariant="mint"
-              />
-            )}
+            <DateField
+              date={incomeDate}
+              onSelect={setIncomeDate}
+              minDate={minDate}
+              maxDate={transactionToday}
+            />
           </>
         )}
         <View style={styles.categoryLabelRow}>

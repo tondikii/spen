@@ -2,15 +2,13 @@ import { useState } from 'react';
 import { ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { MonthCalendar } from '@/components/ui/month-calendar';
+import { DateField } from '@/components/ui/date-field';
 import { SheetModal } from './sheet-modal';
 import { WalletPicker } from '@/components/ui/wallet-picker';
 import { MotionPressable as Pressable } from '@/components/ui/motion';
 import { ThemedText } from '@/components/ui/themed-text';
 import { FieldLabel, MoneyField } from '@/components/ui/form-fields';
 import { useTheme } from '@/hooks/use-theme';
-import { useLocale } from '@/hooks/use-locale';
-import { formatDate } from '@/i18n/format';
 import { formatMoneyInput, parseMoneyInput } from '@/utils/money-input';
 import { todayISO } from '@/utils/date';
 import type { Wallet } from '@/types/domain';
@@ -36,7 +34,6 @@ export function PlanPaymentModal({
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const locale = useLocale();
   const activeWallets = wallets
     .filter((wallet) => !wallet.archived)
     .sort((left, right) => right.balance - left.balance);
@@ -44,8 +41,6 @@ export function PlanPaymentModal({
   const [walletId, setWalletId] = useState(activeWallets[0]?.id ?? null);
   const today = todayISO();
   const [date, setDate] = useState(today);
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(today.slice(0, 7));
   const submit = () => {
     const parsedAmount = parseMoneyInput(amount);
     if (parsedAmount <= 0) return;
@@ -79,31 +74,7 @@ export function PlanPaymentModal({
           inputStyle={planSheetStyles.goalInput}
         />
         <FieldLabel>{t('common.transactionDate')}</FieldLabel>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('common.openCalendar')}
-          onPress={() => setCalendarOpen((current) => !current)}
-          style={[planSheetStyles.dateButton, { borderColor: theme.line }]}
-        >
-          <ThemedText type="smallBold">{formatDate(date, locale)}</ThemedText>
-          <ThemedText type="small" themeColor="muted">
-            {t('common.openCalendar')}
-          </ThemedText>
-        </Pressable>
-        {calendarOpen && (
-          <MonthCalendar
-            month={calendarMonth}
-            selected={date}
-            maxMonth={today.slice(0, 7)}
-            onSelect={(candidate) => {
-              setDate(candidate);
-              setCalendarOpen(false);
-            }}
-            onMonthChange={setCalendarMonth}
-            isDisabled={(candidate) => candidate > today || (minDate ? candidate < minDate : false)}
-            selectedVariant="mint"
-          />
-        )}
+        <DateField date={date} onSelect={setDate} minDate={minDate} maxDate={today} />
         {showWalletPicker && (
           <>
             <FieldLabel>{t('common.sourceWallet')}</FieldLabel>
