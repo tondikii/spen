@@ -39,12 +39,13 @@ import { todayISO } from '@/lib/date';
 import { formatMoney } from '@/lib/money';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import { aiService, type BudgetAIInput, type BudgetSuggestion } from '@/services/ai-service';
-import { getDatabasePlanView, type PlanItemDraft } from '@/services/plan-service';
+import { type PlanItemDraft } from '@/services/plan-service';
+import { readPlanView } from '@/features/plan';
 import type { BudgetPlanItem, Category, Goal, PlanItemType, Wallet } from '@/types/domain';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-type PlanView = Awaited<ReturnType<typeof getDatabasePlanView>>;
+type PlanView = Awaited<ReturnType<typeof readPlanView>>['planView'];
 type PlanItemState = { realizedAmount: number; progressPercent: number; overBudget: boolean };
 type GoalDraft = Omit<Goal, 'id' | 'archived'>;
 type Confirmation = {

@@ -62,7 +62,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "cross-env NODE_ENV=test jest",
-    "lint": "expo lint",
+    "lint": "expo lint --no-cache",
     "format": "prettier --write src db scripts types .github *.js *.json *.ts",
     "format:check": "prettier --check src db scripts types .github *.js *.json *.ts",
     "typecheck": "tsc --noEmit",

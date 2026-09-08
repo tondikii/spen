@@ -13,12 +13,15 @@ import {
   createDatabasePlanItem,
   deleteDatabasePlanItem,
   ensureActiveBudgetPlan,
-  getDatabasePlanView,
   setBudgetPeriodStartDay,
   setDatabasePlanItemPaid,
   updateDatabasePlanItem,
 } from '@/services/plan-service';
+import { readPlanView } from '@/features/plan';
 import { periodBounds } from '@/lib/domain/period';
+
+const getDatabasePlanView = async (database: SQLiteDatabase, today: string) =>
+  (await readPlanView(database, today)).planView;
 
 type TempSQLite = {
   exec(source: string): void;

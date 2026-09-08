@@ -1,6 +1,7 @@
 import PlanScreen from '@/components/plan-screen';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { readPlanView } from '@/features/plan';
 import {
   applyDatabaseBudgetSuggestion,
   createDatabasePlanItem,
@@ -8,7 +9,6 @@ import {
   setBudgetPeriodStartDay,
   updateDatabasePlanItem,
 } from '@/features/budget';
-import { getBudgetGoalOverview } from '@/features/budget';
 import type { BudgetSuggestion } from '@/services/ai-service';
 import { saveDatabaseCategory, saveDatabaseTransaction } from '@/features/transactions';
 import {
@@ -25,11 +25,9 @@ import { useFocusedRead } from '@/hooks/use-focused-read';
 export default function PlanRoute() {
   const { t } = useTranslation();
   const database = useAppDatabase();
-  const read = useCallback(() => getBudgetGoalOverview(database), [database]);
+  const read = useCallback(() => readPlanView(database), [database]);
   const { data, error, retry } = useFocusedRead(read, t('common.planLoadError'));
   const load = async () => retry();
-  const planView = data?.[0] ?? null;
-  const categories = data?.[1] ?? [];
 
   if (error)
     return (
@@ -42,7 +40,7 @@ export default function PlanRoute() {
         }}
       />
     );
-  if (!planView)
+  if (!data)
     return (
       <DataState
         kind="loading"
@@ -50,6 +48,7 @@ export default function PlanRoute() {
         description={t('common.loadingPlanCopy')}
       />
     );
+  const { planView, categories } = data;
   return (
     <PlanScreen
       key={planView.period.id}

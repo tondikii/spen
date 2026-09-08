@@ -8,10 +8,13 @@ import { hasSimilarIncome } from '@/lib/presentation';
 import {
   archiveDatabaseCategory,
   getDatabaseTransactionCategories,
-  getDatabaseTransactions,
+  getDatabaseTransactionsBetween,
   saveDatabaseTransaction,
 } from '@/services/transaction-service';
 import type { TransactionDraft } from '@/types/domain';
+
+const getDatabaseTransactions = async (database: SQLiteDatabase) =>
+  (await getDatabaseTransactionsBetween(database, '0000-01-01', '9999-12-31')).reverse();
 
 type TempSQLite = {
   exec(source: string): void;
