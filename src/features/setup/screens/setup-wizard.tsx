@@ -17,7 +17,7 @@ import { Fonts, Radius, Spacing, Typography } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoneyInput, parseMoneyInput } from '@/utils/money-input';
 import { ThemedInput } from '@/components/ui/themed-input';
-import type { SetupWalletDraft } from '@/features/setup';
+import type { SetupWalletDraft } from '../data/setup-repository';
 import type { CurrencyCode, Locale } from '@/types/domain';
 import { changeLocale } from '@/i18n';
 import { LanguagePicker } from '@/components/ui/language-picker';

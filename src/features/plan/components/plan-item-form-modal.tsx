@@ -16,7 +16,7 @@ import { getCategoryLabel } from '@/i18n/categories';
 import { chunk } from '@/utils/array';
 import { formatMoneyInput, parseMoneyInput } from '@/utils/money-input';
 import { todayISO } from '@/utils/date';
-import type { PlanItemDraft } from '@/features/plan';
+import type { PlanItemDraft } from '../data/plan-repository';
 import type { BudgetPlanItem, Category, PlanItemType, Wallet } from '@/types/domain';
 
 import { planSheetStyles } from './plan-sheet-styles';

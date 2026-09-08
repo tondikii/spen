@@ -8,7 +8,7 @@ import { ThemedView } from '@/components/ui/themed-view';
 import { PageHeader } from '@/components/ui/ui-primitives';
 import { Fonts, Layout, Radius, Spacing, Typography } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { getFaqEntries } from '@/features/settings';
+import { getFaqEntries } from '../content/faq';
 import {
   MotionChevron,
   MotionCollapsible,

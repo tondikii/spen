@@ -17,15 +17,14 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { useAppTheme } from '@/providers/theme-provider';
 import { BottomTabInset, Fonts, Typography } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { getPublicDocumentUrl } from '../content/public-documents';
 import {
   createBackupFile,
-  getPublicDocumentUrl,
   pickBackupContent,
   restoreDatabase,
-  setDatabaseCurrency,
-  setDatabaseLocale,
   shareBackupFile,
-} from '@/features/settings';
+} from '../data/backup-repository';
+import { setDatabaseCurrency, setDatabaseLocale } from '../data/settings-repository';
 import {
   getSelectedCurrency,
   getSelectedLocale,
