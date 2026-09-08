@@ -77,6 +77,13 @@ export default function CreateTransactionScreen() {
   const initialCategory = categoryId
     ? data.categories.find((item) => item.id === categoryId)
     : undefined;
+  const parsedInitialAmount = amount === undefined ? undefined : Number(amount);
+  const initialAmount =
+    parsedInitialAmount !== undefined &&
+    Number.isSafeInteger(parsedInitialAmount) &&
+    parsedInitialAmount > 0
+      ? parsedInitialAmount
+      : undefined;
 
   return (
     <TransactionForm
@@ -86,7 +93,7 @@ export default function CreateTransactionScreen() {
         type === 'income' || type === 'expense' || type === 'transfer' ? type : undefined
       }
       initialCategoryId={categoryId}
-      initialAmount={amount ? Number(amount) : undefined}
+      initialAmount={initialAmount}
       initialWalletId={walletId}
       initialToWalletId={toWalletId}
       lockedToWalletId={lockedToWalletId}

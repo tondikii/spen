@@ -3,6 +3,7 @@ import type { ComponentProps } from 'react';
 
 import { TransactionForm } from '@/features/transactions';
 import { todayISO } from '@/utils/date';
+import { AppError } from '@/utils/app-error';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
 const wallets: Wallet[] = [
@@ -315,5 +316,47 @@ describe('TransactionForm', () => {
 
     expect(getByLabelText('Kategori Saldo Awal')).toBeTruthy();
     expect(getByLabelText('Tipe Pendapatan').props.accessibilityState?.selected).toBe(true);
+  });
+
+  it('menampilkan pesan error saat simpan gagal dan mengizinkan percobaan ulang', async () => {
+    const onSave = jest.fn(async () => {
+      throw new AppError('validation');
+    });
+    const { getByLabelText, getByText } = await renderForm({ onSave });
+
+    await fireEvent.press(getByLabelText('Tipe Pengeluaran'));
+    await fireEvent.press(getByLabelText('Kategori Makan'));
+    await fireEvent.changeText(getByLabelText('Nominal transaksi'), '45000');
+    await fireEvent.press(getByLabelText('Simpan Transaksi'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    await fireEvent.press(getByLabelText('Simpan Transaksi'));
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(2));
+    expect(getByText('Periksa kembali data yang dimasukkan.')).toBeTruthy();
+  });
+
+  it('mencegah submit ganda saat penyimpanan masih berlangsung', async () => {
+    let finishSave!: () => void;
+    const onSave = jest.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishSave = resolve;
+        }),
+    );
+    const { getByLabelText } = await renderForm({ onSave });
+
+    await fireEvent.press(getByLabelText('Tipe Pengeluaran'));
+    await fireEvent.press(getByLabelText('Kategori Makan'));
+    await fireEvent.changeText(getByLabelText('Nominal transaksi'), '45000');
+    const saveButton = getByLabelText('Simpan Transaksi');
+    const firstPress = fireEvent.press(saveButton);
+    const secondPress = fireEvent.press(saveButton);
+
+    finishSave();
+    await firstPress;
+    await secondPress;
+
+    expect(onSave).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext, SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,7 @@ import { WalletPicker } from '@/components/ui/wallet-picker';
 import { MotionPressable as Pressable, MotionScreen } from '@/components/ui/motion';
 import { Fonts, Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { getErrorTranslationKey } from '@/utils/app-error';
 import { todayISO } from '@/utils/date';
 import { formatMoneyInput, parseMoneyInput } from '@/utils/money-input';
 import { hasSimilarIncome } from '@/utils/presentation';
@@ -42,7 +43,7 @@ type TransactionFormProps = {
   existingTransactions: Transaction[];
   allocationLimit?: number;
   onClose: () => void;
-  onSave: (draft: TransactionDraft) => void;
+  onSave: (draft: TransactionDraft) => void | Promise<void>;
   onDelete?: () => void;
   onCategorySave: (category: Category) => Category | Promise<Category>;
   onCategoryArchive: (category: Category) => void | Promise<void>;
@@ -118,6 +119,9 @@ export function TransactionForm({
   const [date, setDate] = useState(transaction?.date ?? today);
   const [categories, setCategories] = useState<Category[]>(categoriesProp);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const savingRef = useRef(false);
 
   const internalCategory: Category | undefined = categories.find(
     (category) => category.id === categoryId && category.isAdjustment,
@@ -157,19 +161,30 @@ export function TransactionForm({
     transaction?.id,
   );
 
-  const submit = () => {
+  const submit = async () => {
+    if (savingRef.current) return;
     if (!walletId || !numericAmount || (type !== 'transfer' && !categoryId)) return;
-    onSave({
-      type,
-      walletId,
-      toWalletId: type === 'transfer' ? toWalletId : null,
-      categoryId: type === 'transfer' ? 'category-transfer' : categoryId,
-      amount: numericAmount,
-      adminFee: type === 'transfer' ? parseMoneyInput(adminFee) : 0,
-      date,
-      time: transaction?.time ?? '12:00',
-      note: note.trim(),
-    });
+    savingRef.current = true;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await onSave({
+        type,
+        walletId,
+        toWalletId: type === 'transfer' ? toWalletId : null,
+        categoryId: type === 'transfer' ? 'category-transfer' : categoryId,
+        amount: numericAmount,
+        adminFee: type === 'transfer' ? parseMoneyInput(adminFee) : 0,
+        date,
+        time: transaction?.time ?? '12:00',
+        note: note.trim(),
+      });
+    } catch (cause) {
+      setSaveError(t(getErrorTranslationKey(cause)));
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
   };
 
   return (
@@ -203,6 +218,7 @@ export function TransactionForm({
             accessibilityLabel={
               mode === 'edit' ? t('common.saveChanges') : t('common.saveTransaction')
             }
+            accessibilityState={{ busy: saving, disabled: saving }}
             onPress={submit}
             style={styles.headerButton}
           >
@@ -222,6 +238,16 @@ export function TransactionForm({
             keyboardDismissMode="interactive"
             automaticallyAdjustKeyboardInsets
           >
+            {saveError && (
+              <View
+                accessibilityLiveRegion="polite"
+                style={[styles.warning, { backgroundColor: theme.dangerBackground }]}
+              >
+                <ThemedText type="small" style={{ color: theme.expense }}>
+                  {saveError}
+                </ThemedText>
+              </View>
+            )}
             <View style={[styles.typeTabs, { borderBottomColor: theme.line }]}>
               {tabs.map((tab) => (
                 <Pressable
