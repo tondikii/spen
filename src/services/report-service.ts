@@ -1,4 +1,3 @@
-import mockData from '@/data/mock-data';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import {
@@ -6,7 +5,7 @@ import {
   getDatabaseTransactions,
 } from '@/services/transaction-service';
 import { dateOnly, ensureActiveBudgetPlan, getDatabasePlanView } from '@/services/plan-service';
-import type { BudgetPeriod, MockBudgetSnapshot, SystemCategoryKey } from '@/types/domain';
+import type { BudgetPeriod, BudgetSnapshot, SystemCategoryKey } from '@/types/domain';
 
 export type ReportExpense = {
   categoryId: string;
@@ -18,45 +17,13 @@ export type ReportExpense = {
 export type ReportPeriodPoint = { period: BudgetPeriod; netSaving: number };
 
 export type ReportView = {
-  snapshot: MockBudgetSnapshot;
+  snapshot: BudgetSnapshot;
   expenses: ReportExpense[];
   period: BudgetPeriod;
   startDay: number;
   periods: BudgetPeriod[];
   netSavingByPeriod: ReportPeriodPoint[];
 };
-
-export function getReportView() {
-  const categoryMap = new Map(mockData.categories.map((category) => [category.id, category]));
-  const expenses = mockData.categories
-    .filter((category) => category.type === 'expense')
-    .map((category) => ({
-      categoryId: category.id,
-      name: category.name,
-      systemKey: category.systemKey,
-      icon: category.icon,
-      amount: mockData.transactions
-        .filter(
-          (transaction) =>
-            reportTransactionType(transaction, categoryMap) === 'expense' &&
-            transaction.categoryId === category.id,
-        )
-        .reduce((sum, transaction) => sum + transaction.amount, 0),
-    }))
-    .filter((item) => item.amount > 0)
-    .sort((a, b) => b.amount - a.amount);
-  return {
-    snapshot: mockData.budgetSnapshot,
-    expenses,
-    period: mockData.budgetPeriods[0],
-    startDay: Number(mockData.budgetPeriods[0].startDate.slice(-2)),
-    periods: mockData.budgetPeriods,
-    netSavingByPeriod: mockData.budgetPeriods.map((period) => ({
-      period,
-      netSaving: mockData.budgetSnapshot.netSaving,
-    })),
-  } satisfies ReportView;
-}
 
 type PeriodRow = { id: number; start_date: string; end_date: string; duration_months: number };
 
@@ -168,7 +135,7 @@ export async function getDatabaseReportView(
           periodTotals.transferIn,
       };
     });
-  const snapshot: MockBudgetSnapshot = {
+  const snapshot: BudgetSnapshot = {
     totalIncome: totals.income,
     totalExpense: totals.expense,
     totalTransferIn: totals.transferIn,

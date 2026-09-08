@@ -1,6 +1,5 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import mockData from '@/data/mock-data';
 import i18n from '@/i18n';
 import { AppError } from '@/lib/app-error';
 import { todayISO, periodBounds, isValidTransactionDate } from '@/lib/date';
@@ -19,8 +18,8 @@ import type {
   Goal,
   IncomeItem,
   ExpenseItem,
-  MockBudgetSnapshot,
-  MockPlanItemState,
+  BudgetSnapshot,
+  PlanItemState,
   PlanItemType,
   Wallet,
 } from '@/types/domain';
@@ -33,19 +32,6 @@ export type PlanItemDraft = {
   name?: string;
   date?: string;
 };
-
-export function getPlanView() {
-  const snapshot = mockData.budgetSnapshot;
-  const plan = mockData.budgetPlans[0];
-  return {
-    snapshot,
-    plan,
-    goals: mockData.goals.filter((goal) => !goal.archived),
-    wallets: mockData.wallets,
-    period: mockData.budgetPeriods[0],
-    startDay: Number(mockData.budgetPeriods[0].startDate.slice(-2)),
-  };
-}
 
 import type { PeriodRow, GoalRow, ItemRow } from '@/types/db-rows';
 
@@ -750,7 +736,7 @@ export async function getDatabasePlanView(database: SQLiteDatabase, today = date
         progressPercent,
         overBudget:
           type === 'expense' && item.targetAmount > 0 && realizedAmount > item.targetAmount,
-      } satisfies MockPlanItemState;
+      } satisfies PlanItemState;
     });
   const planItems = [
     ...itemStates(visibleIncomeItems, 'income'),
@@ -786,7 +772,7 @@ export async function getDatabasePlanView(database: SQLiteDatabase, today = date
   const goalBalance = [...goalBalances.values()].reduce((sum, amount) => sum + amount, 0);
   const availableBalance = wallets.reduce((sum, wallet) => sum + wallet.balance, 0);
   const plannedExpense = visibleExpenseItems.reduce((sum, item) => sum + item.targetAmount, 0);
-  const snapshot: MockBudgetSnapshot = {
+  const snapshot: BudgetSnapshot = {
     totalIncome,
     totalExpense,
     totalTransferIn,

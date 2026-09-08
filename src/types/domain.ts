@@ -155,7 +155,7 @@ export type BudgetPlan = {
   goalIds: string[];
 };
 
-export type MockPlanItemState = {
+export type PlanItemState = {
   itemId: string;
   realizedAmount: number;
   progressPercent: number;
@@ -163,7 +163,7 @@ export type MockPlanItemState = {
   overBudget: boolean;
 };
 
-export type MockBudgetSnapshot = {
+export type BudgetSnapshot = {
   totalIncome: number;
   totalExpense: number;
   totalTransferIn: number;
@@ -173,23 +173,11 @@ export type MockBudgetSnapshot = {
   availableBalance: number;
   freeBalance: number;
   goalBalance: number;
-  planItems: MockPlanItemState[];
+  planItems: PlanItemState[];
 };
 
 export type AppSettings = {
   currency: CurrencyCode;
   themeMode: ThemeMode;
   locale: Locale;
-};
-
-export type SpenMockData = {
-  wallets: Wallet[];
-  categories: Category[];
-  transactions: Transaction[];
-  budgetPeriods: BudgetPeriod[];
-  budgetPlans: BudgetPlan[];
-  goals: Goal[];
-  goalProgress: GoalProgress[];
-  settings: AppSettings;
-  budgetSnapshot: MockBudgetSnapshot;
 };
