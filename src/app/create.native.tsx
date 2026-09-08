@@ -2,9 +2,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { TransactionForm } from '@/components/transaction-form';
 import { DataState } from '@/components/screen-skeleton';
 import {
+  TransactionForm,
   archiveTransactionEntryCategory,
   deleteTransactionEntry,
   readTransactionEntryView,
