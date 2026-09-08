@@ -47,16 +47,6 @@ export function getPlanView() {
   };
 }
 
-export function getPlanItemState(itemId: string) {
-  return mockData.budgetSnapshot.planItems.find((item) => item.itemId === itemId);
-}
-
-export function getPaymentLabel(kind: string, paidAmount?: number, targetAmount?: number) {
-  if (kind === 'Lunas') return 'Lunas ✓';
-  if (kind === 'Sebagian dibayar') return `${paidAmount ?? 0}/${targetAmount ?? 0} dibayar`;
-  return 'Belum dibayar';
-}
-
 import type { PeriodRow, GoalRow, ItemRow } from '@/types/db-rows';
 
 export const dateOnly = todayISO;

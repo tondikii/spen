@@ -1,6 +1,6 @@
 import type { SpenMockData } from '@/types/domain';
 
-export const mockData = {
+const mockData = {
   wallets: [
     {
       id: 'wallet-tunai',

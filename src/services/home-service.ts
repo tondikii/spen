@@ -48,10 +48,6 @@ export function addMockWallet(
   ];
 }
 
-export function renameMockWallet(wallets: Wallet[], walletId: string, name: string) {
-  return wallets.map((wallet) => (wallet.id === walletId ? { ...wallet, name } : wallet));
-}
-
 export function updateMockWallet(
   wallets: Wallet[],
   walletId: string,
@@ -59,10 +55,6 @@ export function updateMockWallet(
   balance: number,
 ) {
   return wallets.map((wallet) => (wallet.id === walletId ? { ...wallet, name, balance } : wallet));
-}
-
-export function archiveMockWallet(wallets: Wallet[], walletId: string) {
-  return wallets.filter((wallet) => wallet.id !== walletId);
 }
 
 export function restoreMockWallet(wallets: Wallet[], walletId: string) {

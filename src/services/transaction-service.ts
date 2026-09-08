@@ -107,11 +107,6 @@ export function saveMockTransaction(
   return updated;
 }
 
-export function deleteMockTransaction(transactions: Transaction[], transactionId: string) {
-  mockTransactions = mockTransactions.filter((transaction) => transaction.id !== transactionId);
-  return transactions.filter((transaction) => transaction.id !== transactionId);
-}
-
 function databaseId(value: string | null) {
   return parsePrefixedId(value, ['wallet-', 'category-', 'transaction-', 'expense-item-', 'income-item-'], `ID database tidak valid: ${value}`);
 }
