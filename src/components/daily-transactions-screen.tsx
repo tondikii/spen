@@ -20,7 +20,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
 import i18n from '@/i18n';
 import { formatDayLabel, getIntlLocale } from '@/i18n/format';
-import { shiftDate } from '@/lib/calendar';
+import { shiftDate } from '@/lib/date';
 import { formatMoney } from '@/lib/money';
 import { getDailyTotals, getDailyTransactions } from '@/lib/presentation';
 import type { Category, Transaction, Wallet } from '@/types/domain';

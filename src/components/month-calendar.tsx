@@ -12,7 +12,7 @@ import {
   getWeekdayLabels,
   shiftMonth,
   type CalendarDate,
-} from '@/lib/calendar';
+} from '@/lib/date';
 
 /**
  * Monday-first month grid shared by the transaction form, the plan sheet

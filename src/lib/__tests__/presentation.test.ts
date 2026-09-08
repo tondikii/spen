@@ -1,5 +1,5 @@
 import { formatDayLabel } from '@/i18n/format';
-import { shiftDate } from '@/lib/calendar';
+import { shiftDate } from '@/lib/date';
 import { getDailyTotals, getDailyTransactions } from '@/lib/presentation';
 import type { Transaction } from '@/types/domain';
 
