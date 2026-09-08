@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react-native';
 
-import { BoxedCard, PageHeader, PrimaryButton } from '@/components/ui-primitives';
+import { BoxedCard, PageHeader, PrimaryButton } from '@/components/ui/ui-primitives';
 
 describe('UI primitives', () => {
   it('exposes labelled actions through the shared vocabulary', async () => {

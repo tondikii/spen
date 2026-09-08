@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { MotionPressable } from '@/components/motion';
-import { ThemedInput } from '@/components/themed-input';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { FieldLabel, MoneyField } from '@/components/form-fields';
+import { MotionPressable } from '@/components/ui/motion';
+import { ThemedInput } from '@/components/ui/themed-input';
+import { ThemedText } from '@/components/ui/themed-text';
+import { ThemedView } from '@/components/ui/themed-view';
+import { FieldLabel, MoneyField } from '@/components/ui/form-fields';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';

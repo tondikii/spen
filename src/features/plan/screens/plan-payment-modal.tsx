@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { MonthCalendar } from '@/components/month-calendar';
-import { SheetModal } from '@/components/sheet-modal';
-import { WalletPicker } from '@/components/wallet-picker';
-import { MotionPressable as Pressable } from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
-import { FieldLabel, MoneyField } from '@/components/form-fields';
+import { MonthCalendar } from '@/components/ui/month-calendar';
+import { SheetModal } from '../components/sheet-modal';
+import { WalletPicker } from '@/components/ui/wallet-picker';
+import { MotionPressable as Pressable } from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
+import { FieldLabel, MoneyField } from '@/components/ui/form-fields';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
 import { formatDate } from '@/i18n/format';

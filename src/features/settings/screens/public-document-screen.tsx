@@ -2,13 +2,13 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Head from 'expo-router/head';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { ThemedText } from '@/components/ui/themed-text';
+import { ThemedView } from '@/components/ui/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { BottomTabInset, MaxContentWidth, Radius, Spacing, Typography } from '@/constants/theme';
 import type { PublicDocument } from '@/lib/public-documents';
 import { getLocalizedPublicDocument } from '@/lib/public-documents';
-import { MotionScreen } from '@/components/motion';
+import { MotionScreen } from '@/components/ui/motion';
 import { useTranslation } from 'react-i18next';
 
 export default function PublicDocumentScreen({ document }: { document: PublicDocument }) {

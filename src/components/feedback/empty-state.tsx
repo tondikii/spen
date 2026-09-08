@@ -1,7 +1,7 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { ThemedText, type ThemedTextProps } from '@/components/themed-text';
-import { PrimaryButton } from '@/components/ui-primitives';
+import { ThemedText, type ThemedTextProps } from '@/components/ui/themed-text';
+import { PrimaryButton } from '@/components/ui/ui-primitives';
 import { Radius } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 

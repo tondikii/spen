@@ -9,21 +9,21 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { CurrencyMark } from '@/components/currency-mark';
-import { CurrencyPicker } from '@/components/currency-picker';
+import { ThemedText } from '@/components/ui/themed-text';
+import { ThemedView } from '@/components/ui/themed-view';
+import { CurrencyMark } from '@/components/ui/currency-mark';
+import { CurrencyPicker } from '@/components/ui/currency-picker';
 import { Fonts, Radius, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
-import { ThemedInput } from '@/components/themed-input';
+import { ThemedInput } from '@/components/ui/themed-input';
 import type { SetupWalletDraft } from '@/features/setup';
 import type { CurrencyCode, Locale } from '@/types/domain';
 import { changeLocale } from '@/i18n';
-import { LanguagePicker } from '@/components/language-picker';
+import { LanguagePicker } from '@/components/ui/language-picker';
 import { getSelectedLocale, setSelectedLocale } from '@/lib/selection';
 import { useTranslation } from 'react-i18next';
-import { MotionPressable as Pressable, MotionScreen } from '@/components/motion';
+import { MotionPressable as Pressable, MotionScreen } from '@/components/ui/motion';
 
 const totalSteps = 3;
 

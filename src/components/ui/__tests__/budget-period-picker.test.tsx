@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react-native';
 
-import { BudgetPeriodPicker } from '@/components/budget-period-picker';
+import { BudgetPeriodPicker } from '@/components/ui/budget-period-picker';
 
 describe('BudgetPeriodPicker', () => {
   beforeEach(() => {

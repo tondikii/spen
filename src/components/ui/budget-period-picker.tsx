@@ -7,9 +7,9 @@ import {
   MotionChevron,
   MotionPressable,
   motionPresets,
-} from '@/components/motion';
-import { ConfirmationModal } from '@/components/confirmation-modal';
-import { ThemedText } from '@/components/themed-text';
+} from '@/components/ui/motion';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { ThemedText } from '@/components/ui/themed-text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import i18n from '@/i18n';

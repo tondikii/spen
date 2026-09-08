@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { DataState } from '@/components/screen-skeleton';
+import { DataState } from '@/components/feedback/data-state';
 import HomeScreen, { readHomeView } from '@/features/home';
 import { archiveWallet, createWallet, restoreWallet, updateWallet } from '@/features/wallet';
 import useAppDatabase from '@/db/database-provider';

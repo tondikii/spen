@@ -2,10 +2,10 @@ import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { CategoryIcon } from '@/components/category-icon';
-import { ConfirmationModal } from '@/components/confirmation-modal';
-import { MotionAnimatedView, MotionProgressBar, motionPresets } from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
+import { CategoryIcon } from '@/components/ui/category-icon';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { MotionAnimatedView, MotionProgressBar, motionPresets } from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { getCategoryLabel } from '@/i18n/categories';
 import { formatMoney } from '@/lib/money';

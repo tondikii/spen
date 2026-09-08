@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 
 import { PublicDocumentScreen } from '@/features/settings';
 import { AppThemeProvider } from '@/components/theme-provider';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { ThemedText } from '@/components/ui/themed-text';
+import { ThemedView } from '@/components/ui/themed-view';
 import { privacyDocument, termsDocument } from '@/lib/public-documents';
 import { getWebLocale } from '@/i18n/web';
 import { changeLocale } from '@/i18n';

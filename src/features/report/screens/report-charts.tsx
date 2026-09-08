@@ -10,9 +10,9 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 
-import { BoxedCard } from '@/components/ui-primitives';
-import { MotionChevron, MotionPressable as Pressable } from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
+import { BoxedCard } from '@/components/ui/ui-primitives';
+import { MotionChevron, MotionPressable as Pressable } from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
 import { Motion } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getCategoryLabel } from '@/i18n/categories';

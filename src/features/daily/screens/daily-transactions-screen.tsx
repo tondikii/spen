@@ -4,17 +4,17 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { EmptyState } from '@/components/empty-state';
+import { EmptyState } from '@/components/feedback/empty-state';
 import {
   MotionChevron,
   MotionCollapsible,
   MotionScreen,
   MotionPressable as Pressable,
-} from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { TransactionRow } from '@/components/transaction-row';
-import { MonthCalendar } from '@/components/month-calendar';
+} from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
+import { ThemedView } from '@/components/ui/themed-view';
+import { TransactionRow } from '@/components/ui/transaction-row';
+import { MonthCalendar } from '@/components/ui/month-calendar';
 import { Fonts, Layout, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';

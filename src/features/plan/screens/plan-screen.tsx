@@ -3,11 +3,11 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AiSheetModal } from '@/components/ai-sheet-modal';
-import { BudgetPeriodPicker } from '@/components/budget-period-picker';
-import { MotionPressable as Pressable, MotionScreen } from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { AiSheetModal } from '@/components/ui/ai-sheet-modal';
+import { BudgetPeriodPicker } from '@/components/ui/budget-period-picker';
+import { MotionPressable as Pressable, MotionScreen } from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
+import { ThemedView } from '@/components/ui/themed-view';
 import { Fonts, Radius } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { todayISO } from '@/lib/date';

@@ -1,8 +1,8 @@
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { MotionPressable } from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
+import { MotionPressable } from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { Locale } from '@/types/domain';

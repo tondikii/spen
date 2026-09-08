@@ -2,8 +2,8 @@ import { Modal, StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 import { Radius, Spacing } from '@/constants/theme';
-import { ThemedText } from '@/components/themed-text';
-import { MotionAnimatedView, MotionPressable, motionPresets } from '@/components/motion';
+import { ThemedText } from '@/components/ui/themed-text';
+import { MotionAnimatedView, MotionPressable, motionPresets } from '@/components/ui/motion';
 
 type ConfirmationModalProps = {
   visible: boolean;

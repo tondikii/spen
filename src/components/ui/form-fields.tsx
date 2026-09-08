@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 
-import { CurrencyMark } from '@/components/currency-mark';
-import { ThemedInput } from '@/components/themed-input';
-import { ThemedText } from '@/components/themed-text';
+import { CurrencyMark } from '@/components/ui/currency-mark';
+import { ThemedInput } from '@/components/ui/themed-input';
+import { ThemedText } from '@/components/ui/themed-text';
 import { Spacing, Typography } from '@/constants/theme';
 
 /** Shared lowercase-eyebrow form label used above inputs across every form. */

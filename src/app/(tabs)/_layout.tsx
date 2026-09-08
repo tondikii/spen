@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { SetupWizard, completeSetup, getSetupState } from '@/features/setup';
 import { Fonts, Shadows, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { MotionPressable } from '@/components/motion';
+import { MotionPressable } from '@/components/ui/motion';
 
 type TabItem = {
   name: 'index' | 'plan' | 'report' | 'settings';

@@ -1,6 +1,6 @@
-import { FinanceHeroCard } from '@/components/finance-hero-card';
-import { MotionProgressBar } from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
+import { FinanceHeroCard } from '@/components/ui/finance-hero-card';
+import { MotionProgressBar } from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
 import { View, StyleSheet } from 'react-native';
 import { Fonts, Layout, Radius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';

@@ -8,7 +8,7 @@ import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 
 import { AppThemeProvider, useAppTheme } from '@/components/theme-provider';
-import { SpenSplash } from '@/components/brand-assets';
+import { SpenSplash } from '@/components/ui/brand-assets';
 import { getSetupState } from '@/features/setup';
 import { getDatabaseSettings, setDatabaseThemeMode } from '@/features/settings';
 import { setSelectedCurrency, setSelectedLocale } from '@/lib/selection';
@@ -17,7 +17,7 @@ import { configureDatabase } from '@/db/client';
 import { seedDefaultCategories } from '@/db/seed';
 import migrations from '../../drizzle/migrations';
 import i18n, { changeLocale } from '@/i18n';
-import { MotionPressable } from '@/components/motion';
+import { MotionPressable } from '@/components/ui/motion';
 
 // Wraps the root navigator in React Navigation's theme so native gestures and
 // headers follow the app's color scheme.

@@ -7,13 +7,13 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View, type TextStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { SpenLogo } from '@/components/brand-assets';
-import { CurrencyPicker } from '@/components/currency-picker';
-import { LanguagePicker } from '@/components/language-picker';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { BoxedCard, PageHeader } from '@/components/ui-primitives';
-import { ConfirmationModal } from '@/components/confirmation-modal';
+import { SpenLogo } from '@/components/ui/brand-assets';
+import { CurrencyPicker } from '@/components/ui/currency-picker';
+import { LanguagePicker } from '@/components/ui/language-picker';
+import { ThemedText } from '@/components/ui/themed-text';
+import { ThemedView } from '@/components/ui/themed-view';
+import { BoxedCard, PageHeader } from '@/components/ui/ui-primitives';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { useAppTheme } from '@/components/theme-provider';
 import { BottomTabInset, Fonts, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -41,7 +41,7 @@ import {
   MotionPressable,
   MotionScreen,
   MotionSwitch,
-} from '@/components/motion';
+} from '@/components/ui/motion';
 
 export default function SettingsScreen({
   database,

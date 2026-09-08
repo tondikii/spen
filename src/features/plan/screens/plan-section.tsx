@@ -5,8 +5,8 @@ import {
   MotionAnimatedView,
   MotionPressable as Pressable,
   motionPresets,
-} from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
+} from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
 import { Spacing } from '@/constants/theme';
 
 export function PlanSection({

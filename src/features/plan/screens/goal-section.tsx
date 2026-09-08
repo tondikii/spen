@@ -2,17 +2,17 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { ConfirmationModal } from '@/components/confirmation-modal';
-import { SheetModal } from '@/components/sheet-modal';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { SheetModal } from '../components/sheet-modal';
 import {
   MotionAnimatedView,
   MotionPressable as Pressable,
   motionPresets,
-} from '@/components/motion';
-import { ThemedInput } from '@/components/themed-input';
-import { ThemedText } from '@/components/themed-text';
-import { WalletPicker } from '@/components/wallet-picker';
-import { FieldLabel, MoneyField } from '@/components/form-fields';
+} from '@/components/ui/motion';
+import { ThemedInput } from '@/components/ui/themed-input';
+import { ThemedText } from '@/components/ui/themed-text';
+import { WalletPicker } from '@/components/ui/wallet-picker';
+import { FieldLabel, MoneyField } from '@/components/ui/form-fields';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoney } from '@/lib/money';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';

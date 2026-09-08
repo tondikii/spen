@@ -6,8 +6,8 @@ import {
   MotionAnimatedView,
   MotionPressable as Pressable,
   motionPresets,
-} from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
+} from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 
 export type PlanAction = {

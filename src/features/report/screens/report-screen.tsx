@@ -4,18 +4,18 @@ import Svg from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AiSheetModal } from '@/components/ai-sheet-modal';
-import { EmptyState } from '@/components/empty-state';
-import { FinanceHeroCard } from '@/components/finance-hero-card';
-import { BudgetPeriodPicker } from '@/components/budget-period-picker';
+import { AiSheetModal } from '@/components/ui/ai-sheet-modal';
+import { EmptyState } from '@/components/feedback/empty-state';
+import { FinanceHeroCard } from '@/components/ui/finance-hero-card';
+import { BudgetPeriodPicker } from '@/components/ui/budget-period-picker';
 import {
   MotionAnimatedView,
   MotionPressable as Pressable,
   MotionScreen,
   motionPresets,
-} from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+} from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
+import { ThemedView } from '@/components/ui/themed-view';
 import { BottomTabInset, Fonts, Radius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';

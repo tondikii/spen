@@ -3,13 +3,13 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 're
 import { SafeAreaInsetsContext, SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
-import { ConfirmationModal } from '@/components/confirmation-modal';
-import { CurrencyMark } from '@/components/currency-mark';
-import { FieldLabel } from '@/components/form-fields';
-import { ThemedInput } from '@/components/themed-input';
-import { ThemedText } from '@/components/themed-text';
-import { WalletPicker } from '@/components/wallet-picker';
-import { MotionPressable as Pressable, MotionScreen } from '@/components/motion';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { CurrencyMark } from '@/components/ui/currency-mark';
+import { FieldLabel } from '@/components/ui/form-fields';
+import { ThemedInput } from '@/components/ui/themed-input';
+import { ThemedText } from '@/components/ui/themed-text';
+import { WalletPicker } from '@/components/ui/wallet-picker';
+import { MotionPressable as Pressable, MotionScreen } from '@/components/ui/motion';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { todayISO } from '@/lib/date';

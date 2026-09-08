@@ -17,7 +17,7 @@ import {
   withdrawFromGoal,
   type GoalDraft,
 } from '@/features/goal';
-import { DataState } from '@/components/screen-skeleton';
+import { DataState } from '@/components/feedback/data-state';
 import useAppDatabase from '@/db/database-provider';
 import { useFocusedRead } from '@/hooks/use-focused-read';
 

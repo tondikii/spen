@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
-import { CategoryIcon } from '@/components/category-icon';
-import { MonthCalendar } from '@/components/month-calendar';
-import { MotionChevron, MotionPressable as Pressable } from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
+import { CategoryIcon } from '@/components/ui/category-icon';
+import { MonthCalendar } from '@/components/ui/month-calendar';
+import { MotionChevron, MotionPressable as Pressable } from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
 import { formatDate } from '@/i18n/format';

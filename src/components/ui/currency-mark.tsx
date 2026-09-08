@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { getSelectedCurrency } from '@/lib/selection';
 import type { CurrencyCode } from '@/types/domain';
-import { ThemedText } from '@/components/themed-text';
+import { ThemedText } from '@/components/ui/themed-text';
 
 export const CURRENCY_SYMBOLS: Record<CurrencyCode, string> = {
   IDR: 'Rp',

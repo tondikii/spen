@@ -1,8 +1,8 @@
 import { StyleSheet, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import type { ReactNode } from 'react';
 
-import { ThemedText } from '@/components/themed-text';
-import { MotionAnimatedView, motionPresets } from '@/components/motion';
+import { ThemedText } from '@/components/ui/themed-text';
+import { MotionAnimatedView, motionPresets } from '@/components/ui/motion';
 import { Fonts, Layout, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { formatMoney } from '@/lib/money';
 import { useTheme } from '@/hooks/use-theme';

@@ -1,9 +1,9 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { CategoryIcon } from '@/components/category-icon';
-import { MotionPressable } from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { CategoryIcon } from '@/components/ui/category-icon';
+import { MotionPressable } from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
+import { ThemedView } from '@/components/ui/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getCategoryLabel } from '@/i18n/categories';

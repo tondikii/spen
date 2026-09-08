@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { BoxedCard } from '@/components/ui-primitives';
-import { MotionChevron, MotionCollapsible, MotionPressable } from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
+import { BoxedCard } from '@/components/ui/ui-primitives';
+import { MotionChevron, MotionCollapsible, MotionPressable } from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoney } from '@/lib/money';

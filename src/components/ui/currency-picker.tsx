@@ -1,9 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { CURRENCY_SYMBOLS } from '@/components/currency-mark';
-import { MotionPressable } from '@/components/motion';
-import { ThemedText } from '@/components/themed-text';
+import { CURRENCY_SYMBOLS } from '@/components/ui/currency-mark';
+import { MotionPressable } from '@/components/ui/motion';
+import { ThemedText } from '@/components/ui/themed-text';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { currencyOptions } from '@/lib/selection';

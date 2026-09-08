@@ -2,12 +2,12 @@ import { useMemo, useState } from 'react';
 import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { CATEGORY_ICON_CHOICES, CategoryIcon } from '@/components/category-icon';
-import { ConfirmationModal } from '@/components/confirmation-modal';
-import { MotionPressable as Pressable } from '@/components/motion';
-import { ThemedInput } from '@/components/themed-input';
-import { ThemedText } from '@/components/themed-text';
-import { FieldLabel } from '@/components/form-fields';
+import { CATEGORY_ICON_CHOICES, CategoryIcon } from '@/components/ui/category-icon';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { MotionPressable as Pressable } from '@/components/ui/motion';
+import { ThemedInput } from '@/components/ui/themed-input';
+import { ThemedText } from '@/components/ui/themed-text';
+import { FieldLabel } from '@/components/ui/form-fields';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getErrorTranslationKey } from '@/lib/app-error';
