@@ -1,6 +1,7 @@
 import { fireEvent, render } from '@testing-library/react-native';
 
 import FaqRoute from '@/app/(tabs)/settings/faq';
+import NotFoundRoute from '@/app/+not-found';
 import PrivacyRoute from '@/app/privacy';
 import TermsRoute from '@/app/terms';
 import { AppThemeProvider } from '@/providers/theme-provider';
@@ -44,5 +45,18 @@ describe('public document and FAQ route navigation', () => {
 
     expect(mockReplace).toHaveBeenCalledWith('/settings');
     expect(mockBack).not.toHaveBeenCalled();
+  });
+
+  it('route tak dikenal menawarkan kembali ke Beranda', async () => {
+    const { getByLabelText, getByText } = await render(
+      <AppThemeProvider>
+        <NotFoundRoute />
+      </AppThemeProvider>,
+    );
+
+    expect(getByText('Halaman tidak ditemukan.')).toBeTruthy();
+    fireEvent.press(getByLabelText('Ke Beranda'));
+
+    expect(mockReplace).toHaveBeenCalledWith('/');
   });
 });
