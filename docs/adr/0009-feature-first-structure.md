@@ -5,3 +5,11 @@ Kita mengadopsi struktur feature-first dari `structure-recommendation.md` (konsu
 Alternatif yang dipertimbangkan: mempertahankan `services/` untuk service lintas fitur (ditolak — nama "services" sendiri dicatat dokumen sumber sebagai folder yang "terlalu luas"; pemilik yang jelas lebih penting daripada simetri folder), dan penegakan aturan dependensi dengan ESLint boundary plugin sejak awal (ditunda — jadi ticket opsional di akhir; konvensi dulu agar perpindahan file tidak terhambat linter).
 
 Konsekuensi: aturan arah dependensi berlaku sebagai konvensi — `app` boleh impor fitur dan provider; fitur boleh impor shared (`components`, `utils`, `db`); shared tidak boleh impor fitur; satu fitur tidak mengambil komponen internal fitur lain. Perpindahan dikerjakan sebagai ticket tracer-bullet berurutan (rapikan `app` + grup `(tabs)` → layar ke fitur → `db` → `data/` → split `components/` + `theme/` + `providers/` → lint boundaries opsional), masing-masing meninggalkan repo tetap hijau.
+
+## Amandemen (8 Sep 2026 — kampanye adopsi panduan development)
+
+- Output migrasi aktual `drizzle/`, bukan `db/migrations` (klausa di atas usang). Migrasi bersifat incremental — lihat ADR-0010.
+- **Route adapter** (ADR-0008) adalah satu-satunya penyambung data ke layar: layar murni menerima view-model + callback; route boleh memuat loading/adapter melebihi 100 baris, target ekstraksi komponen menyusul bertahap (panduan seksi 7).
+- **Tanpa konvensi `*.types.ts` per fitur**: tipe view-model/input tinggal dekat pemiliknya (`data/`/`read.ts`); hanya tipe lintas fitur di `src/types/`.
+- **Fitur data-only sah** (mis. `wallet`, `goal` yang hanya berisi `data/` + barrel): UI-nya boleh tinggal di fitur konsumen (`home`, `plan`) selama data diakses lewat barrel fitur pemilik.
+- **Provider adalah lapisan aplikasi**: `src/providers/` boleh mengimpor fitur (titik pemasangan level app), sesuai pengecualian eslint; bukan lapisan shared.
