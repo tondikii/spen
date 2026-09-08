@@ -2,7 +2,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { ComponentProps } from 'react';
 import { StyleSheet } from 'react-native';
 
-import PlanScreen from '@/components/plan-screen';
+import PlanScreen from '@/features/plan';
 import { AppThemeProvider } from '@/components/theme-provider';
 import { todayISO } from '@/lib/date';
 import type { BudgetPeriod, BudgetPlan, Category, Goal, Wallet } from '@/types/domain';

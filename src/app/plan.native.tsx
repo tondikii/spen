@@ -1,7 +1,6 @@
-import PlanScreen from '@/components/plan-screen';
+import PlanScreen, { readPlanView } from '@/features/plan';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { readPlanView } from '@/features/plan';
 import {
   applyDatabaseBudgetSuggestion,
   createDatabasePlanItem,
