@@ -20,10 +20,6 @@ function makeReportView() {
       totalTransferOut: 0,
       netSaving: 3_550_000,
       spareBudget: 3_550_000,
-      availableBalance: 10_000_000,
-      freeBalance: 8_000_000,
-      goalBalance: 2_000_000,
-      planItems: [],
     },
     expenses: [
       {

@@ -4,7 +4,7 @@ import migrations from '../../../drizzle/migrations';
 import { configureDatabase } from '../../../db/database';
 import { seedDefaultCategories } from '../../../db/seed';
 import { ensureActiveBudgetPlan } from '@/services/plan-service';
-import { getDatabaseReportView } from '@/services/report-service';
+import { readReportView } from '@/features/report';
 import {
   getDatabaseTransactionCategories,
   saveDatabaseTransaction,
@@ -131,7 +131,7 @@ describe('database report service', () => {
       '2026-10-10',
     );
 
-    const view = await getDatabaseReportView(database, 3, '2026-10-10');
+    const view = await readReportView(database, '2026-10-10');
     expect(view.snapshot).toMatchObject({
       totalIncome: 1000,
       totalExpense: 400,
@@ -139,9 +139,6 @@ describe('database report service', () => {
       totalTransferOut: 250,
       netSaving: 600,
       spareBudget: 600,
-      availableBalance: 600,
-      freeBalance: 600,
-      goalBalance: 0,
     });
     expect(view.expenses.map((expense) => expense.name)).toEqual(['Makan', 'Transport']);
     expect(view.netSavingByPeriod[0].period.startDate).toBe('2026-09-01');
@@ -156,7 +153,7 @@ describe('database report service', () => {
 
     await updateWallet(database, wallet.id, 'BCA', 500);
 
-    const view = await getDatabaseReportView(database, 3, '2026-09-10');
+    const view = await readReportView(database, '2026-09-10');
 
     expect(view.snapshot).toMatchObject({ totalIncome: 1000, totalExpense: 500, netSaving: 500 });
     expect(view.expenses).toEqual(

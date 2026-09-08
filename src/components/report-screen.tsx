@@ -33,7 +33,7 @@ import i18n from '@/i18n';
 import { getIntlLocale } from '@/i18n/format';
 import { getCategoryLabel } from '@/i18n/categories';
 import { getErrorTranslationKey } from '@/lib/app-error';
-import { getDatabaseReportView, type ReportExpense } from '@/services/report-service';
+import { readReportView, type ReportExpense } from '@/features/report';
 import {
   MotionAnimatedView,
   MotionChevron,
@@ -49,7 +49,7 @@ const ClipPathCompat = ClipPath as unknown as ComponentType<{
   children?: ReactNode;
 }>;
 
-type ReportView = Awaited<ReturnType<typeof getDatabaseReportView>>;
+type ReportView = Awaited<ReturnType<typeof readReportView>>;
 
 function ReportScreenContent({
   reportView,
