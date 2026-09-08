@@ -24,4 +24,47 @@ module.exports = [
     files: ['src/**/__tests__/**'],
     rules: { 'max-lines': 'off', 'max-lines-per-function': 'off' },
   },
+  {
+    // Arah dependensi ADR-0009: lapisan bersama tidak boleh bergantung pada
+    // fitur. providers dikecualikan karena menjadi titik pemasangan level app.
+    files: [
+      'src/components/**',
+      'src/db/**',
+      'src/hooks/**',
+      'src/i18n/**',
+      'src/lib/**',
+      'src/theme/**',
+      'src/types/**',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/features/*', '@/features/**'],
+              message: 'Lapisan bersama tidak boleh mengimpor fitur (lihat ADR-0009).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Fitur lain hanya boleh diakses lewat index publiknya (@/features/<nama>).
+    files: ['src/app/**', 'src/features/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/features/*/**'],
+              message: 'Impor fitur hanya lewat index publiknya: @/features/<nama>.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ];
