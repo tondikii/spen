@@ -2,7 +2,8 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import i18n from '@/i18n';
 import { AppError } from '@/lib/app-error';
-import { todayISO, periodBounds, isValidTransactionDate } from '@/lib/date';
+import { todayISO, isValidTransactionDate } from '@/lib/date';
+import { periodBounds, periodFromRow } from '@/lib/domain/period';
 import {
   expenseProgress,
   netSaving,
@@ -19,7 +20,6 @@ import type {
   AllocationItem,
   BudgetPlan,
   BudgetPlanItem,
-  BudgetPeriod,
   Category,
   FixedExpenseItem,
   Goal,
@@ -41,18 +41,6 @@ export type PlanItemDraft = {
 };
 
 import type { PeriodRow, GoalRow, ItemRow } from '@/types/db-rows';
-
-export const dateOnly = todayISO;
-export { periodBounds };
-
-function toPeriod(row: PeriodRow): BudgetPeriod {
-  return {
-    id: `period-${row.id}`,
-    startDate: row.start_date,
-    endDate: row.end_date,
-    durationMonths: 1,
-  };
-}
 
 function toItem(row: ItemRow, type: PlanItemType): BudgetPlanItem {
   const common = {
@@ -136,11 +124,11 @@ export async function createDatabasePlanItem(
 ): Promise<void> {
   validatePlanItem(draft);
   const active = await ensureActiveBudgetPlan(database);
-  const transactionDate = draft.date ?? dateOnly();
+  const transactionDate = draft.date ?? todayISO();
   if (
     !isValidTransactionDate(transactionDate) ||
     transactionDate < active.period.start_date ||
-    transactionDate > dateOnly()
+    transactionDate > todayISO()
   )
     throw new AppError('validation', undefined, 'Tanggal transaksi harus berada di Periode aktif');
   await database.withExclusiveTransactionAsync(async (transaction) => {
@@ -281,7 +269,7 @@ export async function updateDatabasePlanItem(
 export async function deleteDatabasePlanItem(
   database: SQLiteDatabase,
   item: BudgetPlanItem,
-  today = dateOnly(),
+  today = todayISO(),
 ): Promise<void> {
   if (item.isAutomatic && (item.type === 'income' || item.type === 'expense')) {
     const active = await ensureActiveBudgetPlan(database, today);
@@ -322,7 +310,7 @@ export async function setDatabasePlanItemPaid(
   item: BudgetPlanItem,
   paid: boolean,
   walletId: string,
-  today = dateOnly(),
+  today = todayISO(),
 ): Promise<void> {
   if (item.type !== 'expense' || item.isAutomatic)
     throw new AppError(
@@ -488,7 +476,7 @@ export async function applyDatabaseBudgetSuggestion(
   }
 }
 
-export async function ensureActiveBudgetPlan(database: SQLiteDatabase, today = dateOnly()) {
+export async function ensureActiveBudgetPlan(database: SQLiteDatabase, today = todayISO()) {
   let planId = 0;
   let periodId = 0;
   let startDay = 1;
@@ -552,7 +540,7 @@ export async function ensureActiveBudgetPlan(database: SQLiteDatabase, today = d
 export async function setBudgetPeriodStartDay(
   database: SQLiteDatabase,
   startDay: number,
-  today = dateOnly(),
+  today = todayISO(),
 ) {
   const bounds = periodBounds(startDay, today);
   let periodId = 0;
@@ -604,9 +592,9 @@ export async function setBudgetPeriodStartDay(
   };
 }
 
-export async function getDatabasePlanView(database: SQLiteDatabase, today = dateOnly()) {
+export async function getDatabasePlanView(database: SQLiteDatabase, today = todayISO()) {
   const active = await ensureActiveBudgetPlan(database, today);
-  const period = toPeriod(active.period);
+  const period = periodFromRow(active.period);
   const [
     incomeRows,
     expenseRows,

@@ -14,11 +14,11 @@ import {
   deleteDatabasePlanItem,
   ensureActiveBudgetPlan,
   getDatabasePlanView,
-  periodBounds,
   setBudgetPeriodStartDay,
   setDatabasePlanItemPaid,
   updateDatabasePlanItem,
 } from '@/services/plan-service';
+import { periodBounds } from '@/lib/domain/period';
 
 type TempSQLite = {
   exec(source: string): void;

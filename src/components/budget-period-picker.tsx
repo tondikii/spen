@@ -14,7 +14,8 @@ import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import i18n from '@/i18n';
 import { getIntlLocale } from '@/i18n/format';
-import { dateOnly, periodBounds } from '@/services/plan-service';
+import { todayISO } from '@/lib/date';
+import { periodBounds } from '@/lib/domain/period';
 
 const startDayOptions = Array.from({ length: 31 }, (_, index) => index + 1);
 
@@ -156,7 +157,7 @@ export function formatBudgetPeriodLabel(
   return `${formatter.format(start)}–${formatter.format(end)}`;
 }
 
-function previewPeriod(startDay: number, today = dateOnly()) {
+function previewPeriod(startDay: number, today = todayISO()) {
   return periodBounds(startDay, today);
 }
 

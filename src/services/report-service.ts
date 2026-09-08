@@ -4,7 +4,9 @@ import {
   getDatabaseTransactionCategories,
   getDatabaseTransactions,
 } from '@/services/transaction-service';
-import { dateOnly, ensureActiveBudgetPlan, getDatabasePlanView } from '@/services/plan-service';
+import { ensureActiveBudgetPlan, getDatabasePlanView } from '@/services/plan-service';
+import { periodFromRow } from '@/lib/domain/period';
+import { todayISO } from '@/lib/date';
 import { netSaving, summarizeLedger, type LedgerType } from '@/lib/domain/ledger';
 import type { BudgetPeriod, BudgetSnapshot, SystemCategoryKey, Transaction } from '@/types/domain';
 
@@ -28,15 +30,6 @@ export type ReportView = {
 
 type PeriodRow = { id: number; start_date: string; end_date: string; duration_months: number };
 
-function toPeriod(row: PeriodRow): BudgetPeriod {
-  return {
-    id: `period-${row.id}`,
-    startDate: row.start_date,
-    endDate: row.end_date,
-    durationMonths: 1,
-  };
-}
-
 export async function getDatabaseReportView(
   database: SQLiteDatabase,
   rangeMonths = 3,
@@ -44,16 +37,16 @@ export async function getDatabaseReportView(
   selectedPeriodId?: string,
 ): Promise<ReportView> {
   const active = await ensureActiveBudgetPlan(database, today);
-  const period = toPeriod(active.period);
+  const period = periodFromRow(active.period);
   const [transactions, categories, periodRows] = await Promise.all([
     getDatabaseTransactions(database),
     getDatabaseTransactionCategories(database),
     database.getAllAsync<PeriodRow>(
       'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date <= ? ORDER BY start_date ASC, id ASC;',
-      today ?? dateOnly(),
+      today ?? todayISO(),
     ),
   ]);
-  const storedPeriods = periodRows.map(toPeriod);
+  const storedPeriods = periodRows.map(periodFromRow);
   const selectedPeriod =
     storedPeriods.find((candidate) => candidate.id === selectedPeriodId) ?? period;
   const selectedPeriodRow = periodRows.find((row) => `period-${row.id}` === selectedPeriod.id);
