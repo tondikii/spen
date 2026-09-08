@@ -82,7 +82,7 @@ export default function AppTabs() {
             <MotionPressable
               accessibilityLabel={t('common.addTransaction')}
               accessibilityRole="button"
-              onPress={() => router.push({ pathname: '/create' } as never)}
+              onPress={() => router.push({ pathname: '/create' })}
               style={[
                 styles.addButton,
                 { backgroundColor: theme.pine, borderColor: theme.background },

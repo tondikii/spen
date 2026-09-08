@@ -6,6 +6,6 @@ export default function SettingsRoute() {
   const router = useRouter();
 
   return (
-    <SettingsScreen database={useAppDatabase()} onFaqPress={() => router.push('/faq' as never)} />
+    <SettingsScreen database={useAppDatabase()} onFaqPress={() => router.push('/faq')} />
   );
 }

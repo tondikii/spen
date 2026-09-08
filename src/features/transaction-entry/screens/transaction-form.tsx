@@ -3,19 +3,15 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 're
 import { SafeAreaInsetsContext, SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
-import { CategoryIcon } from '@/components/category-icon';
 import { ConfirmationModal } from '@/components/confirmation-modal';
 import { CurrencyMark } from '@/components/currency-mark';
 import { FieldLabel } from '@/components/form-fields';
 import { ThemedInput } from '@/components/themed-input';
 import { ThemedText } from '@/components/themed-text';
-import { MonthCalendar } from '@/components/month-calendar';
 import { WalletPicker } from '@/components/wallet-picker';
-import { MotionChevron, MotionPressable as Pressable, MotionScreen } from '@/components/motion';
+import { MotionPressable as Pressable, MotionScreen } from '@/components/motion';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useLocale } from '@/hooks/use-locale';
-import { formatDate } from '@/i18n/format';
 import { todayISO } from '@/lib/date';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import { hasSimilarIncome } from '@/lib/presentation';
@@ -28,6 +24,7 @@ import type {
   Wallet,
 } from '@/types/domain';
 
+import { FormDateField } from './form-date-field';
 import { TransactionCategoryPicker } from './transaction-category-picker';
 
 type TransactionFormProps = {
@@ -87,7 +84,6 @@ export function TransactionForm({
 }: TransactionFormProps) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const locale = useLocale();
   const insets = useContext(SafeAreaInsetsContext) ?? {
     top: 0,
     bottom: 0,
@@ -396,34 +392,19 @@ export function TransactionForm({
               </View>
             )}
             <FieldLabel>{t('common.transactionDate')}</FieldLabel>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('common.openCalendar')}
-              accessibilityState={{ expanded: calendarOpen }}
-              onPress={toggleCalendar}
-              style={[styles.dateButton, { borderColor: theme.line, backgroundColor: theme.card }]}
-            >
-              <CategoryIcon name="calendar-month-outline" color={theme.pine} size={19} />
-              <ThemedText type="smallBold" style={styles.dateButtonText}>
-                {formatDate(`${date}T12:00:00`, locale)}
-              </ThemedText>
-              <MotionChevron expanded={calendarOpen} color={theme.muted} size={16} />
-            </Pressable>
-            {calendarOpen && (
-              <MonthCalendar
-                month={calendarMonth}
-                selected={date}
-                maxMonth={today.slice(0, 7)}
-                onSelect={(candidate) => {
-                  setDate(candidate);
-                  setCalendarOpen(false);
-                }}
-                onMonthChange={setCalendarMonth}
-                isDisabled={(candidate) => candidate > today}
-                disableOutOfMonth
-                selectedVariant="mint"
-              />
-            )}
+            <FormDateField
+              date={date}
+              calendarOpen={calendarOpen}
+              onToggle={toggleCalendar}
+              onSelect={(candidate) => {
+                setDate(candidate);
+                setCalendarOpen(false);
+              }}
+              calendarMonth={calendarMonth}
+              onMonthChange={setCalendarMonth}
+              maxMonth={today.slice(0, 7)}
+              styles={styles}
+            />
             <FieldLabel>
               {t('common.notes')}{' '}
               <ThemedText type="small" themeColor="muted">
