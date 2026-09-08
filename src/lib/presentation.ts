@@ -38,10 +38,6 @@ export function getTransactionPresentation(
   };
 }
 
-export function getWalletTotal(wallets: Wallet[]) {
-  return wallets.reduce((total, wallet) => total + wallet.balance, 0);
-}
-
 export function getTransactionCategories(categories: Category[], type: TransactionType) {
   if (type === 'adjustment') return [];
   const categoryType = type === 'income' ? 'income' : 'expense';

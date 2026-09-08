@@ -5,7 +5,8 @@ import {
   getDatabaseTransactions,
 } from '@/services/transaction-service';
 import { dateOnly, ensureActiveBudgetPlan, getDatabasePlanView } from '@/services/plan-service';
-import type { BudgetPeriod, BudgetSnapshot, SystemCategoryKey } from '@/types/domain';
+import { netSaving, summarizeLedger, type LedgerType } from '@/lib/domain/ledger';
+import type { BudgetPeriod, BudgetSnapshot, SystemCategoryKey, Transaction } from '@/types/domain';
 
 export type ReportExpense = {
   categoryId: string;
@@ -108,18 +109,8 @@ export async function getDatabaseReportView(
     .filter((expense) => expense.amount > 0)
     .sort((a, b) => b.amount - a.amount);
   const totalsFor = (range: BudgetPeriod) =>
-    activeTransactionsFor(transactions, range).reduce(
-      (totals, transaction) => {
-        const type = reportTransactionType(transaction, categoryMap);
-        if (type === 'income') totals.income += transaction.amount;
-        if (type === 'expense') totals.expense += transaction.amount;
-        if (transaction.type === 'transfer' && transaction.toWalletId)
-          totals.transferIn += transaction.amount;
-        if (transaction.type === 'transfer' && transaction.walletId)
-          totals.transferOut += transaction.amount + (transaction.adminFee ?? 0);
-        return totals;
-      },
-      { income: 0, expense: 0, transferIn: 0, transferOut: 0 },
+    summarizeLedger(activeTransactionsFor(transactions, range), (transaction) =>
+      reportTransactionType(transaction, categoryMap),
     );
   const totals = totalsFor(selectedPeriod);
   const netSavingByPeriod = storedPeriods
@@ -128,11 +119,7 @@ export async function getDatabaseReportView(
       const periodTotals = totalsFor(item);
       return {
         period: item,
-        netSaving:
-          periodTotals.income -
-          periodTotals.expense -
-          periodTotals.transferOut +
-          periodTotals.transferIn,
+        netSaving: netSaving(periodTotals),
       };
     });
   const snapshot: BudgetSnapshot = {
@@ -140,7 +127,7 @@ export async function getDatabaseReportView(
     totalExpense: totals.expense,
     totalTransferIn: totals.transferIn,
     totalTransferOut: totals.transferOut,
-    netSaving: totals.income - totals.expense - totals.transferOut + totals.transferIn,
+    netSaving: netSaving(totals),
     spareBudget:
       selectedPeriod.id === period.id
         ? planView.snapshot.spareBudget
@@ -170,14 +157,10 @@ function activeTransactionsFor(
 }
 
 function reportTransactionType(
-  transaction: Awaited<ReturnType<typeof getDatabaseTransactions>>[number],
+  transaction: Transaction,
   categoryMap: Map<string, { type: string }>,
-) {
+): LedgerType {
   if (transaction.type === 'adjustment')
     return categoryMap.get(transaction.categoryId ?? '')?.type === 'income' ? 'income' : 'expense';
   return transaction.type;
-}
-
-export function getReportNetSavingLabel(netSaving: number) {
-  return netSaving < 0 ? 'Defisit' : 'Net saving';
 }

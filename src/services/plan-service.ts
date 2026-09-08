@@ -3,6 +3,13 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import i18n from '@/i18n';
 import { AppError } from '@/lib/app-error';
 import { todayISO, periodBounds, isValidTransactionDate } from '@/lib/date';
+import {
+  expenseProgress,
+  netSaving,
+  realizedForCategory,
+  summarizeLedger,
+  walletTotal,
+} from '@/lib/domain/ledger';
 import { parseRequiredPrefixedId } from '@/lib/db-helpers';
 import { getDatabaseTransactions } from '@/services/transaction-service';
 import { createWallet, getWallets } from '@/services/wallet-service';
@@ -681,7 +688,7 @@ export async function getDatabasePlanView(database: SQLiteDatabase, today = date
       ...[...categoryIds]
         .filter((categoryId) => !known.has(categoryId))
         .map((categoryId) => {
-          const realizedAmount = realizedForCategory(categoryId, transactionType);
+          const realizedAmount = realizedFor(categoryId, transactionType);
           return {
             id: `${itemType}-category-${categoryId.replace('category-', '')}`,
             type: itemType,
@@ -693,15 +700,8 @@ export async function getDatabasePlanView(database: SQLiteDatabase, today = date
         }),
     ];
   };
-  const realizedForCategory = (categoryId: string, type: 'income' | 'expense') =>
-    periodTransactions.reduce(
-      (sum, transaction) =>
-        sum +
-        (transaction.type === type && transaction.categoryId === categoryId
-          ? transaction.amount
-          : 0),
-      0,
-    );
+  const realizedFor = (categoryId: string, type: 'income' | 'expense') =>
+    realizedForCategory(periodTransactions, categoryId, type);
   const visibleIncomeItems = addUnplannedTransactionCategories(
     incomeItems,
     'income',
@@ -712,57 +712,25 @@ export async function getDatabasePlanView(database: SQLiteDatabase, today = date
     'expense',
     'expense',
   ) as ExpenseItem[];
-  const realizedFor = (categoryId: string, type: 'income' | 'expense') =>
-    periodTransactions.reduce(
-      (sum, transaction) =>
-        sum +
-        (transaction.type === type && transaction.categoryId === categoryId
-          ? transaction.amount
-          : 0),
-      0,
-    );
   const itemStates = (items: BudgetPlanItem[], type: 'income' | 'expense') =>
     items.map((item) => {
       const realizedAmount = realizedFor(item.categoryId, type);
-      const progressPercent =
+      const { progressPercent, overBudget } =
         type === 'income'
-          ? 100
-          : item.targetAmount > 0
-            ? (realizedAmount / item.targetAmount) * 100
-            : 0;
+          ? { progressPercent: 100, overBudget: false }
+          : expenseProgress(realizedAmount, item.targetAmount);
       return {
         itemId: item.id,
         realizedAmount,
         progressPercent,
-        overBudget:
-          type === 'expense' && item.targetAmount > 0 && realizedAmount > item.targetAmount,
+        overBudget,
       } satisfies PlanItemState;
     });
   const planItems = [
     ...itemStates(visibleIncomeItems, 'income'),
     ...itemStates(visibleExpenseItems, 'expense'),
   ];
-  const totalIncome = periodTransactions.reduce(
-    (sum, transaction) => sum + (transaction.type === 'income' ? transaction.amount : 0),
-    0,
-  );
-  const totalExpense = periodTransactions.reduce(
-    (sum, transaction) => sum + (transaction.type === 'expense' ? transaction.amount : 0),
-    0,
-  );
-  const totalTransferIn = periodTransactions.reduce(
-    (sum, transaction) =>
-      sum + (transaction.type === 'transfer' && transaction.toWalletId ? transaction.amount : 0),
-    0,
-  );
-  const totalTransferOut = periodTransactions.reduce(
-    (sum, transaction) =>
-      sum +
-      (transaction.type === 'transfer' && transaction.walletId
-        ? transaction.amount + (transaction.adminFee ?? 0)
-        : 0),
-    0,
-  );
+  const totals = summarizeLedger(periodTransactions);
   const goalBalances = new Map(
     goals.map((goal) => [
       goal.walletId,
@@ -770,15 +738,15 @@ export async function getDatabasePlanView(database: SQLiteDatabase, today = date
     ]),
   );
   const goalBalance = [...goalBalances.values()].reduce((sum, amount) => sum + amount, 0);
-  const availableBalance = wallets.reduce((sum, wallet) => sum + wallet.balance, 0);
+  const availableBalance = walletTotal(wallets);
   const plannedExpense = visibleExpenseItems.reduce((sum, item) => sum + item.targetAmount, 0);
   const snapshot: BudgetSnapshot = {
-    totalIncome,
-    totalExpense,
-    totalTransferIn,
-    totalTransferOut,
-    netSaving: totalIncome - totalExpense + totalTransferIn - totalTransferOut,
-    spareBudget: totalIncome - plannedExpense,
+    totalIncome: totals.income,
+    totalExpense: totals.expense,
+    totalTransferIn: totals.transferIn,
+    totalTransferOut: totals.transferOut,
+    netSaving: netSaving(totals),
+    spareBudget: totals.income - plannedExpense,
     availableBalance,
     freeBalance: availableBalance - goalBalance,
     goalBalance,

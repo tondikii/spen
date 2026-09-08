@@ -32,7 +32,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useIntlLocale } from '@/hooks/use-locale';
 import { formatMoney } from '@/lib/money';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
-import { getWalletTotal } from '@/lib/presentation';
+import { walletTotal } from '@/lib/domain/ledger';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 import { useTranslation } from 'react-i18next';
 
@@ -392,7 +392,7 @@ export default function HomeScreen({
   const [walletToArchive, setWalletToArchive] = useState<Wallet | null>(null);
   const recentTransactions = useMemo(() => transactions.slice(0, 3), [transactions]);
   const total = useMemo(
-    () => getWalletTotal([...wallets, ...archivedWallets]),
+    () => walletTotal([...wallets, ...archivedWallets]),
     [archivedWallets, wallets],
   );
 

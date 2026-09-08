@@ -1,5 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { getWallets } from '@/services/wallet-service';
+import { walletTotal } from '@/lib/domain/ledger';
 import type { Wallet } from '@/types/domain';
 
 export type WalletOverview = { active: Wallet[]; archived: Wallet[]; total: number };
@@ -10,6 +11,6 @@ export async function getWalletOverview(database: SQLiteDatabase): Promise<Walle
   return {
     active,
     archived: wallets.filter((wallet) => wallet.archived),
-    total: active.reduce((sum, wallet) => sum + wallet.balance, 0),
+    total: walletTotal(active),
   };
 }
