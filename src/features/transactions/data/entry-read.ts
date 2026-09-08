@@ -6,7 +6,7 @@ import {
   getDatabaseIncomeTransactions,
   getDatabaseTransaction,
   getDatabaseTransactionCategories,
-} from '@/features/transactions';
+} from './transaction-repository';
 import { getWallets } from '@/features/wallet';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 

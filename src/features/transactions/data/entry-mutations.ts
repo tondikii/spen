@@ -6,7 +6,7 @@ import {
   deleteDatabaseTransaction,
   saveDatabaseCategory,
   saveDatabaseTransaction,
-} from '@/features/transactions';
+} from './transaction-repository';
 import type { TransactionDraft } from '@/types/domain';
 
 export async function saveTransactionEntry(

@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -31,6 +30,9 @@ export default function DailyTransactionsScreen({
   today,
   loadedMonth,
   onMonthChange,
+  onBack,
+  onTransactionPress,
+  onCreatePress,
 }: {
   transactions: Transaction[];
   categories: Category[];
@@ -38,6 +40,9 @@ export default function DailyTransactionsScreen({
   today: string;
   loadedMonth: string;
   onMonthChange: (month: string) => void;
+  onBack: () => void;
+  onTransactionPress: (transactionId: string) => void;
+  onCreatePress: () => void;
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -73,7 +78,7 @@ export default function DailyTransactionsScreen({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t('common.closeTransactionForm')}
-                onPress={() => router.back()}
+                onPress={onBack}
                 style={styles.headerButton}
               >
                 <ThemedText style={styles.close}>×</ThemedText>
@@ -158,12 +163,7 @@ export default function DailyTransactionsScreen({
                     transaction={transaction}
                     categories={categories}
                     wallets={wallets}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/create',
-                        params: { transactionId: transaction.id },
-                      })
-                    }
+                    onPress={() => onTransactionPress(transaction.id)}
                     accessibilityLabel={(name) => t('common.editTransaction', { name })}
                   />
                 ))}
@@ -177,7 +177,7 @@ export default function DailyTransactionsScreen({
                   date: formatDateLabel(date, locale),
                 })}
                 actionLabel={t('common.addTransaction')}
-                onAction={() => router.push('/create')}
+                onAction={onCreatePress}
                 style={styles.empty}
               />
             )}

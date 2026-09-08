@@ -5,7 +5,7 @@ import { configureDatabase } from '@/db/client';
 import { seedDefaultCategories } from '@/db/seed';
 import { createWallet } from '@/features/wallet';
 import { getDatabaseTransactionCategories, saveDatabaseTransaction } from '@/features/transactions';
-import { readDailyView } from '../read';
+import { readDailyView } from '../data/daily-read';
 
 type TempSQLite = {
   exec(source: string): void;

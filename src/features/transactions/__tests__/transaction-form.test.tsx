@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { ComponentProps } from 'react';
 
-import { TransactionForm } from '@/features/transaction-entry';
+import { TransactionForm } from '@/features/transactions';
 import { todayISO } from '@/utils/date';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 

@@ -1,9 +1,11 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
-import { DailyTransactionsScreen } from '@/features/daily';
+import { DailyTransactionsScreen } from '@/features/transactions';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
-jest.mock('expo-router', () => ({ router: { back: jest.fn(), push: jest.fn() } }));
+const onBack = jest.fn();
+const onTransactionPress = jest.fn();
+const onCreatePress = jest.fn();
 
 const wallet: Wallet = {
   id: 'wallet-1',
@@ -67,12 +69,21 @@ async function renderScreen(onMonthChange = jest.fn()) {
       today="2026-09-01"
       loadedMonth="2026-09"
       onMonthChange={onMonthChange}
+      onBack={onBack}
+      onTransactionPress={onTransactionPress}
+      onCreatePress={onCreatePress}
     />,
   );
   return { screen, onMonthChange };
 }
 
 describe('DailyTransactionsScreen', () => {
+  beforeEach(() => {
+    onBack.mockClear();
+    onTransactionPress.mockClear();
+    onCreatePress.mockClear();
+  });
+
   it('menampilkan ringkasan dan transaksi pada hari aktif', async () => {
     const { screen } = await renderScreen();
     const { getAllByText, getByLabelText, getByText, queryByLabelText } = screen;
