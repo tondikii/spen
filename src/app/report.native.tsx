@@ -1,7 +1,6 @@
-import ReportScreen from '@/components/report-screen';
+import ReportScreen, { readReportView } from '@/features/report';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { readReportView } from '@/features/report';
 import { setBudgetPeriodStartDay } from '@/features/budget';
 import { DataState } from '@/components/screen-skeleton';
 import useAppDatabase from '@/hooks/use-app-database';

@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { ComponentProps } from 'react';
 
-import ReportScreen from '@/components/report-screen';
+import ReportScreen from '@/features/report';
 import type { BudgetPeriod } from '@/types/domain';
 
 const period: BudgetPeriod = {
@@ -93,7 +93,7 @@ describe('ReportScreen', () => {
     const { getByLabelText, getByText } = await renderScreen();
 
     await fireEvent.press(getByLabelText('Tanya AI'));
-    await waitFor(() => expect(getByText('Insight bulan ini')).toBeTruthy());
+    await waitFor(() => expect(getByText(/Insight bulan ini/)).toBeTruthy());
     expect(getByText('Mengerti')).toBeTruthy();
   });
 

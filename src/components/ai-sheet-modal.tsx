@@ -21,12 +21,14 @@ export function AiSheetModal({
   onClose,
   loading,
   heading,
+  loadingText,
   children,
 }: {
   visible: boolean;
   onClose: () => void;
   loading: boolean;
   heading: string;
+  loadingText?: string;
   children: ReactNode;
 }) {
   const theme = useTheme();
@@ -46,7 +48,7 @@ export function AiSheetModal({
           {loading ? (
             <MotionPulse style={styles.loading}>
               <ThemedText style={[styles.loadingGlyph, { color: theme.pine }]}>✦</ThemedText>
-              <ThemedText type="smallBold">{t('common.aiReading')}</ThemedText>
+              <ThemedText type="smallBold">{loadingText ?? t('common.aiReading')}</ThemedText>
               <ThemedText type="small" themeColor="muted">
                 {t('common.holdOn')}
               </ThemedText>
