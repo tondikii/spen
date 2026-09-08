@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider, usePathname } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
@@ -7,12 +7,9 @@ import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 
-import AppTabs from '@/components/app-tabs';
-import { SetupWizard } from '@/components/setup-wizard';
 import { AppThemeProvider, useAppTheme } from '@/components/theme-provider';
-import PublicDocumentScreen from '@/components/public-document-screen';
 import { SpenSplash } from '@/components/brand-assets';
-import { completeSetup, getSetupState } from '@/services/setup-service';
+import { getSetupState } from '@/services/setup-service';
 import {
   getDatabaseSettings,
   setSelectedCurrency,
@@ -23,27 +20,16 @@ import { retryDatabaseRead } from '@/services/database-read-retry';
 import { configureDatabase } from '../../db/database';
 import { seedDefaultCategories } from '../../db/seed';
 import migrations from '../../drizzle/migrations';
-import { privacyDocument, termsDocument } from '@/lib/public-documents';
 import i18n, { changeLocale } from '@/i18n';
 import { MotionPressable } from '@/components/motion';
 
-function AppNavigation({ initialSetupComplete }: { initialSetupComplete: boolean }) {
+// Wraps the root navigator in React Navigation's theme so native gestures and
+// headers follow the app's color scheme.
+function NavigationTheme({ children }: { children: React.ReactNode }) {
   const { colorScheme } = useAppTheme();
-  const sqlite = useSQLiteContext();
-  const [setupComplete, setSetupComplete] = useState(initialSetupComplete);
-
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {setupComplete ? (
-        <AppTabs />
-      ) : (
-        <SetupWizard
-          onComplete={async (wallets, currency, locale) => {
-            await completeSetup(sqlite, wallets, currency, locale);
-            setSetupComplete(true);
-          }}
-        />
-      )}
+      {children}
     </ThemeProvider>
   );
 }
@@ -53,7 +39,6 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
   const database = useMemo(() => drizzle(sqlite), [sqlite]);
   const { success, error } = useMigrations(database, migrations);
   const [seeded, setSeeded] = useState(false);
-  const [setupComplete, setSetupComplete] = useState(false);
   const [themeMode, setThemeMode] = useState<'system' | 'light' | 'dark'>('light');
   const [startupSplash, setStartupSplash] = useState(true);
 
@@ -70,10 +55,7 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
         setSelectedLocale(settings.locale as 'id' | 'en');
         await changeLocale(settings.locale);
         setThemeMode(settings.themeMode as 'system' | 'light' | 'dark');
-        if (!cancelled) {
-          setSetupComplete(setup.hasWallet);
-          setSeeded(true);
-        }
+        if (!cancelled) setSeeded(true);
       })
       .catch(() => {
         if (!cancelled) onFatalError();
@@ -91,7 +73,9 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
     if (!success || !seeded) return;
     void SplashScreen.hideAsync();
     const timer = setTimeout(() => setStartupSplash(false), 900);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [error, onFatalError, seeded, success]);
 
   if (!success || !seeded || startupSplash)
@@ -106,7 +90,9 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
       onModeChange={(mode) => setDatabaseThemeMode(sqlite, mode)}
     >
       <I18nextProvider i18n={i18n}>
-        <AppNavigation initialSetupComplete={setupComplete} />
+        <NavigationTheme>
+          <Stack screenOptions={{ headerShown: false }} />
+        </NavigationTheme>
       </I18nextProvider>
     </AppThemeProvider>
   );
@@ -131,18 +117,7 @@ function DatabaseErrorState({ onRetry }: { onRetry: () => void }) {
   );
 }
 
-function PublicDocumentRoute() {
-  const pathname = usePathname();
-  const document = pathname === termsDocument.path ? termsDocument : privacyDocument;
-  return (
-    <AppThemeProvider>
-      <PublicDocumentScreen document={document} />
-    </AppThemeProvider>
-  );
-}
-
 export default function AppRuntime() {
-  const pathname = usePathname();
   const [databaseAttempt, setDatabaseAttempt] = useState(0);
   const [databaseError, setDatabaseError] = useState(false);
   const handleDatabaseError = useCallback(() => {
@@ -154,8 +129,6 @@ export default function AppRuntime() {
     setDatabaseAttempt((attempt) => attempt + 1);
   }, []);
 
-  if (pathname === termsDocument.path || pathname === privacyDocument.path)
-    return <PublicDocumentRoute />;
   if (databaseError) return <DatabaseErrorState onRetry={retryDatabase} />;
   return (
     <SQLiteProvider

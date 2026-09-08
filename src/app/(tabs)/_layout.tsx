@@ -1,11 +1,15 @@
 import { Tabs, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useTranslation } from 'react-i18next';
 
+import { SetupWizard } from '@/components/setup-wizard';
 import { Fonts, Shadows, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useTranslation } from 'react-i18next';
 import { MotionPressable } from '@/components/motion';
+import { completeSetup, getSetupState } from '@/services/setup-service';
 
 type TabItem = {
   name: 'index' | 'plan' | 'report' | 'settings';
@@ -21,7 +25,7 @@ const tabs: TabItem[] = [
   { name: 'settings', translationKey: 'settings', icon: '☼', iconSize: 23 },
 ];
 
-export default function AppTabs() {
+function AppTabs() {
   const theme = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
@@ -114,39 +118,43 @@ export default function AppTabs() {
           }}
         />
       ))}
-      {/* These are full-screen routes, not items in the persistent tab bar. */}
-      <Tabs.Screen
-        name="daily"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
-        }}
-      />
-
-      <Tabs.Screen
-        name="terms"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
-        }}
-      />
-      <Tabs.Screen
-        name="privacy"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
-        }}
-      />
-      <Tabs.Screen
-        name="faq"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
-        }}
-      />
     </Tabs>
   );
 }
+
+// The setup wizard keeps the tab bar hidden until the first wallet exists.
+function TabsLayout() {
+  const sqlite = useSQLiteContext();
+  const [setupComplete, setSetupComplete] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getSetupState(sqlite)
+      .then((setup) => {
+        if (!cancelled) setSetupComplete(setup.hasWallet);
+      })
+      .catch(() => {
+        if (!cancelled) setSetupComplete(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sqlite]);
+
+  if (setupComplete === null) return null;
+  if (!setupComplete)
+    return (
+      <SetupWizard
+        onComplete={async (wallets, currency, locale) => {
+          await completeSetup(sqlite, wallets, currency, locale);
+          setSetupComplete(true);
+        }}
+      />
+    );
+  return <AppTabs />;
+}
+
+export default TabsLayout;
 
 const styles = StyleSheet.create({
   tabBar: {
