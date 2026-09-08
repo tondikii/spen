@@ -1,4 +1,10 @@
-import type { Category, Transaction, Wallet } from '@/types/domain';
+import type {
+  Category,
+  Transaction,
+  TransactionDraft,
+  TransactionType,
+  Wallet,
+} from '@/types/domain';
 
 export function getDailyTransactions(date: string, transactions: Transaction[]) {
   return transactions
@@ -34,4 +40,34 @@ export function getTransactionPresentation(
 
 export function getWalletTotal(wallets: Wallet[]) {
   return wallets.reduce((total, wallet) => total + wallet.balance, 0);
+}
+
+export function getTransactionCategories(categories: Category[], type: TransactionType) {
+  if (type === 'adjustment') return [];
+  const categoryType = type === 'income' ? 'income' : 'expense';
+  return categories.filter(
+    (category) =>
+      category.type === categoryType &&
+      !category.archived &&
+      category.systemKey !== 'openingBalance',
+  );
+}
+
+export function hasSimilarIncome(
+  transactions: Transaction[],
+  draft: TransactionDraft,
+  transactionId?: string,
+) {
+  return (
+    draft.type === 'income' &&
+    transactions.some(
+      (transaction) =>
+        transaction.id !== transactionId &&
+        transaction.type === 'income' &&
+        transaction.walletId === draft.walletId &&
+        transaction.categoryId === draft.categoryId &&
+        transaction.amount === draft.amount &&
+        transaction.date === draft.date,
+    )
+  );
 }

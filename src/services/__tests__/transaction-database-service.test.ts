@@ -4,11 +4,11 @@ import migrations from '../../../drizzle/migrations';
 import { configureDatabase } from '../../../db/database';
 import { seedDefaultCategories } from '../../../db/seed';
 import { createWallet, getWallets } from '@/services/wallet-service';
+import { hasSimilarIncome } from '@/lib/presentation';
 import {
   archiveDatabaseCategory,
   getDatabaseTransactionCategories,
   getDatabaseTransactions,
-  hasSimilarIncome,
   saveDatabaseTransaction,
 } from '@/services/transaction-service';
 import type { TransactionDraft } from '@/types/domain';

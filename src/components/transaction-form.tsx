@@ -16,17 +16,9 @@ import { useTheme } from '@/hooks/use-theme';
 import i18n from '@/i18n';
 import { formatDate } from '@/i18n/format';
 import { getErrorTranslationKey } from '@/lib/app-error';
+import { todayISO } from '@/lib/date';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
-import {
-  archiveMockCategory,
-  getActiveTransactionCategories,
-  getActiveTransactionWallets,
-  getAllocationLimit,
-  getLocalDateInput,
-  getTransactionCategories,
-  hasSimilarIncome,
-  saveMockCategory,
-} from '@/services/transaction-service';
+import { getTransactionCategories, hasSimilarIncome } from '@/lib/presentation';
 import type {
   Category,
   SystemCategoryKey,
@@ -49,15 +41,15 @@ type TransactionFormProps = {
   initialWalletId?: string;
   initialToWalletId?: string;
   lockedToWalletId?: string;
-  wallets?: Wallet[];
-  categories?: Category[];
-  existingTransactions?: Transaction[];
+  wallets: Wallet[];
+  categories: Category[];
+  existingTransactions: Transaction[];
   allocationLimit?: number;
   onClose: () => void;
   onSave: (draft: TransactionDraft) => void;
   onDelete?: () => void;
-  onCategorySave?: (category: Category) => Category | Promise<Category>;
-  onCategoryArchive?: (category: Category) => void | Promise<void>;
+  onCategorySave: (category: Category) => Category | Promise<Category>;
+  onCategoryArchive: (category: Category) => void | Promise<void>;
 };
 
 type Confirmation = {
@@ -86,10 +78,10 @@ export function TransactionForm({
   initialWalletId,
   initialToWalletId,
   lockedToWalletId,
-  wallets = getActiveTransactionWallets(),
+  wallets,
   categories: categoriesProp,
-  existingTransactions = [],
-  allocationLimit: allocationLimitProp,
+  existingTransactions,
+  allocationLimit,
   onClose,
   onSave,
   onDelete,
@@ -110,9 +102,7 @@ export function TransactionForm({
       : (transaction?.type ??
         initialType ??
         (initialSystemCategoryKey
-          ? (categoriesProp ?? getActiveTransactionCategories()).find(
-              (category) => category.systemKey === initialSystemCategoryKey,
-            )?.type
+          ? categoriesProp.find((category) => category.systemKey === initialSystemCategoryKey)?.type
           : undefined) ??
         'income');
   const [type, setType] = useState<TransactionType>(resolvedInitialType);
@@ -130,13 +120,11 @@ export function TransactionForm({
   );
   const [adminFee, setAdminFee] = useState(formatMoneyInput(transaction?.adminFee ?? ''));
   const [note, setNote] = useState(transaction?.note ?? '');
-  const today = getLocalDateInput();
+  const today = todayISO();
   const [date, setDate] = useState(transaction?.date ?? today);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState((transaction?.date ?? today).slice(0, 7));
-  const [categories, setCategories] = useState<Category[]>(
-    categoriesProp ?? getActiveTransactionCategories(),
-  );
+  const [categories, setCategories] = useState<Category[]>(categoriesProp);
   const [categoryEditorOpen, setCategoryEditorOpen] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState('');
@@ -170,8 +158,8 @@ export function TransactionForm({
   }, [visibleCategories]);
   const iconRows = useMemo(() => chunk(CATEGORY_ICON_CHOICES, 5), []);
   const numericAmount = parseMoneyInput(amount);
-  const allocationLimit = allocationLimitProp ?? getAllocationLimit(categoryId);
-  const overBudget = type === 'expense' && allocationLimit > 0 && numericAmount > allocationLimit;
+  const budgetLimit = allocationLimit ?? 0;
+  const overBudget = type === 'expense' && budgetLimit > 0 && numericAmount > budgetLimit;
   const internalCategory: Category | undefined = categories.find(
     (category) => category.id === categoryId && category.isAdjustment,
   );
@@ -212,14 +200,9 @@ export function TransactionForm({
         archived: false,
         isAdjustment: false,
       };
-      if (onCategorySave) {
-        const saved = await Promise.resolve(onCategorySave(category));
-        setCategories((current) => [...current.filter((item) => item.id !== saved.id), saved]);
-        setCategoryId(saved.id);
-      } else {
-        setCategories((current) => saveMockCategory(current, category));
-        setCategoryId(category.id);
-      }
+      const saved = await onCategorySave(category);
+      setCategories((current) => [...current.filter((item) => item.id !== saved.id), saved]);
+      setCategoryId(saved.id);
       setCategoryName('');
       setEditingCategoryId(null);
       setCategoryEditorOpen(false);
@@ -794,8 +777,8 @@ export function TransactionForm({
                     confirmLabel: t('common.archive'),
                     destructive: true,
                     onConfirm: async () => {
-                      if (onCategoryArchive) await onCategoryArchive(category);
-                      setCategories((current) => archiveMockCategory(current, category.id));
+                      await onCategoryArchive(category);
+                      setCategories((current) => current.filter((item) => item.id !== category.id));
                       if (categoryId === category.id) setCategoryId(null);
                     },
                   });

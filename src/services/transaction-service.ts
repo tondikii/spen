@@ -4,13 +4,7 @@ import { todayISO } from '@/lib/date';
 import { parsePrefixedId, withExclusiveWrite } from '@/lib/db-helpers';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import type { DatabaseTransactionRow } from '@/types/db-rows';
-import type {
-  Category,
-  SystemCategoryKey,
-  Transaction,
-  TransactionDraft,
-  TransactionType,
-} from '@/types/domain';
+import type { Category, SystemCategoryKey, Transaction, TransactionDraft } from '@/types/domain';
 
 export const TRANSACTION_ICON_CHOICES = [
   '◒',
@@ -39,17 +33,6 @@ export function getActiveTransactionWallets() {
 
 export function getActiveTransactionCategories() {
   return mockCategories.filter((category) => !category.archived);
-}
-
-export function getTransactionCategories(categories: Category[], type: TransactionType) {
-  if (type === 'adjustment') return [];
-  const categoryType = type === 'income' ? 'income' : 'expense';
-  return categories.filter(
-    (category) =>
-      category.type === categoryType &&
-      !category.archived &&
-      category.systemKey !== 'openingBalance',
-  );
 }
 
 export function getAllocationLimit(categoryId: string | null) {
@@ -395,23 +378,4 @@ export async function archiveDatabaseCategory(
     );
   const result = await database.runAsync('UPDATE categories SET archived = 1 WHERE id = ?;', id);
   if (result.changes === 0) throw new AppError('notFound', undefined, 'Kategori tidak ditemukan');
-}
-
-export function hasSimilarIncome(
-  transactions: Transaction[],
-  draft: TransactionDraft,
-  transactionId?: string,
-) {
-  return (
-    draft.type === 'income' &&
-    transactions.some(
-      (transaction) =>
-        transaction.id !== transactionId &&
-        transaction.type === 'income' &&
-        transaction.walletId === draft.walletId &&
-        transaction.categoryId === draft.categoryId &&
-        transaction.amount === draft.amount &&
-        transaction.date === draft.date,
-    )
-  );
 }
