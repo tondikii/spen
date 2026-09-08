@@ -7,10 +7,10 @@ import { DataState } from '@/components/screen-skeleton';
 import {
   archiveTransactionEntryCategory,
   deleteTransactionEntry,
-  getTransactionEntryData,
+  readTransactionEntryView,
   saveTransactionEntry,
   saveTransactionEntryCategory,
-} from '@/features/transactions';
+} from '@/features/transaction-entry';
 import type { TransactionType } from '@/types/domain';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
@@ -38,8 +38,8 @@ export default function CreateTransactionScreen() {
   }>();
   const database = useAppDatabase();
   const read = useCallback(
-    () => Promise.all([getTransactionEntryData(database, categoryId)]),
-    [categoryId, database],
+    () => readTransactionEntryView(database, categoryId, transactionId),
+    [categoryId, database, transactionId],
   );
   const resourceKey = JSON.stringify({
     transactionId,
@@ -51,16 +51,7 @@ export default function CreateTransactionScreen() {
     toWalletId,
     lockedToWalletId,
   });
-  const {
-    data: loaded,
-    error,
-    retry,
-  } = useFocusedRead(read, t('common.setupNotReady'), resourceKey);
-  const data = loaded
-    ? {
-        ...loaded[0],
-      }
-    : null;
+  const { data, error, retry } = useFocusedRead(read, t('common.setupNotReady'), resourceKey);
 
   if (error)
     return (
@@ -81,7 +72,8 @@ export default function CreateTransactionScreen() {
         description={t('common.loadingTransactionsCopy')}
       />
     );
-  const transaction = data.transactions.find((item) => item.id === transactionId);
+
+  const transaction = data.transaction ?? undefined;
   const initialCategory = categoryId
     ? data.categories.find((item) => item.id === categoryId)
     : undefined;
@@ -101,7 +93,7 @@ export default function CreateTransactionScreen() {
       initialSystemCategoryKey={initialCategory?.systemKey ?? undefined}
       wallets={data.wallets}
       categories={data.categories}
-      existingTransactions={data.transactions}
+      existingTransactions={data.incomeTransactions}
       allocationLimit={data.allocationLimit}
       onClose={() => router.back()}
       onSave={async (draft) => {

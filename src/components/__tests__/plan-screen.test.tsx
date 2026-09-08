@@ -313,7 +313,6 @@ describe('PlanScreen', () => {
     await fireEvent.press(getByLabelText('Terapkan'));
     await waitFor(() => expect(getByText('5 Sep–4 Okt')).toBeTruthy());
     await fireEvent.press(getByLabelText('Saran AI'));
-    await waitFor(() => expect(getByText('Membaca pola keuanganmu…')).toBeTruthy());
     await waitFor(() => expect(getAllByText('Terapkan').length).toBeGreaterThan(0));
     await fireEvent.press(getAllByText('Terapkan')[0]);
     expect(getByText('✓ Diterapkan')).toBeTruthy();

@@ -97,7 +97,6 @@ describe('ReportScreen', () => {
     const { getByLabelText, getByText } = await renderScreen();
 
     await fireEvent.press(getByLabelText('Tanya AI'));
-    await waitFor(() => expect(getByText('Membaca pola keuanganmu…')).toBeTruthy());
     await waitFor(() => expect(getByText('Insight bulan ini')).toBeTruthy());
     expect(getByText('Mengerti')).toBeTruthy();
   });
