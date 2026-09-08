@@ -4,7 +4,7 @@ import { MotionPressable } from '@/components/motion';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import i18n from '@/i18n';
+import { useTranslation } from 'react-i18next';
 import { formatMoney } from '@/lib/money';
 import type { Wallet } from '@/types/domain';
 
@@ -25,6 +25,7 @@ export function WalletPicker({
   /** Wallet id to hide from the list. */
   exclude?: string | null;
 }) {
+  const { t } = useTranslation();
   const theme = useTheme();
 
   return (
@@ -39,7 +40,7 @@ export function WalletPicker({
           <MotionPressable
             key={wallet.id}
             accessibilityRole="button"
-            accessibilityLabel={i18n.t('common.selectWallet', { name: wallet.name })}
+            accessibilityLabel={t('common.selectWallet', { name: wallet.name })}
             accessibilityState={{ selected: wallet.id === selected }}
             onPress={() => onSelect(wallet.id)}
             style={[

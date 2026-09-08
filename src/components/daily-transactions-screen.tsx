@@ -18,8 +18,7 @@ import { MonthCalendar } from '@/components/month-calendar';
 import { Fonts, Layout, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
-import i18n from '@/i18n';
-import { formatDayLabel, getIntlLocale } from '@/i18n/format';
+import { formatDayLabel, formatDayMonth, formatWeekdayDate } from '@/i18n/format';
 import { shiftDate } from '@/lib/date';
 import { formatMoney } from '@/lib/money';
 import { getDailyTotals, getDailyTransactions } from '@/lib/presentation';
@@ -165,7 +164,7 @@ export default function DailyTransactionsScreen({
                         params: { transactionId: transaction.id },
                       })
                     }
-                    accessibilityLabel={(name) => i18n.t('common.editTransaction', { name })}
+                    accessibilityLabel={(name) => t('common.editTransaction', { name })}
                   />
                 ))}
               </View>
@@ -212,19 +211,11 @@ function SummaryItem({
 }
 
 function formatDateLabel(date: string, locale: 'id' | 'en') {
-  return new Intl.DateTimeFormat(getIntlLocale(locale), {
-    day: 'numeric',
-    month: 'short',
-  }).format(new Date(`${date}T12:00:00`));
+  return formatDayMonth(date, locale);
 }
 
 function formatFullDate(date: string, locale: 'id' | 'en') {
-  return new Intl.DateTimeFormat(getIntlLocale(locale), {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(`${date}T12:00:00`));
+  return formatWeekdayDate(date, locale);
 }
 
 const styles = StyleSheet.create({

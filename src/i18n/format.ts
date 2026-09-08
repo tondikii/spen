@@ -25,3 +25,35 @@ export function formatDayLabel(date: string, today: string, locale: Locale) {
     month: 'short',
   }).format(new Date(`${date}T12:00:00`));
 }
+
+/** Nama bulan panjang untuk `YYYY-MM-DD` (mis. "September"). */
+export function formatMonth(date: string, locale: Locale) {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
+    month: 'long',
+  }).format(new Date(`${date}T12:00:00`));
+}
+
+/** Nama bulan singkat untuk `YYYY-MM-DD` (mis. "Sep"). */
+export function formatMonthShort(date: string, locale: Locale) {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
+    month: 'short',
+  }).format(new Date(`${date}T12:00:00`));
+}
+
+/** Tanggal pendek untuk `YYYY-MM-DD` (mis. "2 Sep"). */
+export function formatDayMonth(date: string, locale: Locale) {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
+    day: 'numeric',
+    month: 'short',
+  }).format(new Date(`${date}T12:00:00`));
+}
+
+/** Tanggal lengkap dengan hari untuk `YYYY-MM-DD` (mis. "Rabu, 2 September 2026"). */
+export function formatWeekdayDate(date: string, locale: Locale) {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(`${date}T12:00:00`));
+}

@@ -1,10 +1,11 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { MotionPressable } from '@/components/motion';
 import { ThemedText } from '@/components/themed-text';
 import { Radius } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import i18n from '@/i18n';
+import { useLocale } from '@/hooks/use-locale';
 import { getIntlLocale } from '@/i18n/format';
 import {
   formatCalendarMonth,
@@ -53,8 +54,9 @@ export function MonthCalendar({
   dayAccessibilityLabel?: (date: string) => string;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { t } = useTranslation();
   const theme = useTheme();
-  const locale = getIntlLocale(i18n.language === 'en' ? 'en' : 'id');
+  const locale = getIntlLocale(useLocale());
   const dates: CalendarDate[] = getCalendarDates(month);
   const weekdayLabels = getWeekdayLabels(locale);
 
@@ -63,7 +65,7 @@ export function MonthCalendar({
       <View style={styles.calendarHeader}>
         <MotionPressable
           accessibilityRole="button"
-          accessibilityLabel={i18n.t('common.previousMonth')}
+          accessibilityLabel={t('common.previousMonth')}
           onPress={() => onMonthChange(shiftMonth(month, -1))}
           wrapperStyle={styles.calendarMonthButton}
           style={styles.calendarMonthButton}
@@ -73,7 +75,7 @@ export function MonthCalendar({
         <ThemedText type="smallBold">{formatCalendarMonth(month, locale)}</ThemedText>
         <MotionPressable
           accessibilityRole="button"
-          accessibilityLabel={i18n.t('common.nextMonth')}
+          accessibilityLabel={t('common.nextMonth')}
           disabled={maxMonth !== undefined && month >= maxMonth}
           onPress={() => onMonthChange(shiftMonth(month, 1))}
           wrapperStyle={styles.calendarMonthButton}
@@ -102,7 +104,7 @@ export function MonthCalendar({
               accessibilityLabel={
                 dayAccessibilityLabel
                   ? dayAccessibilityLabel(calendarDate.date)
-                  : i18n.t('common.selectTransactionDate', {
+                  : t('common.selectTransactionDate', {
                       date: calendarDate.date,
                     })
               }

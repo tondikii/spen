@@ -184,6 +184,7 @@ export default function HomeScreen({
           walletToArchive ? t('common.archiveConfirmCopy', { name: walletToArchive.name }) : ''
         }
         confirmLabel={t('common.archive')}
+        cancelLabel={t('common.cancel')}
         destructive
         onCancel={() => setWalletToArchive(null)}
         onConfirm={async () => {

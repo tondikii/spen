@@ -10,6 +10,7 @@ type ConfirmationModalProps = {
   title: string;
   message: string;
   confirmLabel: string;
+  /** Label aksi kedua; ditambahkan hanya bila diisi (contoh: `t('common.cancel')`). */
   cancelLabel?: string;
   destructive?: boolean;
   onCancel: () => void;
@@ -21,7 +22,7 @@ export function ConfirmationModal({
   title,
   message,
   confirmLabel,
-  cancelLabel = 'Batal',
+  cancelLabel,
   destructive = false,
   onCancel,
   onConfirm,

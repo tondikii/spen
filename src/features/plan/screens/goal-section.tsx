@@ -169,6 +169,7 @@ export function GoalSection({
         title={confirmation?.title ?? ''}
         message={confirmation?.message ?? ''}
         confirmLabel={confirmation?.confirmLabel ?? t('common.confirm')}
+        cancelLabel={t('common.cancel')}
         destructive
         onCancel={() => setConfirmation(null)}
         onConfirm={async () => {

@@ -284,6 +284,7 @@ export default function SettingsScreen({
               title={t('common.overwriteAllData')}
               message={t('common.restoreWarning')}
               confirmLabel={t('common.restoreData')}
+              cancelLabel={t('common.cancel')}
               destructive
               onCancel={() => setRestoreFile(null)}
               onConfirm={async () => {

@@ -42,6 +42,7 @@ export function PlanItem(props: {
         title={t('common.planDeleteConfirm')}
         message={t('common.planDeleteCopy', { name: itemName })}
         confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
         destructive
         onCancel={() => setConfirmation(false)}
         onConfirm={async () => {

@@ -19,7 +19,7 @@ import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Fonts, Radius, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
-import { getIntlLocale } from '@/i18n/format';
+import { formatMonth, formatMonthShort } from '@/i18n/format';
 import { getCategoryLabel } from '@/i18n/categories';
 import { formatMoney } from '@/lib/money';
 import type { BudgetAIInput } from '@/services/ai-service';
@@ -28,17 +28,6 @@ import { useReportInsight } from '../hooks/use-report-insight';
 import { ChartCard, Donut, NetSavingLineChart, chartColors, percentage } from './report-charts';
 
 type ReportView = Awaited<ReturnType<typeof readReportView>>;
-
-function formatMonth(date: string, locale: 'id' | 'en') {
-  return new Intl.DateTimeFormat(getIntlLocale(locale), {
-    month: 'long',
-  }).format(new Date(`${date}T12:00:00`));
-}
-function formatMonthShort(date: string, locale: 'id' | 'en') {
-  return new Intl.DateTimeFormat(getIntlLocale(locale), {
-    month: 'short',
-  }).format(new Date(`${date}T12:00:00`));
-}
 
 function ReportScreenContent({
   reportView,
