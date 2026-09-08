@@ -3,11 +3,10 @@ import { StyleSheet, View } from 'react-native';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { PublicDocumentScreen } from '@/features/settings';
+import { PublicDocumentScreen, privacyDocument, termsDocument } from '@/features/settings';
 import { AppThemeProvider } from '@/providers/theme-provider';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
-import { privacyDocument, termsDocument } from '@/lib/public-documents';
 import { getWebLocale } from '@/i18n/web';
 import { changeLocale } from '@/i18n';
 

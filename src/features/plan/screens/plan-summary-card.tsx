@@ -4,7 +4,7 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { View, StyleSheet } from 'react-native';
 import { Fonts, Layout, Radius, Typography } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { formatMoney } from '@/lib/money';
+import { formatMoney } from '@/utils/money';
 import { useTranslation } from 'react-i18next';
 import type { BudgetSnapshot } from '@/types/domain';
 

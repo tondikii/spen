@@ -3,7 +3,7 @@ import {
   getPublicDocumentUrl,
   privacyDocument,
   termsDocument,
-} from '@/lib/public-documents';
+} from '@/features/settings';
 
 describe('public document configuration', () => {
   it('builds the document URL from the configured web origin', () => {

@@ -10,7 +10,7 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 import { Fonts, Radius } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { todayISO } from '@/lib/date';
+import { todayISO } from '@/utils/date';
 import type { BudgetPlanItem, Category, Goal, PlanItemType } from '@/types/domain';
 import type { PlanItemDraft } from '@/features/plan';
 import type { BudgetAIInput, BudgetSuggestion } from '@/lib/ai-service';

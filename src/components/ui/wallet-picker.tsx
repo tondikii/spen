@@ -5,7 +5,7 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from 'react-i18next';
-import { formatMoney } from '@/lib/money';
+import { formatMoney } from '@/utils/money';
 import type { Wallet } from '@/types/domain';
 
 /**

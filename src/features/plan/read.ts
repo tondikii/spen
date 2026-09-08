@@ -6,11 +6,11 @@ import {
   realizedForCategory,
   summarizeLedger,
   walletTotal,
-} from '@/lib/domain/ledger';
-import { periodFromRow } from '@/lib/domain/period';
-import { todayISO } from '@/lib/date';
+} from '@/utils/domain/ledger';
+import { periodFromRow } from '@/utils/domain/period';
+import { todayISO } from '@/utils/date';
 import i18n from '@/i18n';
-import { ensureActiveBudgetPlan } from '@/features/plan';
+import { ensureActiveBudgetPlan } from './data/plan-repository';
 import {
   getDatabaseTransactionCategories,
   getDatabaseTransactionsBetween,

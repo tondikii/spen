@@ -1,4 +1,4 @@
-import { formatMoney } from '@/lib/money';
+import { formatMoney } from '@/utils/money';
 import { changeLocale } from '@/i18n';
 
 afterEach(async () => {

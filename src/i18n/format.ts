@@ -1,5 +1,5 @@
 import i18n from '@/i18n';
-import { shiftDate } from '@/lib/date';
+import { shiftDate } from '@/utils/date';
 import type { Locale } from '@/types/domain';
 
 export function getIntlLocale(locale: Locale = 'en'): 'id-ID' | 'en-US' {

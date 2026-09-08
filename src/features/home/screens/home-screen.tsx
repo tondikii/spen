@@ -12,7 +12,7 @@ import { ThemedView } from '@/components/ui/themed-view';
 import { TransactionRow } from '@/components/ui/transaction-row';
 import { BottomTabInset, Layout, MaxContentWidth, Spacing, Typography } from '@/theme';
 import { useIntlLocale } from '@/hooks/use-locale';
-import { walletTotal } from '@/lib/domain/ledger';
+import { walletTotal } from '@/utils/domain/ledger';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
 import { WalletCards } from './wallet-cards';

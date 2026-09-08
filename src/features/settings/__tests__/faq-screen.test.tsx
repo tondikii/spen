@@ -1,8 +1,7 @@
 import { fireEvent, render } from '@testing-library/react-native';
 
-import { FaqScreen } from '@/features/settings';
+import { FaqScreen, faqEntries } from '@/features/settings';
 import { AppThemeProvider } from '@/providers/theme-provider';
-import { faqEntries } from '@/lib/faq';
 
 describe('FaqScreen', () => {
   it('menampilkan FAQ utama dan membuka jawaban yang dipilih', async () => {

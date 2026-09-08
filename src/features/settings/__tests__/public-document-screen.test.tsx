@@ -1,8 +1,7 @@
 import { fireEvent, render } from '@testing-library/react-native';
 
+import { PublicDocumentScreen, termsDocument } from '@/features/settings';
 import { AppThemeProvider } from '@/providers/theme-provider';
-import { PublicDocumentScreen } from '@/features/settings';
-import { termsDocument } from '@/lib/public-documents';
 
 describe('PublicDocumentScreen', () => {
   it('menampilkan dokumen dan penanda review pemilik', async () => {

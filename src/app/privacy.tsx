@@ -1,5 +1,4 @@
-import { PublicDocumentScreen } from '@/features/settings';
-import { privacyDocument } from '@/lib/public-documents';
+import { PublicDocumentScreen, privacyDocument } from '@/features/settings';
 
 export default function PrivacyRoute() {
   return <PublicDocumentScreen document={privacyDocument} />;

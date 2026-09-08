@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { retryDatabase } from '@/lib/retry';
+import { retryDatabase } from '@/utils/retry';
 
 export async function configureDatabase(database: SQLiteDatabase) {
   await retryDatabase(() => database.execAsync('PRAGMA journal_mode = WAL;'));

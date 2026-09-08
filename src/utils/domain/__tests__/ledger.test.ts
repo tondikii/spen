@@ -4,7 +4,7 @@ import {
   realizedForCategory,
   summarizeLedger,
   walletTotal,
-} from '@/lib/domain/ledger';
+} from '@/utils/domain/ledger';
 import type { Transaction, Wallet } from '@/types/domain';
 
 const transactions: Transaction[] = [

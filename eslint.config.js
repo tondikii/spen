@@ -35,6 +35,7 @@ module.exports = [
       'src/lib/**',
       'src/theme/**',
       'src/types/**',
+      'src/utils/**',
     ],
     rules: {
       'no-restricted-imports': [

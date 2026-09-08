@@ -4,7 +4,7 @@ import * as Sharing from 'expo-sharing';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { normalizeLocale } from '@/i18n';
-import { AppError } from '@/lib/app-error';
+import { AppError } from '@/utils/app-error';
 import type { Locale } from '@/types/domain';
 
 export const BACKUP_VERSION = 1;

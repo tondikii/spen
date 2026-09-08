@@ -12,9 +12,9 @@ import { WalletPicker } from '@/components/ui/wallet-picker';
 import { MotionPressable as Pressable, MotionScreen } from '@/components/ui/motion';
 import { Fonts, Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { todayISO } from '@/lib/date';
-import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
-import { hasSimilarIncome } from '@/lib/presentation';
+import { todayISO } from '@/utils/date';
+import { formatMoneyInput, parseMoneyInput } from '@/utils/money-input';
+import { hasSimilarIncome } from '@/utils/presentation';
 import type {
   Category,
   SystemCategoryKey,

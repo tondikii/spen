@@ -8,7 +8,7 @@ import { MotionChevron, MotionCollapsible, MotionPressable } from '@/components/
 import { ThemedText } from '@/components/ui/themed-text';
 import { Fonts, Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { formatMoney } from '@/lib/money';
+import { formatMoney } from '@/utils/money';
 import type { Wallet } from '@/types/domain';
 
 export function WalletCards({

@@ -1,8 +1,8 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { netSaving, summarizeLedger, type LedgerType } from '@/lib/domain/ledger';
-import { periodFromRow } from '@/lib/domain/period';
-import { todayISO } from '@/lib/date';
+import { netSaving, summarizeLedger, type LedgerType } from '@/utils/domain/ledger';
+import { periodFromRow } from '@/utils/domain/period';
+import { todayISO } from '@/utils/date';
 import { ensureActiveBudgetPlan } from '@/features/plan';
 import {
   getDatabaseTransactionCategories,

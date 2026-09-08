@@ -14,8 +14,8 @@ import { Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import i18n from '@/i18n';
 import { getIntlLocale } from '@/i18n/format';
-import { todayISO } from '@/lib/date';
-import { periodBounds } from '@/lib/domain/period';
+import { todayISO } from '@/utils/date';
+import { periodBounds } from '@/utils/domain/period';
 
 const startDayOptions = Array.from({ length: 31 }, (_, index) => index + 1);
 

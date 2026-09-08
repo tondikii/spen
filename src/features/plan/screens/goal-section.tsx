@@ -14,8 +14,8 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { WalletPicker } from '@/components/ui/wallet-picker';
 import { FieldLabel, MoneyField } from '@/components/ui/form-fields';
 import { useTheme } from '@/hooks/use-theme';
-import { formatMoney } from '@/lib/money';
-import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
+import { formatMoney } from '@/utils/money';
+import { formatMoneyInput, parseMoneyInput } from '@/utils/money-input';
 import type { Goal, Wallet } from '@/types/domain';
 
 import { PlanActionMenu } from './plan-action-menu';

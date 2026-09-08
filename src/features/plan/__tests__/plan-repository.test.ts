@@ -15,7 +15,7 @@ import {
   setDatabasePlanItemPaid,
   updateDatabasePlanItem,
 } from '@/features/plan';
-import { periodBounds } from '@/lib/domain/period';
+import { periodBounds } from '@/utils/domain/period';
 
 const getDatabasePlanView = async (database: SQLiteDatabase, today: string) =>
   (await readPlanView(database, today)).planView;

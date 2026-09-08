@@ -4,7 +4,7 @@ import migrations from '../../../../drizzle/migrations';
 import { configureDatabase } from '@/db/client';
 import { seedDefaultCategories } from '@/db/seed';
 import { getDatabaseSettings, setDatabaseCurrency } from '@/features/settings';
-import { getSelectedCurrency, getSelectedLocale } from '@/lib/selection';
+import { getSelectedCurrency, getSelectedLocale } from '@/utils/selection';
 import { getSetupState, completeSetup } from '@/features/setup';
 import { getWallets } from '@/features/wallet';
 

@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
-import { getSelectedCurrency } from '@/lib/selection';
+import { getSelectedCurrency } from '@/utils/selection';
 import type { CurrencyCode } from '@/types/domain';
 import { ThemedText } from '@/components/ui/themed-text';
 

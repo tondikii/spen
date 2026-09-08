@@ -4,7 +4,7 @@ import migrations from '../../../../drizzle/migrations';
 import { configureDatabase } from '@/db/client';
 import { seedDefaultCategories } from '@/db/seed';
 import { createWallet, getWallets } from '@/features/wallet';
-import { hasSimilarIncome } from '@/lib/presentation';
+import { hasSimilarIncome } from '@/utils/presentation';
 import {
   archiveDatabaseCategory,
   getDatabaseTransactionCategories,

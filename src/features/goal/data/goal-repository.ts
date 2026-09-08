@@ -1,10 +1,10 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import i18n from '@/i18n';
-import { AppError } from '@/lib/app-error';
-import { todayISO } from '@/lib/date';
+import { AppError } from '@/utils/app-error';
+import { todayISO } from '@/utils/date';
 import { parseRequiredPrefixedId, withExclusiveWrite } from '@/lib/db-helpers';
-import { SYSTEM_CATEGORY_NAMES } from '@/lib/domain/constants';
+import { SYSTEM_CATEGORY_NAMES } from '@/utils/domain/constants';
 import {
   getDatabaseTransaction,
   getDatabaseTransactionCategories,

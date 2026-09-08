@@ -1,13 +1,13 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import i18n from '@/i18n';
-import { AppError } from '@/lib/app-error';
+import { AppError } from '@/utils/app-error';
 import {
   currencyOptions,
   getSelectedLocale,
   setSelectedCurrency,
   setSelectedLocale,
-} from '@/lib/selection';
+} from '@/utils/selection';
 import type { CurrencyCode, Locale } from '@/types/domain';
 
 function isCurrency(value: string): value is CurrencyCode {

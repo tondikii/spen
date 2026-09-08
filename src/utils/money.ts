@@ -1,6 +1,6 @@
 import { getCurrentLocale } from '@/i18n';
 import { getIntlLocale } from '@/i18n/format';
-import { getSelectedCurrency } from '@/lib/selection';
+import { getSelectedCurrency } from '@/utils/selection';
 
 const CurrencySymbols: Record<string, string> = {
   IDR: 'Rp',

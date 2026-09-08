@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { AppError } from '@/lib/app-error';
+import { AppError } from '@/utils/app-error';
 
 /**
  * Parses a prefixed ID like `wallet-12` or `category-3` into numeric DB id.

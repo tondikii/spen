@@ -10,9 +10,9 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { FieldLabel } from '@/components/ui/form-fields';
 import { Fonts, Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { getErrorTranslationKey } from '@/lib/app-error';
+import { getErrorTranslationKey } from '@/utils/app-error';
 import { getCategoryLabel } from '@/i18n/categories';
-import { chunk } from '@/lib/array';
+import { chunk } from '@/utils/array';
 import type { Category, TransactionType } from '@/types/domain';
 
 const CATEGORY_COLUMNS = 4;

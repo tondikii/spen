@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { getErrorTranslationKey } from '@/lib/app-error';
+import { getErrorTranslationKey } from '@/utils/app-error';
 
 export function useErrorToast() {
   const { t } = useTranslation();

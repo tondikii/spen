@@ -1,13 +1,13 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import i18n from '@/i18n';
-import { AppError } from '@/lib/app-error';
-import { todayISO, isValidTransactionDate } from '@/lib/date';
-import { periodBounds } from '@/lib/domain/period';
+import { AppError } from '@/utils/app-error';
+import { todayISO, isValidTransactionDate } from '@/utils/date';
+import { periodBounds } from '@/utils/domain/period';
 import { parseRequiredPrefixedId } from '@/lib/db-helpers';
 import { createWallet } from '@/features/wallet';
 import { createGoal } from '@/features/goal';
-import { SYSTEM_CATEGORY_NAMES } from '@/lib/domain/constants';
+import { SYSTEM_CATEGORY_NAMES } from '@/utils/domain/constants';
 import type { BudgetSuggestion } from '@/lib/ai-service';
 import type {
   BudgetPlan,

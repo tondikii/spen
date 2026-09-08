@@ -19,22 +19,22 @@ import { BottomTabInset, Fonts, Typography } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
   createBackupFile,
+  getPublicDocumentUrl,
   pickBackupContent,
   restoreDatabase,
-  shareBackupFile,
   setDatabaseCurrency,
   setDatabaseLocale,
+  shareBackupFile,
 } from '@/features/settings';
 import {
   getSelectedCurrency,
   getSelectedLocale,
   setSelectedCurrency,
   setSelectedLocale,
-} from '@/lib/selection';
+} from '@/utils/selection';
 import type { CurrencyCode, Locale } from '@/types/domain';
 import { changeLocale } from '@/i18n';
-import { getPublicDocumentUrl } from '@/lib/public-documents';
-import { getErrorTranslationKey } from '@/lib/app-error';
+import { getErrorTranslationKey } from '@/utils/app-error';
 import {
   MotionChevron,
   MotionCollapsible,

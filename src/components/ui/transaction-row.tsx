@@ -7,8 +7,8 @@ import { ThemedView } from '@/components/ui/themed-view';
 import { Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getCategoryLabel } from '@/i18n/categories';
-import { formatMoney } from '@/lib/money';
-import { getTransactionPresentation } from '@/lib/presentation';
+import { formatMoney } from '@/utils/money';
+import { getTransactionPresentation } from '@/utils/presentation';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
 /**

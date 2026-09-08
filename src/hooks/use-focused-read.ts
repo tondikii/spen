@@ -1,7 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { AppError } from '@/lib/app-error';
-import { retryDatabaseRead } from '@/lib/retry';
+import { AppError } from '@/utils/app-error';
+import { retryDatabaseRead } from '@/utils/retry';
 
 type FocusedReadState<T> = { data: T | null; error: string; retry: () => void };
 

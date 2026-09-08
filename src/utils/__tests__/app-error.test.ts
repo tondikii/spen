@@ -1,4 +1,4 @@
-import { AppError, getErrorTranslationKey, toAppError } from '@/lib/app-error';
+import { AppError, getErrorTranslationKey, toAppError } from '@/utils/app-error';
 
 describe('AppError boundary', () => {
   it('keeps a known domain error code and maps it to a translation key', () => {

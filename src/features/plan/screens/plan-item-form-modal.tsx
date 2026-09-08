@@ -15,9 +15,9 @@ import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
 import { getCategoryLabel } from '@/i18n/categories';
 import { formatDate } from '@/i18n/format';
-import { chunk } from '@/lib/array';
-import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
-import { todayISO } from '@/lib/date';
+import { chunk } from '@/utils/array';
+import { formatMoneyInput, parseMoneyInput } from '@/utils/money-input';
+import { todayISO } from '@/utils/date';
 import type { PlanItemDraft } from '@/features/plan';
 import type { BudgetPlanItem, Category, PlanItemType, Wallet } from '@/types/domain';
 

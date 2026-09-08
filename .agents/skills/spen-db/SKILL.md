@@ -1,6 +1,6 @@
 ---
 name: spen-db
-description: "Pola database Spen: expo-sqlite ~57.0.2 + Drizzle ORM (drizzle-orm@rc / drizzle-kit@rc), schema di db/schema.ts, migrasi di-generate lalu di-bundle dan dijalankan saat startup via useMigrations, transaksi eksklusif untuk menulis yang butuh isolasi. Gunakan saat membuat/mengubah schema, migrasi, query, atau integration test yang menyentuh DB lokal."
+description: "Pola database Spen: expo-sqlite ~57.0.2 + Drizzle ORM (drizzle-orm@rc / drizzle-kit@rc), schema di src/db/schema/ (per domain), migrasi di-generate lalu di-bundle dan dijalankan saat startup via useMigrations, transaksi eksklusif untuk menulis yang butuh isolasi. Gunakan saat membuat/mengubah schema, migrasi, query, atau integration test yang menyentuh DB lokal."
 ---
 
 # Spen DB
@@ -9,7 +9,7 @@ Pola database lokal Spen. Konteks domain: `CONTEXT.md` (glossary + `_Avoid_`). K
 
 ## Setup yang sudah/seharusnya ada
 
-- `drizzle.config.ts`: `dialect: 'sqlite'`, `driver: 'expo'`, `schema: './db/schema.ts'`, `out: './drizzle'`.
+- `drizzle.config.ts`: `dialect: 'sqlite'`, `driver: 'expo'`, `schema: './src/db/schema/index.ts'`, `out: './drizzle'`.
 - `metro.config.js`: push `'sql'` ke `config.resolver.sourceExts` (agar file migrasi `.sql` ke-bundle).
 - `babel.config.js`: plugin `["inline-import", { "extensions": [".sql"] }]` — **wajib**, tanpa ini migrasi gagal saat runtime.
 - `SQLiteProvider databaseName="spen.db" onInit={migrateDbIfNeeded}` di root app, lalu `useMigrations(db, migrations)` dari `drizzle-orm/expo-sqlite/migrator` dengan `import migrations from './drizzle/migrations'`.
@@ -29,7 +29,7 @@ Jika salah satu di atas belum ada, buat dulu sebelum menulis query baru.
 
 ## Migrasi
 
-1. Ubah `db/schema.ts` (satu sumber kebenaran schema).
+1. Ubah schema di `src/db/schema/` (satu sumber kebenaran schema, per domain).
 2. `npx drizzle-kit generate` → menghasilkan file `.sql` baru di `drizzle/`.
 3. **Review SQL hasil generate** — pastikan sesuai intent (nama tabel/kolom, index, constraint), jangan auto-apply tanpa lihat.
 4. Migrasi dijalankan otomatis saat startup via `useMigrations`; jangan jalankan manual di production.

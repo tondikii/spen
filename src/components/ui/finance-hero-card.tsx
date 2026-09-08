@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { ThemedText } from '@/components/ui/themed-text';
 import { MotionAnimatedView, motionPresets } from '@/components/ui/motion';
 import { Fonts, Layout, Radius, Shadows, Spacing, Typography } from '@/theme';
-import { formatMoney } from '@/lib/money';
+import { formatMoney } from '@/utils/money';
 import { useTheme } from '@/hooks/use-theme';
 
 export type FinanceHeroFooterItem = {

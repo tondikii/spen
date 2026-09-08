@@ -6,8 +6,8 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { BottomTabInset, MaxContentWidth, Radius, Spacing, Typography } from '@/theme';
-import type { PublicDocument } from '@/lib/public-documents';
-import { getLocalizedPublicDocument } from '@/lib/public-documents';
+import type { PublicDocument } from '@/features/settings';
+import { getLocalizedPublicDocument } from '@/features/settings';
 import { MotionScreen } from '@/components/ui/motion';
 import { useTranslation } from 'react-i18next';
 

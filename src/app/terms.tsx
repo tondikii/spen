@@ -1,5 +1,4 @@
-import { PublicDocumentScreen } from '@/features/settings';
-import { termsDocument } from '@/lib/public-documents';
+import { PublicDocumentScreen, termsDocument } from '@/features/settings';
 
 export default function TermsRoute() {
   return <PublicDocumentScreen document={termsDocument} />;

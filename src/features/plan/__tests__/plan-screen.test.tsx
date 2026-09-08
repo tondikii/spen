@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 
 import PlanScreen from '@/features/plan';
 import { AppThemeProvider } from '@/providers/theme-provider';
-import { todayISO } from '@/lib/date';
+import { todayISO } from '@/utils/date';
 import type { BudgetPeriod, BudgetPlan, Category, Goal, Wallet } from '@/types/domain';
 
 const period: BudgetPeriod = {

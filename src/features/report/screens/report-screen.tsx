@@ -21,7 +21,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
 import { formatMonth, formatMonthShort } from '@/i18n/format';
 import { getCategoryLabel } from '@/i18n/categories';
-import { formatMoney } from '@/lib/money';
+import { formatMoney } from '@/utils/money';
 import type { BudgetAIInput } from '@/lib/ai-service';
 import { readReportView } from '../read';
 import { useReportInsight } from '../hooks/use-report-insight';

@@ -1,7 +1,7 @@
 import type { CurrencyCode, ThemeMode, Locale } from '@/types/domain';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { currencyOptions, setSelectedCurrency, setSelectedLocale } from '@/lib/selection';
+import { currencyOptions, setSelectedCurrency, setSelectedLocale } from '@/utils/selection';
 
 export async function getDatabaseSettings(database: SQLiteDatabase) {
   const row = await database.getFirstAsync<{

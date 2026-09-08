@@ -1,4 +1,4 @@
-import { todayISO } from '@/lib/date';
+import { todayISO } from '@/utils/date';
 import type { BudgetPeriod } from '@/types/domain';
 
 function daysInMonth(year: number, month: number): number {

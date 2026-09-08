@@ -1,6 +1,6 @@
 import { formatDayLabel } from '@/i18n/format';
-import { shiftDate } from '@/lib/date';
-import { getDailyTotals, getDailyTransactions } from '@/lib/presentation';
+import { shiftDate } from '@/utils/date';
+import { getDailyTotals, getDailyTransactions } from '@/utils/presentation';
 import type { Transaction } from '@/types/domain';
 
 const transactions: Transaction[] = [

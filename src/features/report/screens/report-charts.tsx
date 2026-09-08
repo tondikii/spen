@@ -16,7 +16,7 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { Motion } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getCategoryLabel } from '@/i18n/categories';
-import { formatMoney } from '@/lib/money';
+import { formatMoney } from '@/utils/money';
 import { useTranslation } from 'react-i18next';
 import type { ReportExpense, ReportView } from '../read';
 

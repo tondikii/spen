@@ -19,9 +19,9 @@ import { Fonts, Layout, MaxContentWidth, Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
 import { formatDayLabel, formatDayMonth, formatWeekdayDate } from '@/i18n/format';
-import { shiftDate } from '@/lib/date';
-import { formatMoney } from '@/lib/money';
-import { getDailyTotals, getDailyTransactions } from '@/lib/presentation';
+import { shiftDate } from '@/utils/date';
+import { formatMoney } from '@/utils/money';
+import { getDailyTotals, getDailyTransactions } from '@/utils/presentation';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
 export default function DailyTransactionsScreen({

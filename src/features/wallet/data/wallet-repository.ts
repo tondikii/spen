@@ -1,11 +1,11 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import i18n from '@/i18n';
-import { AppError } from '@/lib/app-error';
+import { AppError } from '@/utils/app-error';
 import { parseRequiredPrefixedId, withExclusiveWrite } from '@/lib/db-helpers';
 import type { Wallet } from '@/types/domain';
 import type { WalletRow } from '@/types/db-rows';
-import { SYSTEM_CATEGORY_NAMES, WALLET_TINTS } from '@/lib/domain/constants';
+import { SYSTEM_CATEGORY_NAMES, WALLET_TINTS } from '@/utils/domain/constants';
 
 const TINTS = WALLET_TINTS;
 const INITIAL_BALANCE_CATEGORY_NAME = SYSTEM_CATEGORY_NAMES.openingBalance;

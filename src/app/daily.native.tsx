@@ -1,7 +1,7 @@
 import { DailyTransactionsScreen, readDailyView } from '@/features/daily';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { todayISO } from '@/lib/date';
+import { todayISO } from '@/utils/date';
 import { DataState } from '@/components/feedback/data-state';
 import useAppDatabase from '@/providers/database-provider';
 import { useFocusedRead } from '@/hooks/use-focused-read';

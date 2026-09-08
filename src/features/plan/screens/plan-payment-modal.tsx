@@ -11,8 +11,8 @@ import { FieldLabel, MoneyField } from '@/components/ui/form-fields';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocale } from '@/hooks/use-locale';
 import { formatDate } from '@/i18n/format';
-import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
-import { todayISO } from '@/lib/date';
+import { formatMoneyInput, parseMoneyInput } from '@/utils/money-input';
+import { todayISO } from '@/utils/date';
 import type { Wallet } from '@/types/domain';
 
 import { planSheetStyles } from './plan-sheet-styles';

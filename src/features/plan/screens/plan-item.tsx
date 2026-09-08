@@ -8,7 +8,7 @@ import { MotionAnimatedView, MotionProgressBar, motionPresets } from '@/componen
 import { ThemedText } from '@/components/ui/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { getCategoryLabel } from '@/i18n/categories';
-import { formatMoney } from '@/lib/money';
+import { formatMoney } from '@/utils/money';
 import type { BudgetPlanItem, Category } from '@/types/domain';
 
 import { PlanActionMenu } from './plan-action-menu';
