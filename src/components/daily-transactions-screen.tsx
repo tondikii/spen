@@ -30,11 +30,15 @@ export default function DailyTransactionsScreen({
   categories,
   wallets,
   today,
+  loadedMonth,
+  onMonthChange,
 }: {
   transactions: Transaction[];
   categories: Category[];
   wallets: Wallet[];
   today: string;
+  loadedMonth: string;
+  onMonthChange: (month: string) => void;
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -51,6 +55,7 @@ export default function DailyTransactionsScreen({
   const selectDate = (nextDate: string) => {
     setDate(nextDate);
     setCalendarMonth(nextDate.slice(0, 7));
+    if (nextDate.slice(0, 7) !== loadedMonth) onMonthChange(nextDate.slice(0, 7));
   };
 
   const moveDay = (days: number) => selectDate(shiftDate(date, days));

@@ -1,9 +1,8 @@
 import DailyTransactionsScreen from '@/components/daily-transactions-screen';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { todayISO } from '@/lib/date';
-import { getDatabaseTransactionCategories, getDatabaseTransactions } from '@/features/transactions';
-import { getWallets } from '@/features/wallet';
+import { readDailyView } from '@/features/daily';
 import { DataState } from '@/components/screen-skeleton';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
@@ -11,16 +10,9 @@ import { useFocusedRead } from '@/hooks/use-focused-read';
 export default function DailyRoute() {
   const { t } = useTranslation();
   const database = useAppDatabase();
-  const read = useCallback(
-    () =>
-      Promise.all([
-        getDatabaseTransactions(database),
-        getDatabaseTransactionCategories(database),
-        getWallets(database),
-      ]),
-    [database],
-  );
-  const { data, error, retry } = useFocusedRead(read, t('common.dailyNotReady'));
+  const [month, setMonth] = useState(() => todayISO().slice(0, 7));
+  const read = useCallback(() => readDailyView(database, month), [database, month]);
+  const { data, error, retry } = useFocusedRead(read, t('common.dailyNotReady'), month);
   if (error)
     return (
       <DataState
@@ -40,13 +32,14 @@ export default function DailyRoute() {
         description={t('common.loadingDailyTransactionsCopy')}
       />
     );
-  const [transactions, categories, wallets] = data;
   return (
     <DailyTransactionsScreen
-      transactions={transactions}
-      categories={categories}
-      wallets={wallets}
+      transactions={data.transactions}
+      categories={data.categories}
+      wallets={data.wallets}
       today={todayISO()}
+      loadedMonth={month}
+      onMonthChange={setMonth}
     />
   );
 }

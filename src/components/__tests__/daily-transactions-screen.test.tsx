@@ -58,20 +58,24 @@ const transactions: Transaction[] = [
   },
 ];
 
-function renderScreen() {
-  return render(
+async function renderScreen(onMonthChange = jest.fn()) {
+  const screen = await render(
     <DailyTransactionsScreen
       transactions={transactions}
       categories={[incomeCategory, foodCategory]}
       wallets={[wallet]}
       today="2026-09-01"
+      loadedMonth="2026-09"
+      onMonthChange={onMonthChange}
     />,
   );
+  return { screen, onMonthChange };
 }
 
 describe('DailyTransactionsScreen', () => {
   it('menampilkan ringkasan dan transaksi pada hari aktif', async () => {
-    const { getAllByText, getByLabelText, getByText, queryByLabelText } = await renderScreen();
+    const { screen } = await renderScreen();
+    const { getAllByText, getByLabelText, getByText, queryByLabelText } = screen;
 
     expect(getByText('Transaksi Harian')).toBeTruthy();
     expect(getByLabelText('Tutup form transaksi')).toBeTruthy();
@@ -82,7 +86,8 @@ describe('DailyTransactionsScreen', () => {
   });
 
   it('berpindah hari dan menampilkan empty state', async () => {
-    const { getByLabelText, getByText } = await renderScreen();
+    const { screen } = await renderScreen();
+    const { getByLabelText, getByText } = screen;
 
     await fireEvent.press(getByLabelText('Hari berikutnya'));
     await waitFor(() => expect(getByText('Belum ada catatan')).toBeTruthy());
@@ -90,15 +95,18 @@ describe('DailyTransactionsScreen', () => {
   });
 
   it('membuka calendar picker dan memilih tanggal', async () => {
-    const { getByLabelText, getByText } = await renderScreen();
+    const { screen, onMonthChange } = await renderScreen();
+    const { getByLabelText, getByText } = screen;
 
     await fireEvent.press(getByLabelText('Pilih tanggal'));
     await fireEvent.press(getByLabelText('Tanggal 2026-08-31'));
     await waitFor(() => expect(getByText('Kemarin')).toBeTruthy());
+    expect(onMonthChange).toHaveBeenCalledWith('2026-08');
   });
 
   it('berpindah bulan dari calendar picker', async () => {
-    const { getByLabelText, getByText } = await renderScreen();
+    const { screen } = await renderScreen();
+    const { getByLabelText, getByText } = screen;
 
     await fireEvent.press(getByLabelText('Pilih tanggal'));
     await fireEvent.press(getByLabelText('Bulan sebelumnya'));
