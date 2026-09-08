@@ -29,21 +29,22 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Fonts, Layout, Radius, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useLocale } from '@/hooks/use-locale';
 import i18n from '@/i18n';
 import { getCategoryLabel } from '@/i18n/categories';
 import { formatDate } from '@/i18n/format';
-import { getLocalDateInput } from '@/services/transaction-service';
 import { chunk } from '@/lib/array';
 import { getErrorTranslationKey } from '@/lib/app-error';
+import { todayISO } from '@/lib/date';
 import { formatMoney } from '@/lib/money';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import { aiService, type BudgetAIInput, type BudgetSuggestion } from '@/services/ai-service';
-import { getDatabasePlanView, getPlanView, type PlanItemDraft } from '@/services/plan-service';
-import type { BudgetPlanItem, Category, Goal, Locale, PlanItemType, Wallet } from '@/types/domain';
+import { getDatabasePlanView, type PlanItemDraft } from '@/services/plan-service';
+import type { BudgetPlanItem, Category, Goal, PlanItemType, Wallet } from '@/types/domain';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-type PlanView = ReturnType<typeof getPlanView> | Awaited<ReturnType<typeof getDatabasePlanView>>;
+type PlanView = Awaited<ReturnType<typeof getDatabasePlanView>>;
 type PlanItemState = { realizedAmount: number; progressPercent: number; overBudget: boolean };
 type GoalDraft = Omit<Goal, 'id' | 'archived'>;
 type Confirmation = {
@@ -114,8 +115,8 @@ function PlanSummaryCard({ snapshot }: { snapshot: PlanView['snapshot'] }) {
 }
 
 function PlanScreenContent({
-  planView = getPlanView(),
-  categories = [],
+  planView,
+  categories,
   onPeriodStartDayChange,
   onItemAction,
   onPlanItemSave,
@@ -128,28 +129,28 @@ function PlanScreenContent({
   aiInput,
   onSuggestionApply,
 }: {
-  planView?: PlanView;
-  categories?: Category[];
-  onPeriodStartDayChange?: (day: number) => void | Promise<void>;
-  onItemAction?: (
+  planView: PlanView;
+  categories: Category[];
+  onPeriodStartDayChange: (day: number) => void | Promise<void>;
+  onItemAction: (
     item: BudgetPlanItem,
     amount: number,
     walletId: string,
     date: string,
   ) => void | Promise<void>;
-  onPlanItemSave?: (item: BudgetPlanItem | null, draft: PlanItemDraft) => void | Promise<void>;
-  onPlanItemDelete?: (item: BudgetPlanItem) => void | Promise<void>;
-  onCategorySave?: (category: Category) => Category | Promise<Category>;
-  onGoalSave?: (goal: Goal | null, draft: GoalDraft) => void | Promise<void>;
-  onGoalArchive?: (goal: Goal) => void | Promise<void>;
-  onGoalAllocate?: (goal: Goal, amount: number) => void | Promise<void>;
-  onGoalWithdraw?: (goal: Goal, amount: number) => void | Promise<void>;
+  onPlanItemSave: (item: BudgetPlanItem | null, draft: PlanItemDraft) => void | Promise<void>;
+  onPlanItemDelete: (item: BudgetPlanItem) => void | Promise<void>;
+  onCategorySave: (category: Category) => Category | Promise<Category>;
+  onGoalSave: (goal: Goal | null, draft: GoalDraft) => void | Promise<void>;
+  onGoalArchive: (goal: Goal) => void | Promise<void>;
+  onGoalAllocate: (goal: Goal, amount: number) => void | Promise<void>;
+  onGoalWithdraw: (goal: Goal, amount: number) => void | Promise<void>;
   aiInput?: BudgetAIInput;
-  onSuggestionApply?: (suggestion: BudgetSuggestion) => void | Promise<void>;
+  onSuggestionApply: (suggestion: BudgetSuggestion) => void | Promise<void>;
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const locale = (i18n.language === 'en' ? 'en' : 'id') as Locale;
+  const locale = useLocale();
   const { snapshot, plan, goals, wallets, period, startDay: configuredStartDay } = planView;
   const [startDay, setStartDay] = useState(configuredStartDay);
   const [aiOpen, setAiOpen] = useState(false);
@@ -241,7 +242,7 @@ function PlanScreenContent({
 
   const applySuggestion = async (suggestion: BudgetSuggestion) => {
     try {
-      await onSuggestionApply?.(suggestion);
+      await onSuggestionApply(suggestion);
       setApplied((current) =>
         current.includes(suggestion.title) ? current : [...current, suggestion.title],
       );
@@ -273,7 +274,7 @@ function PlanScreenContent({
               dismissSignal={dismissSignal}
               onStartDayChange={(day) => {
                 setStartDay(day);
-                return onPeriodStartDayChange?.(day);
+                return onPeriodStartDayChange(day);
               }}
             />
           </View>
@@ -381,7 +382,7 @@ function PlanScreenContent({
           onCategorySave={onCategorySave}
           onClose={() => setPlanItemEditor(null)}
           onSave={async (draft) => {
-            await onPlanItemSave?.(planItemEditor.item ?? null, draft);
+            await onPlanItemSave(planItemEditor.item ?? null, draft);
             setPlanItemEditor(null);
           }}
         />
@@ -401,12 +402,7 @@ function PlanScreenContent({
           onClose={() => setExpensePaymentEditor(null)}
           onSubmit={async (amount, walletId, date) => {
             if (!walletId) return;
-            await onItemAction?.(
-              expensePaymentEditor,
-              amount,
-              walletId,
-              date ?? getLocalDateInput(),
-            );
+            await onItemAction(expensePaymentEditor, amount, walletId, date ?? todayISO());
             setExpensePaymentEditor(null);
           }}
         />
@@ -420,7 +416,7 @@ function PlanScreenContent({
           theme={theme}
           onClose={() => setGoalSavingEditor(null)}
           onSubmit={async (amount, walletId) => {
-            await onGoalAllocate?.(goalSavingEditor, amount);
+            await onGoalAllocate(goalSavingEditor, amount);
             setGoalSavingEditor(null);
           }}
         />
@@ -663,7 +659,7 @@ function PlanPaymentModal({
     .sort((left, right) => right.balance - left.balance);
   const [amount, setAmount] = useState(initialAmount ? formatMoneyInput(initialAmount) : '');
   const [walletId, setWalletId] = useState(activeWallets[0]?.id ?? null);
-  const today = getLocalDateInput();
+  const today = todayISO();
   const [date, setDate] = useState(today);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(today.slice(0, 7));
@@ -767,7 +763,7 @@ function PlanItemFormModal({
   wallets: Wallet[];
   minDate: string;
   theme: ReturnType<typeof useTheme>;
-  onCategorySave?: (category: Category) => Category | Promise<Category>;
+  onCategorySave: (category: Category) => Category | Promise<Category>;
   onClose: () => void;
   onSave: (draft: PlanItemDraft) => void | Promise<void>;
 }) {
@@ -777,7 +773,7 @@ function PlanItemFormModal({
   const [walletId, setWalletId] = useState<string | null>(
     item?.type === 'income' ? (item.walletId ?? wallets[0]?.id ?? null) : (wallets[0]?.id ?? null),
   );
-  const transactionToday = getLocalDateInput();
+  const transactionToday = todayISO();
   const [incomeDate, setIncomeDate] = useState(transactionToday);
   const [incomeCalendarOpen, setIncomeCalendarOpen] = useState(false);
   const [incomeCalendarMonth, setIncomeCalendarMonth] = useState(transactionToday.slice(0, 7));
@@ -803,7 +799,7 @@ function PlanItemFormModal({
       archived: false,
       isAdjustment: false,
     };
-    const saved = onCategorySave ? await onCategorySave(draft) : draft;
+    const saved = await onCategorySave(draft);
     setCategories((current) => [...current, saved]);
     setCategoryId(saved.id);
     setCategoryEditorOpen(false);
