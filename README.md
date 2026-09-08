@@ -1,6 +1,6 @@
 # Spen
 
-Spen adalah aplikasi budgeting berbasis Expo SDK 57 untuk Android, iOS, dan web.
+Spen adalah aplikasi budgeting berbasis Expo SDK 57 untuk Android dan iOS. Expo Web hanya untuk 2 rute dokumen publik: `/terms` (Syarat & Ketentuan) dan `/privacy` (Kebijakan Privasi).
 
 ## Mulai
 
@@ -37,9 +37,9 @@ Jangan commit file env lokal atau API key ke repository.
 ## Script
 
 - `npm run start`
-- `npm run android`
-- `npm run ios`
-- `npm run web`
+- `npm run android` — native Android
+- `npm run ios` — native iOS
+- `npm run web` — hanya untuk cek build dokumen `/terms` dan `/privacy` (web statik)
 - `npm test`
 - `npm run lint`
 - `npm run format`

@@ -3,7 +3,9 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import mockData from '@/data/mock-data';
 import i18n from '@/i18n';
 import { AppError } from '@/lib/app-error';
-import { getDatabaseTransactions, isValidTransactionDate } from '@/services/transaction-service';
+import { todayISO, periodBounds, isValidTransactionDate } from '@/lib/date';
+import { parseRequiredPrefixedId } from '@/lib/db-helpers';
+import { getDatabaseTransactions } from '@/services/transaction-service';
 import { createWallet, getWallets } from '@/services/wallet-service';
 import { createGoal } from '@/services/goal-service';
 import type { BudgetSuggestion } from '@/services/ai-service';
@@ -55,57 +57,10 @@ export function getPaymentLabel(kind: string, paidAmount?: number, targetAmount?
   return 'Belum dibayar';
 }
 
-type PeriodRow = { id: number; start_date: string; end_date: string; duration_months: number };
-type GoalRow = {
-  id: number;
-  name: string;
-  target_amount: number;
-  target_date: string | null;
-  wallet_id: number;
-  monthly_contribution: number;
-  archived: number;
-};
-type ItemRow = {
-  id: number;
-  budget_plan_id: number;
-  name: string;
-  category_id: number;
-  target_amount: number;
-  is_paid?: number;
-  wallet_id?: number | null;
-};
+import type { PeriodRow, GoalRow, ItemRow } from '@/types/db-rows';
 
-export function dateOnly(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-}
-
-function daysInMonth(year: number, month: number) {
-  return new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
-}
-
-function addMonths(date: string, months: number, anchorDay?: number) {
-  const [year, month, day] = date.split('-').map(Number);
-  const value = new Date(Date.UTC(year, month - 1 + months, 1, 12));
-  const effectiveDay = Math.min(
-    anchorDay ?? day,
-    daysInMonth(value.getUTCFullYear(), value.getUTCMonth() + 1),
-  );
-  return `${value.getUTCFullYear()}-${String(value.getUTCMonth() + 1).padStart(2, '0')}-${String(effectiveDay).padStart(2, '0')}`;
-}
-
-export function periodBounds(startDay: number, today = dateOnly()) {
-  const safeDay = Math.min(Math.max(Math.trunc(startDay), 1), 31);
-  const [currentYear, currentMonth] = today.slice(0, 7).split('-').map(Number);
-  let start = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(Math.min(safeDay, daysInMonth(currentYear, currentMonth))).padStart(2, '0')}`;
-  if (today < start) start = addMonths(start, -1, safeDay);
-  const nextStart = addMonths(start, 1, safeDay);
-  const [year, month, day] = nextStart.split('-').map(Number);
-  const end = new Date(Date.UTC(year, month - 1, day - 1, 12));
-  return {
-    startDate: start,
-    endDate: `${end.getUTCFullYear()}-${String(end.getUTCMonth() + 1).padStart(2, '0')}-${String(end.getUTCDate()).padStart(2, '0')}`,
-  };
-}
+export const dateOnly = todayISO;
+export { periodBounds };
 
 function toPeriod(row: PeriodRow): BudgetPeriod {
   return {
@@ -148,18 +103,11 @@ function toGoal(row: GoalRow): Goal {
 }
 
 function databaseId(value: string | number) {
-  const id =
-    typeof value === 'number'
-      ? value
-      : Number(
-          String(value)
-            .replace(/^category-/, '')
-            .replace(/^wallet-/, '')
-            .replace(/^(?:income|expense|fixed-expense|allocation)-item-/, ''),
-        );
-  if (!Number.isInteger(id) || id < 1)
-    throw new AppError('validation', undefined, `ID plan tidak valid: ${value}`);
-  return id;
+  return parseRequiredPrefixedId(
+    value,
+    ['category-', 'wallet-', 'income-item-', 'expense-item-', 'fixed-expense-item-', 'allocation-item-'],
+    `ID plan tidak valid: ${value}`,
+  );
 }
 
 function tableFor(type: PlanItemType) {

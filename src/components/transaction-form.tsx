@@ -1,17 +1,22 @@
-import { useContext, useMemo, useState, type ReactNode } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext, SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
 import { CATEGORY_ICON_CHOICES, CategoryIcon } from '@/components/category-icon';
-import { CurrencyMark } from '@/components/currency-mark';
-import { ThemedText } from '@/components/themed-text';
-import { Fonts, Radius, Spacing, Typography } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { formatMoney } from '@/lib/money';
-import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
-import { ThemedInput } from '@/components/themed-input';
 import { ConfirmationModal } from '@/components/confirmation-modal';
+import { CurrencyMark } from '@/components/currency-mark';
+import { FieldLabel } from '@/components/form-fields';
+import { ThemedInput } from '@/components/themed-input';
+import { ThemedText } from '@/components/themed-text';
+import { MonthCalendar } from '@/components/month-calendar';
+import { WalletPicker } from '@/components/wallet-picker';
+import { Fonts, Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import i18n from '@/i18n';
+import { formatDate } from '@/i18n/format';
+import { getErrorTranslationKey } from '@/lib/app-error';
+import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import {
   archiveMockCategory,
   getActiveTransactionCategories,
@@ -24,6 +29,7 @@ import {
 } from '@/services/transaction-service';
 import type {
   Category,
+  SystemCategoryKey,
   Transaction,
   TransactionDraft,
   TransactionType,
@@ -31,15 +37,14 @@ import type {
 } from '@/types/domain';
 import { MotionChevron, MotionPressable as Pressable, MotionScreen } from '@/components/motion';
 import { getCategoryLabel } from '@/i18n/categories';
-import i18n from '@/i18n';
-import { formatDate } from '@/i18n/format';
-import { getErrorTranslationKey } from '@/lib/app-error';
+import { chunk } from '@/lib/array';
 
 type TransactionFormProps = {
   mode: 'create' | 'edit';
   transaction?: Transaction;
   initialType?: Exclude<TransactionType, 'adjustment'>;
   initialCategoryId?: string;
+  initialSystemCategoryKey?: SystemCategoryKey;
   initialAmount?: number;
   initialWalletId?: string;
   initialToWalletId?: string;
@@ -71,58 +76,12 @@ const tabs: { type: TransactionType; translationKey: string }[] = [
 
 const CATEGORY_COLUMNS = 4;
 
-function chunk<T>(items: readonly T[], size: number) {
-  const rows: T[][] = [];
-  for (let index = 0; index < items.length; index += size) {
-    rows.push(items.slice(index, index + size) as T[]);
-  }
-  return rows;
-}
-
-function monthLabel(value: string, locale: string) {
-  const date = new Date(`${value}-01T12:00:00`);
-  return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(date);
-}
-
-function shiftMonth(value: string, delta: number) {
-  const [year, month] = value.split('-').map(Number);
-  const date = new Date(Date.UTC(year, month - 1 + delta, 1, 12));
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
-}
-
-function shiftDate(value: string, delta: number) {
-  const [year, month, day] = value.split('-').map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day, 12));
-  date.setUTCDate(date.getUTCDate() + delta);
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(
-    date.getUTCDate(),
-  ).padStart(2, '0')}`;
-}
-
-function getCalendarDates(value: string) {
-  const firstDay = `${value}-01`;
-  const weekday = new Date(`${firstDay}T12:00:00Z`).getUTCDay();
-  const mondayOffset = (weekday + 6) % 7;
-  const start = shiftDate(firstDay, -mondayOffset);
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = shiftDate(start, index);
-    return { date, inMonth: date.startsWith(value) };
-  });
-}
-
-function getWeekdayLabels(locale: string) {
-  return Array.from({ length: 7 }, (_, index) =>
-    new Intl.DateTimeFormat(locale, { weekday: 'narrow' }).format(
-      new Date(`2026-09-${String(7 + index).padStart(2, '0')}T12:00:00Z`),
-    ),
-  );
-}
-
 export function TransactionForm({
   mode,
   transaction,
   initialType,
   initialCategoryId,
+  initialSystemCategoryKey,
   initialAmount,
   initialWalletId,
   initialToWalletId,
@@ -146,7 +105,16 @@ export function TransactionForm({
     right: 0,
   };
   const resolvedInitialType: TransactionType =
-    transaction?.type === 'adjustment' ? 'expense' : (transaction?.type ?? initialType ?? 'income');
+    transaction?.type === 'adjustment'
+      ? 'expense'
+      : (transaction?.type ??
+        initialType ??
+        (initialSystemCategoryKey
+            ? (categoriesProp ?? getActiveTransactionCategories()).find(
+                (category) => category.systemKey === initialSystemCategoryKey,
+              )?.type
+            : undefined) ??
+        'income');
   const [type, setType] = useState<TransactionType>(resolvedInitialType);
   const [walletId, setWalletId] = useState(
     transaction?.walletId ?? initialWalletId ?? wallets[0]?.id ?? null,
@@ -204,8 +172,11 @@ export function TransactionForm({
   const numericAmount = parseMoneyInput(amount);
   const allocationLimit = allocationLimitProp ?? getAllocationLimit(categoryId);
   const overBudget = type === 'expense' && allocationLimit > 0 && numericAmount > allocationLimit;
-  const calendarWeekdays = useMemo(() => getWeekdayLabels(locale), [locale]);
-  const visibleCalendarDates = useMemo(() => getCalendarDates(calendarMonth), [calendarMonth]);
+  const internalCategory: Category | undefined = categories.find(
+    (category) => category.id === categoryId && category.isAdjustment,
+  );
+  const isInternalCategory = internalCategory !== undefined;
+  const effectiveType: TransactionType = isInternalCategory ? (internalCategory?.type ?? type) : type;
 
   const toggleCalendar = () => {
     if (!calendarOpen) setCalendarMonth(date.slice(0, 7));
@@ -213,6 +184,7 @@ export function TransactionForm({
   };
 
   const changeType = (nextType: TransactionType) => {
+    if (isInternalCategory) return;
     setType(nextType);
     setCategoryQuery('');
     if (nextType === 'transfer') {
@@ -358,12 +330,12 @@ export function TransactionForm({
                   accessibilityLabel={t('common.transactionType', {
                     type: t(tab.translationKey),
                   })}
-                  accessibilityState={{ selected: type === tab.type }}
+                  accessibilityState={{ selected: effectiveType === tab.type }}
                   accessibilityHint={t('common.transactionTypeHint')}
                   onPress={() => changeType(tab.type)}
                   style={[
                     styles.typeTab,
-                    type === tab.type && {
+                    effectiveType === tab.type && {
                       borderBottomColor:
                         tab.type === 'income'
                           ? theme.income
@@ -376,7 +348,7 @@ export function TransactionForm({
                   <ThemedText
                     type="smallBold"
                     themeColor={
-                      type === tab.type
+                      effectiveType === tab.type
                         ? tab.type === 'income'
                           ? 'income'
                           : tab.type === 'expense'
@@ -478,71 +450,101 @@ export function TransactionForm({
                     </ThemedText>
                   </Pressable>
                 </View>
-                <ThemedInput
-                  accessibilityLabel={t('common.searchCategory')}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  placeholder={t('common.searchCategory')}
-                  returnKeyType="search"
-                  value={categoryQuery}
-                  onChangeText={setCategoryQuery}
-                  style={styles.categorySearch}
-                />
-                <ScrollView
-                  style={styles.categoryScroll}
-                  contentContainerStyle={styles.categoryGrid}
-                  nestedScrollEnabled
-                  showsVerticalScrollIndicator={false}
-                >
-                  {categoryRows.map((row, rowIndex) => (
-                    <View
-                      key={`category-row-${rowIndex}`}
-                      testID={`category-row-${rowIndex}`}
-                      style={styles.categoryRow}
-                    >
-                      {row.map((category, columnIndex) =>
-                        category ? (
-                          <Pressable
-                            key={category.id}
-                            wrapperStyle={styles.categoryCell}
-                            accessibilityRole="button"
-                            accessibilityLabel={t('common.selectCategory', {
-                              name: getCategoryLabel(category),
-                            })}
-                            onPress={() => setCategoryId(category.id)}
-                            onLongPress={() => setCategoryActions(category)}
-                            delayLongPress={350}
-                            style={[
-                              styles.category,
-                              {
-                                borderColor: category.id === categoryId ? theme.pine : theme.line,
-                                backgroundColor:
-                                  category.id === categoryId ? theme.mint : theme.card,
-                              },
-                            ]}
-                          >
-                            <CategoryIcon
-                              name={category.icon}
-                              color={type === 'income' ? theme.income : theme.expense}
-                            />
-                            <ThemedText type="small" style={styles.categoryName}>
-                              {getCategoryLabel(category)}
-                            </ThemedText>
-                          </Pressable>
-                        ) : (
-                          <View
-                            key={`category-spacer-${rowIndex}-${columnIndex}`}
-                            style={styles.categorySpacer}
-                          />
-                        ),
-                      )}
+                {isInternalCategory && internalCategory ? (
+                  <View
+                    style={[
+                      styles.internalCategoryCard,
+                      { borderColor: theme.line, backgroundColor: theme.card },
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.selectCategory', {
+                      name: getCategoryLabel(internalCategory),
+                    })}
+                  >
+                    <CategoryIcon name={internalCategory.icon} color={theme.pine} />
+                    <View style={styles.internalCategoryCopy}>
+                      <ThemedText type="smallBold">
+                        {getCategoryLabel(internalCategory)}
+                      </ThemedText>
+                      <ThemedText type="small" themeColor="muted">
+                        {t('common.openingBalanceNote')}
+                      </ThemedText>
                     </View>
-                  ))}
-                </ScrollView>
-                {visibleCategories.length === 0 && (
-                  <ThemedText type="small" themeColor="muted" style={styles.categorySearchEmpty}>
-                    {t('common.categoryNotFound')}
-                  </ThemedText>
+                  </View>
+                ) : (
+                  <>
+                    <ThemedInput
+                      accessibilityLabel={t('common.searchCategory')}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      placeholder={t('common.searchCategory')}
+                      returnKeyType="search"
+                      value={categoryQuery}
+                      onChangeText={setCategoryQuery}
+                      style={styles.categorySearch}
+                    />
+                    <ScrollView
+                      style={styles.categoryScroll}
+                      contentContainerStyle={styles.categoryGrid}
+                      nestedScrollEnabled
+                      showsVerticalScrollIndicator={false}
+                    >
+                      {categoryRows.map((row, rowIndex) => (
+                        <View
+                          key={`category-row-${rowIndex}`}
+                          testID={`category-row-${rowIndex}`}
+                          style={styles.categoryRow}
+                        >
+                          {row.map((category, columnIndex) =>
+                            category ? (
+                              <Pressable
+                                key={category.id}
+                                wrapperStyle={styles.categoryCell}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('common.selectCategory', {
+                                  name: getCategoryLabel(category),
+                                })}
+                                onPress={() => setCategoryId(category.id)}
+                                onLongPress={() => setCategoryActions(category)}
+                                delayLongPress={350}
+                                style={[
+                                  styles.category,
+                                  {
+                                    borderColor:
+                                      category.id === categoryId ? theme.pine : theme.line,
+                                    backgroundColor:
+                                      category.id === categoryId ? theme.mint : theme.card,
+                                  },
+                                ]}
+                              >
+                                <CategoryIcon
+                                  name={category.icon}
+                                  color={type === 'income' ? theme.income : theme.expense}
+                                />
+                                <ThemedText type="small" style={styles.categoryName}>
+                                  {getCategoryLabel(category)}
+                                </ThemedText>
+                              </Pressable>
+                            ) : (
+                              <View
+                                key={`category-spacer-${rowIndex}-${columnIndex}`}
+                                style={styles.categorySpacer}
+                              />
+                            ),
+                          )}
+                        </View>
+                      ))}
+                    </ScrollView>
+                    {visibleCategories.length === 0 && (
+                      <ThemedText
+                        type="small"
+                        themeColor="muted"
+                        style={styles.categorySearchEmpty}
+                      >
+                        {t('common.categoryNotFound')}
+                      </ThemedText>
+                    )}
+                  </>
                 )}
                 {categoryEditorOpen && (
                   <View
@@ -699,79 +701,19 @@ export function TransactionForm({
               <MotionChevron expanded={calendarOpen} color={theme.muted} size={16} />
             </Pressable>
             {calendarOpen && (
-              <View
-                style={[styles.calendar, { borderColor: theme.line, backgroundColor: theme.card }]}
-              >
-                <View style={styles.calendarHeader}>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t('common.previousMonth')}
-                    onPress={() => setCalendarMonth((current) => shiftMonth(current, -1))}
-                    style={styles.calendarArrow}
-                  >
-                    <ThemedText style={[styles.calendarChevron, { color: theme.pine }]}>
-                      ‹
-                    </ThemedText>
-                  </Pressable>
-                  <ThemedText type="smallBold">
-                    {monthLabel(calendarMonth, i18n.language === 'en' ? 'en-US' : 'id-ID')}
-                  </ThemedText>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t('common.nextMonth')}
-                    disabled={calendarMonth >= today.slice(0, 7)}
-                    onPress={() => setCalendarMonth((current) => shiftMonth(current, 1))}
-                    style={styles.calendarArrow}
-                  >
-                    <ThemedText style={[styles.calendarChevron, { color: theme.pine }]}>
-                      ›
-                    </ThemedText>
-                  </Pressable>
-                </View>
-                <View style={styles.calendarGrid}>
-                  {calendarWeekdays.map((label, index) => (
-                    <View key={`${label}-${index}`} style={styles.calendarCell}>
-                      <ThemedText type="code" themeColor="muted" style={styles.weekday}>
-                        {label}
-                      </ThemedText>
-                    </View>
-                  ))}
-                  {visibleCalendarDates.map(({ date: candidate, inMonth }) => {
-                    const disabled = !inMonth || candidate > today;
-                    return (
-                      <Pressable
-                        key={candidate}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('common.selectTransactionDate', {
-                          date: candidate,
-                        })}
-                        accessibilityState={{ selected: candidate === date, disabled }}
-                        disabled={disabled}
-                        onPress={() => {
-                          setDate(candidate);
-                          setCalendarOpen(false);
-                        }}
-                        wrapperStyle={styles.calendarCell}
-                        style={[styles.calendarPressable, disabled && { opacity: 0.35 }]}
-                      >
-                        <View
-                          style={[
-                            styles.calendarDay,
-                            candidate === date && { backgroundColor: theme.mint },
-                          ]}
-                        >
-                          <ThemedText
-                            type="small"
-                            themeColor={candidate === date ? 'pine' : inMonth ? 'ink' : 'muted'}
-                          >
-                            {Number(candidate.slice(8))}
-                          </ThemedText>
-                        </View>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
+              <MonthCalendar
+                month={calendarMonth}
+                selected={date}
+                maxMonth={today.slice(0, 7)}
+                onSelect={(candidate) => {
+                  setDate(candidate);
+                  setCalendarOpen(false);
+                }}
+                onMonthChange={setCalendarMonth}
+                isDisabled={(candidate) => candidate > today}
+                disableOutOfMonth
+                selectedVariant="mint"
+              />
             )}
             <FieldLabel>
               {t('common.notes')}{' '}
@@ -888,59 +830,6 @@ export function TransactionForm({
   );
 }
 
-function FieldLabel({ children }: { children: ReactNode }) {
-  return (
-    <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
-      {children}
-    </ThemedText>
-  );
-}
-
-function WalletPicker({
-  wallets,
-  selected,
-  onSelect,
-  exclude,
-}: {
-  wallets: Wallet[];
-  selected: string | null;
-  onSelect: (id: string) => void;
-  exclude?: string | null;
-}) {
-  const theme = useTheme();
-  const { t } = useTranslation();
-  return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.walletPicker}
-    >
-      {wallets
-        .filter((wallet) => wallet.id !== exclude)
-        .map((wallet) => (
-          <Pressable
-            key={wallet.id}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.selectWallet', { name: wallet.name })}
-            onPress={() => onSelect(wallet.id)}
-            style={[
-              styles.walletChoice,
-              {
-                borderColor: wallet.id === selected ? theme.pine : theme.line,
-                backgroundColor: wallet.id === selected ? theme.mint : theme.card,
-              },
-            ]}
-          >
-            <ThemedText type="smallBold">{wallet.name}</ThemedText>
-            <ThemedText type="small" themeColor="muted">
-              {formatMoney(wallet.balance)}
-            </ThemedText>
-          </Pressable>
-        ))}
-    </ScrollView>
-  );
-}
-
 const styles = StyleSheet.create({
   page: { flex: 1 },
   safeArea: { flex: 1 },
@@ -980,16 +869,17 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 11,
   },
-  fieldLabel: { ...Typography.eyebrow, marginTop: Spacing.two },
-  walletPicker: { gap: Spacing.two, paddingVertical: Spacing.one },
-  walletChoice: {
-    borderRadius: 13,
-    borderWidth: 1,
-    gap: 2,
-    minWidth: 120,
-    padding: 11,
-  },
   lockedWallet: { borderRadius: 13, borderWidth: 1, gap: 2, padding: 11 },
+  internalCategoryCard: {
+    alignItems: 'center',
+    borderRadius: Radius.medium,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+  },
+  internalCategoryCopy: { flex: 1, gap: 2 },
   swap: {
     alignSelf: 'center',
     alignItems: 'center',
@@ -1038,32 +928,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   dateButtonText: { flex: 1 },
-  calendar: { borderRadius: Radius.large, borderWidth: 1, marginTop: Spacing.two, padding: 14 },
-  calendarHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  calendarArrow: { alignItems: 'center', height: 36, justifyContent: 'center', width: 36 },
-  calendarChevron: { fontSize: 24, lineHeight: 27 },
-  calendarGrid: { alignSelf: 'stretch', flexDirection: 'row', flexWrap: 'wrap', width: '100%' },
-  calendarCell: {
-    alignItems: 'center',
-    flexBasis: '14.2857%',
-    justifyContent: 'center',
-    width: '14.2857%',
-  },
-  calendarPressable: { alignSelf: 'stretch', alignItems: 'center' },
-  weekday: { fontSize: 9, lineHeight: 20, textTransform: 'uppercase' },
-  calendarDay: {
-    alignItems: 'center',
-    borderRadius: Radius.small,
-    height: 34,
-    justifyContent: 'center',
-    marginVertical: 2,
-    width: 34,
-  },
   categoryEditor: {
     alignSelf: 'stretch',
     borderRadius: 13,

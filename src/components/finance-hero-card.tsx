@@ -1,4 +1,10 @@
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  type StyleProp,
+  type TextStyle,
+  type ViewStyle,
+} from 'react-native';
 import type { ReactNode } from 'react';
 
 import { ThemedText } from '@/components/themed-text';
@@ -19,7 +25,11 @@ type FinanceHeroCardProps = {
   marker?: string;
   amountColor?: string;
   note?: ReactNode;
+  noteColor?: string;
+  labelStyle?: StyleProp<TextStyle>;
   footer?: FinanceHeroFooterItem[];
+  /** Extra content rendered between the note and the footer (e.g. a progress block). */
+  children?: ReactNode;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -29,7 +39,10 @@ export function FinanceHeroCard({
   marker,
   amountColor,
   note,
+  noteColor,
+  labelStyle,
   footer = [],
+  children,
   style,
 }: FinanceHeroCardProps) {
   const theme = useTheme();
@@ -40,14 +53,19 @@ export function FinanceHeroCard({
       layout={motionPresets.layout}
       style={[styles.card, { backgroundColor: theme.pine2 }, style]}
     >
-      <ThemedText style={[styles.label, { color: theme.heroMuted }]}>
+      <ThemedText style={[styles.label, { color: theme.heroMuted }, labelStyle]}>
         {label}
         {marker && <ThemedText style={{ color: theme.heroMuted }}> {marker}</ThemedText>}
       </ThemedText>
       <ThemedText style={[styles.amount, { color: amountColor ?? theme.heroText }]}>
         {formatMoney(amount)}
       </ThemedText>
-      {note && <ThemedText style={[styles.note, { color: theme.heroMuted }]}>{note}</ThemedText>}
+      {note && (
+        <ThemedText style={[styles.note, { color: noteColor ?? theme.heroMuted }]}>
+          {note}
+        </ThemedText>
+      )}
+      {children}
       {footer.length > 0 && (
         <View style={[styles.footer, { borderTopColor: theme.heroDivider }]}>
           {footer.map((item, index) => (

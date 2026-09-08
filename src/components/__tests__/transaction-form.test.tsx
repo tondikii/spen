@@ -185,4 +185,74 @@ describe('TransactionForm', () => {
       expect.objectContaining({ type: 'transfer', amount: 100000, adminFee: 2500 }),
     );
   });
+
+  it('menyimpan perubahan transaksi saldo awal dengan kategori internalnya', async () => {
+    const onSave = jest.fn();
+    const initial = {
+      id: 'transaction-awal',
+      type: 'income' as const,
+      walletId: 'wallet-bca',
+      toWalletId: null,
+      categoryId: 'category-saldo-awal',
+      amount: 1000000,
+      date: '2026-09-01',
+      time: '08:00',
+      note: 'Saldo awal Dompet',
+      isInitial: true,
+    };
+    const { getByLabelText } = await render(
+      <TransactionForm
+        mode="edit"
+        transaction={initial}
+        wallets={mockData.wallets}
+        categories={mockData.categories}
+        onClose={jest.fn()}
+        onSave={onSave}
+      />,
+    );
+
+    expect(getByLabelText('Kategori Saldo Awal')).toBeTruthy();
+    await fireEvent.changeText(getByLabelText('Nominal transaksi'), '1200000');
+    await fireEvent.press(getByLabelText('Simpan Perubahan'));
+
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'income',
+          categoryId: 'category-saldo-awal',
+          amount: 1200000,
+        }),
+      ),
+    );
+  });
+
+  it('mengunci tipe dan kategori internal saat mengedit transaksi saldo awal', async () => {
+    const initial = {
+      id: 'transaction-awal',
+      type: 'income' as const,
+      walletId: 'wallet-bca',
+      toWalletId: null,
+      categoryId: 'category-saldo-awal',
+      amount: 1000000,
+      date: '2026-09-01',
+      time: '08:00',
+      note: 'Saldo awal Dompet',
+      isInitial: true,
+    };
+    const { getByLabelText } = await render(
+      <TransactionForm
+        mode="edit"
+        transaction={initial}
+        wallets={mockData.wallets}
+        categories={mockData.categories}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+      />,
+    );
+
+    await fireEvent.press(getByLabelText('Tipe Pengeluaran'));
+
+    expect(getByLabelText('Kategori Saldo Awal')).toBeTruthy();
+    expect(getByLabelText('Tipe Pendapatan').props.accessibilityState?.selected).toBe(true);
+  });
 });

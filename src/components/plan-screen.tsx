@@ -6,12 +6,13 @@ import {
   type ComponentProps,
   type ReactNode,
 } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 
 import { BudgetPeriodPicker } from '@/components/budget-period-picker';
 import { CATEGORY_ICON_CHOICES, CategoryIcon } from '@/components/category-icon';
 import { ConfirmationModal } from '@/components/confirmation-modal';
-import { CurrencyMark } from '@/components/currency-mark';
+import { FinanceHeroCard } from '@/components/finance-hero-card';
+import { FieldLabel, MoneyField } from '@/components/form-fields';
 import {
   MotionAnimatedView,
   MotionProgressBar,
@@ -20,15 +21,19 @@ import {
   MotionPressable as Pressable,
   motionPresets,
 } from '@/components/motion';
+import { SheetModal } from '@/components/sheet-modal';
+import { MonthCalendar } from '@/components/month-calendar';
+import { WalletPicker } from '@/components/wallet-picker';
 import { ThemedInput } from '@/components/themed-input';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Fonts, Layout, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
+import { Fonts, Layout, Radius, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import i18n from '@/i18n';
 import { getCategoryLabel } from '@/i18n/categories';
-import { formatDate, getIntlLocale } from '@/i18n/format';
+import { formatDate } from '@/i18n/format';
 import { getLocalDateInput } from '@/services/transaction-service';
+import { chunk } from '@/lib/array';
 import { getErrorTranslationKey } from '@/lib/app-error';
 import { formatMoney } from '@/lib/money';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
@@ -39,14 +44,6 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type PlanView = ReturnType<typeof getPlanView> | Awaited<ReturnType<typeof getDatabasePlanView>>;
-
-function chunk<T>(items: readonly T[], size: number) {
-  const rows: T[][] = [];
-  for (let index = 0; index < items.length; index += size) {
-    rows.push(items.slice(index, index + size) as T[]);
-  }
-  return rows;
-}
 type PlanItemState = { realizedAmount: number; progressPercent: number; overBudget: boolean };
 type GoalDraft = Omit<Goal, 'id' | 'archived'>;
 type Confirmation = {
@@ -63,21 +60,6 @@ type PlanAction = {
   tone?: 'default' | 'danger' | 'primary';
 };
 
-function shiftCalendarMonth(value: string, delta: number) {
-  const [year, month] = value.split('-').map(Number);
-  const date = new Date(Date.UTC(year, month - 1 + delta, 1, 12));
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
-}
-
-function calendarDays(value: string) {
-  const [year, month] = value.split('-').map(Number);
-  return new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
-}
-
-function calendarOffset(value: string) {
-  const [year, month] = value.split('-').map(Number);
-  return new Date(Date.UTC(year, month - 1, 1, 12)).getUTCDay();
-}
 
 function PlanSummaryCard({ snapshot }: { snapshot: PlanView['snapshot'] }) {
   const theme = useTheme();
@@ -87,28 +69,15 @@ function PlanSummaryCard({ snapshot }: { snapshot: PlanView['snapshot'] }) {
     snapshot.totalIncome > 0 ? (snapshot.totalExpense / snapshot.totalIncome) * 100 : 0;
 
   return (
-    <MotionAnimatedView
-      entering={motionPresets.itemEntering}
-      layout={motionPresets.layout}
-      style={[styles.summaryCard, { backgroundColor: theme.pine2 }]}
+    <FinanceHeroCard
+      label={t('common.spareBudget')}
+      amount={snapshot.spareBudget}
+      amountColor={spareIsNegative ? theme.expense : undefined}
+      note={spareIsNegative ? t('common.spareBudgetOverPlan') : t('common.stillAllocatable')}
+      noteColor={spareIsNegative ? theme.expense : undefined}
+      labelStyle={styles.summaryLabel}
+      style={styles.summaryCard}
     >
-      <ThemedText style={[styles.summaryLabel, { color: theme.heroMuted }]}>
-        {t('common.spareBudget')}
-      </ThemedText>
-      <ThemedText
-        style={[styles.summaryAmount, { color: spareIsNegative ? theme.expense : theme.heroText }]}
-      >
-        {formatMoney(snapshot.spareBudget)}
-      </ThemedText>
-      <ThemedText
-        style={[
-          styles.summaryCaption,
-          { color: spareIsNegative ? theme.expense : theme.heroMuted },
-        ]}
-      >
-        {spareIsNegative ? t('common.spareBudgetOverPlan') : t('common.stillAllocatable')}
-      </ThemedText>
-
       <View style={styles.summaryProgressRow}>
         <MotionProgressBar
           value={expenseProgress}
@@ -141,7 +110,7 @@ function PlanSummaryCard({ snapshot }: { snapshot: PlanView['snapshot'] }) {
           </ThemedText>
         </ThemedText>
       </View>
-    </MotionAnimatedView>
+    </FinanceHeroCard>
   );
 }
 
@@ -711,51 +680,27 @@ function PlanPaymentModal({
   };
 
   return (
-    <Modal transparent animationType="slide" visible onRequestClose={onClose}>
-      <Pressable
-        wrapperStyle={{ flex: 1 }}
-        style={[styles.overlay, { backgroundColor: theme.overlay }]}
-        onPress={onClose}
+    <SheetModal
+      title={title}
+      closeLabel={t('common.cancel')}
+      onClose={onClose}
+      keyboardAvoiding
+      sheetStyle={styles.goalSheet}
+    >
+      <ScrollView
+        style={styles.sheetScroll}
+        contentContainerStyle={styles.goalSheetContent}
+        keyboardShouldPersistTaps="handled"
       >
-        <KeyboardAvoidingView
-          style={styles.sheetKeyboard}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <View style={[styles.goalSheet, { backgroundColor: theme.card }]}>
-            <View style={styles.sheetHeader}>
-              <ThemedText type="sectionHeading">{title}</ThemedText>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('common.cancel')}
-                onPress={onClose}
-              >
-                <ThemedText type="subtitle" themeColor="muted">
-                  ×
-                </ThemedText>
-              </Pressable>
-            </View>
-            <ScrollView
-              style={styles.sheetScroll}
-              contentContainerStyle={styles.goalSheetContent}
-              keyboardShouldPersistTaps="handled"
-            >
-              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
-                {t('common.nominal')}
-              </ThemedText>
-              <View style={styles.moneyInputRow}>
-                <CurrencyMark />
-                <ThemedInput
-                  accessibilityLabel={t('common.paymentAmount')}
-                  keyboardType="numeric"
-                  value={amount}
-                  onChangeText={(value) => setAmount(formatMoneyInput(value))}
-                  style={[styles.goalInput, styles.moneyInput]}
-                  autoFocus
-                />
-              </View>
-              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
-                {t('common.transactionDate')}
-              </ThemedText>
+        <MoneyField
+          label={t('common.nominal')}
+          value={amount}
+          onChangeText={(value) => setAmount(formatMoneyInput(value))}
+          accessibilityLabel={t('common.paymentAmount')}
+          autoFocus
+          inputStyle={styles.goalInput}
+        />
+        <FieldLabel>{t('common.transactionDate')}</FieldLabel>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t('common.openCalendar')}
@@ -770,99 +715,25 @@ function PlanPaymentModal({
                 </ThemedText>
               </Pressable>
               {calendarOpen && (
-                <View style={[styles.calendar, { borderColor: theme.line }]}>
-                  <View style={styles.calendarHeader}>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={t('common.previousMonth')}
-                      onPress={() => setCalendarMonth((current) => shiftCalendarMonth(current, -1))}
-                    >
-                      <ThemedText type="smallBold">‹</ThemedText>
-                    </Pressable>
-                    <ThemedText type="smallBold">
-                      {new Intl.DateTimeFormat(
-                        getIntlLocale(i18n.language === 'en' ? 'en' : 'id'),
-                        {
-                          month: 'long',
-                          year: 'numeric',
-                        },
-                      ).format(new Date(`${calendarMonth}-01T12:00:00`))}
-                    </ThemedText>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={t('common.nextMonth')}
-                      disabled={calendarMonth >= today.slice(0, 7)}
-                      onPress={() => setCalendarMonth((current) => shiftCalendarMonth(current, 1))}
-                    >
-                      <ThemedText type="smallBold">›</ThemedText>
-                    </Pressable>
-                  </View>
-                  <View style={styles.calendarGrid}>
-                    {Array.from({ length: calendarOffset(calendarMonth) }).map((_, index) => (
-                      <View key={`empty-${index}`} style={styles.calendarDay} />
-                    ))}
-                    {Array.from(
-                      { length: calendarDays(calendarMonth) },
-                      (_, index) => index + 1,
-                    ).map((day) => {
-                      const candidate = `${calendarMonth}-${String(day).padStart(2, '0')}`;
-                      const disabled = candidate > today || (minDate ? candidate < minDate : false);
-                      return (
-                        <Pressable
-                          key={candidate}
-                          accessibilityRole="button"
-                          accessibilityLabel={t('common.selectTransactionDate', {
-                            date: candidate,
-                          })}
-                          disabled={disabled}
-                          onPress={() => {
-                            setDate(candidate);
-                            setCalendarOpen(false);
-                          }}
-                          style={[
-                            styles.calendarDay,
-                            date === candidate && { backgroundColor: theme.mint },
-                            disabled && { opacity: 0.35 },
-                          ]}
-                        >
-                          <ThemedText type="small">{day}</ThemedText>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                </View>
+                <MonthCalendar
+                  month={calendarMonth}
+                  selected={date}
+                  maxMonth={today.slice(0, 7)}
+                  onSelect={(candidate) => {
+                    setDate(candidate);
+                    setCalendarOpen(false);
+                  }}
+                  onMonthChange={setCalendarMonth}
+                  isDisabled={(candidate) =>
+                    candidate > today || (minDate ? candidate < minDate : false)
+                  }
+                  selectedVariant="mint"
+                />
               )}
               {showWalletPicker && (
                 <>
-                  <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
-                    {t('common.sourceWallet').toUpperCase()}
-                  </ThemedText>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.goalWallets}
-                  >
-                    {activeWallets.map((wallet) => (
-                      <Pressable
-                        key={wallet.id}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('common.selectWallet', { name: wallet.name })}
-                        onPress={() => setWalletId(wallet.id)}
-                        style={[
-                          styles.goalWallet,
-                          {
-                            borderColor: walletId === wallet.id ? theme.pine : theme.line,
-                            backgroundColor: walletId === wallet.id ? theme.mint : theme.card,
-                          },
-                        ]}
-                      >
-                        <ThemedText type="smallBold">{wallet.name}</ThemedText>
-                        <ThemedText type="small" themeColor="muted">
-                          {formatMoney(wallet.balance)}
-                        </ThemedText>
-                      </Pressable>
-                    ))}
-                  </ScrollView>
+                  <FieldLabel>{t('common.sourceWallet')}</FieldLabel>
+                  <WalletPicker wallets={activeWallets} selected={walletId} onSelect={setWalletId} />
                 </>
               )}
               <Pressable
@@ -878,10 +749,7 @@ function PlanPaymentModal({
                 </ThemedText>
               </Pressable>
             </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </Pressable>
-    </Modal>
+    </SheetModal>
   );
 }
 
@@ -962,175 +830,66 @@ function PlanItemFormModal({
     });
   };
   return (
-    <Modal transparent animationType="slide" visible onRequestClose={onClose}>
-      <Pressable
-        wrapperStyle={{ flex: 1 }}
-        style={[styles.overlay, { backgroundColor: theme.overlay }]}
-        onPress={onClose}
+    <SheetModal
+      title={item ? t('common.itemPlanEdit') : t('common.itemPlanNew')}
+      closeLabel={t('common.closePlanItemForm')}
+      onClose={onClose}
+      keyboardAvoiding
+      sheetStyle={styles.goalSheet}
+    >
+      <ScrollView
+        style={styles.sheetScroll}
+        contentContainerStyle={styles.goalSheetContent}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+        keyboardDismissMode="interactive"
       >
-        <KeyboardAvoidingView
-          style={styles.sheetKeyboard}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={0}
-        >
-          <View style={[styles.goalSheet, { backgroundColor: theme.card }]}>
-            <View style={styles.sheetHeader}>
-              <ThemedText type="sectionHeading">
-                {item ? t('common.itemPlanEdit') : t('common.itemPlanNew')}
-              </ThemedText>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('common.closePlanItemForm')}
-                onPress={onClose}
-              >
-                <ThemedText type="subtitle" themeColor="muted">
-                  ×
-                </ThemedText>
-              </Pressable>
-            </View>
-            <ScrollView
-              style={styles.sheetScroll}
-              contentContainerStyle={styles.goalSheetContent}
-              keyboardShouldPersistTaps="handled"
-              automaticallyAdjustKeyboardInsets
-              keyboardDismissMode="interactive"
+        <ThemedText type="small" themeColor="muted">
+          {type === 'income' ? t('common.incomePlanNote') : t('common.expensePlanNote')}
+        </ThemedText>
+        <MoneyField
+          label={type === 'income' ? t('common.nominal') : t('common.targetNominal')}
+          value={target}
+          onChangeText={(value) => setTarget(formatMoneyInput(value))}
+          accessibilityLabel={t('common.targetPlanItem')}
+          inputStyle={styles.goalInput}
+        />
+        {type === 'income' && (
+          <>
+            <FieldLabel>{t('common.incomeWallet')}</FieldLabel>
+            <WalletPicker wallets={wallets} selected={walletId} onSelect={setWalletId} />
+            <FieldLabel>{t('common.transactionDate')}</FieldLabel>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('common.openCalendar')}
+              onPress={() => setIncomeCalendarOpen((current) => !current)}
+              style={[styles.dateButton, { borderColor: theme.line }]}
             >
+              <ThemedText type="smallBold">
+                {formatDate(incomeDate, i18n.language === 'en' ? 'en' : 'id')}
+              </ThemedText>
               <ThemedText type="small" themeColor="muted">
-                {type === 'income' ? t('common.incomePlanNote') : t('common.expensePlanNote')}
+                {t('common.openCalendar')}
               </ThemedText>
-              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
-                {type === 'income' ? t('common.nominal') : t('common.targetNominal')}
-              </ThemedText>
-              <View style={styles.moneyInputRow}>
-                <CurrencyMark />
-                <ThemedInput
-                  accessibilityLabel={t('common.targetPlanItem')}
-                  keyboardType="numeric"
-                  placeholder="0"
-                  value={target}
-                  onChangeText={(value) => setTarget(formatMoneyInput(value))}
-                  style={[styles.goalInput, styles.moneyInput]}
-                />
-              </View>
-              {type === 'income' && (
-                <>
-                  <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
-                    {t('common.incomeWallet')}
-                  </ThemedText>
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.goalWallets}
-                  >
-                    {wallets.map((wallet) => (
-                      <Pressable
-                        key={wallet.id}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('common.selectWallet', { name: wallet.name })}
-                        onPress={() => setWalletId(wallet.id)}
-                        style={[
-                          styles.goalWallet,
-                          {
-                            borderColor: walletId === wallet.id ? theme.pine : theme.line,
-                            backgroundColor: walletId === wallet.id ? theme.mint : theme.card,
-                          },
-                        ]}
-                      >
-                        <ThemedText type="smallBold">{wallet.name}</ThemedText>
-                        <ThemedText type="small" themeColor="muted">
-                          {formatMoney(wallet.balance)}
-                        </ThemedText>
-                      </Pressable>
-                    ))}
-                  </ScrollView>
-                  <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
-                    {t('common.transactionDate')}
-                  </ThemedText>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t('common.openCalendar')}
-                    onPress={() => setIncomeCalendarOpen((current) => !current)}
-                    style={[styles.dateButton, { borderColor: theme.line }]}
-                  >
-                    <ThemedText type="smallBold">
-                      {formatDate(incomeDate, i18n.language === 'en' ? 'en' : 'id')}
-                    </ThemedText>
-                    <ThemedText type="small" themeColor="muted">
-                      {t('common.openCalendar')}
-                    </ThemedText>
-                  </Pressable>
-                  {incomeCalendarOpen && (
-                    <View style={[styles.calendar, { borderColor: theme.line }]}>
-                      <View style={styles.calendarHeader}>
-                        <Pressable
-                          accessibilityRole="button"
-                          accessibilityLabel={t('common.previousMonth')}
-                          onPress={() =>
-                            setIncomeCalendarMonth((current) => shiftCalendarMonth(current, -1))
-                          }
-                        >
-                          <ThemedText type="smallBold">‹</ThemedText>
-                        </Pressable>
-                        <ThemedText type="smallBold">
-                          {new Intl.DateTimeFormat(
-                            getIntlLocale(i18n.language === 'en' ? 'en' : 'id'),
-                            { month: 'long', year: 'numeric' },
-                          ).format(new Date(`${incomeCalendarMonth}-01T12:00:00`))}
-                        </ThemedText>
-                        <Pressable
-                          accessibilityRole="button"
-                          accessibilityLabel={t('common.nextMonth')}
-                          disabled={incomeCalendarMonth >= transactionToday.slice(0, 7)}
-                          onPress={() =>
-                            setIncomeCalendarMonth((current) => shiftCalendarMonth(current, 1))
-                          }
-                        >
-                          <ThemedText type="smallBold">›</ThemedText>
-                        </Pressable>
-                      </View>
-                      <View style={styles.calendarGrid}>
-                        {Array.from({ length: calendarOffset(incomeCalendarMonth) }).map(
-                          (_, index) => (
-                            <View key={`income-empty-${index}`} style={styles.calendarDay} />
-                          ),
-                        )}
-                        {Array.from(
-                          { length: calendarDays(incomeCalendarMonth) },
-                          (_, index) => index + 1,
-                        ).map((day) => {
-                          const candidate = `${incomeCalendarMonth}-${String(day).padStart(2, '0')}`;
-                          const disabled = candidate > transactionToday || candidate < minDate;
-                          return (
-                            <Pressable
-                              key={candidate}
-                              accessibilityRole="button"
-                              accessibilityLabel={t('common.selectTransactionDate', {
-                                date: candidate,
-                              })}
-                              disabled={disabled}
-                              onPress={() => {
-                                setIncomeDate(candidate);
-                                setIncomeCalendarOpen(false);
-                              }}
-                              style={[
-                                styles.calendarDay,
-                                incomeDate === candidate && { backgroundColor: theme.mint },
-                                disabled && { opacity: 0.35 },
-                              ]}
-                            >
-                              <ThemedText type="small">{day}</ThemedText>
-                            </Pressable>
-                          );
-                        })}
-                      </View>
-                    </View>
-                  )}
-                </>
-              )}
-              <View style={styles.categoryLabelRow}>
-                <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
-                  {t('common.category').toUpperCase()}
-                </ThemedText>
+            </Pressable>
+            {incomeCalendarOpen && (
+              <MonthCalendar
+                month={incomeCalendarMonth}
+                selected={incomeDate}
+                maxMonth={transactionToday.slice(0, 7)}
+                onSelect={(candidate) => {
+                  setIncomeDate(candidate);
+                  setIncomeCalendarOpen(false);
+                }}
+                onMonthChange={setIncomeCalendarMonth}
+                isDisabled={(candidate) => candidate > transactionToday || candidate < minDate}
+                selectedVariant="mint"
+              />
+            )}
+            </>
+          )}
+          <View style={styles.categoryLabelRow}>
+                <FieldLabel>{t('common.category')}</FieldLabel>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={t('common.addCategoryFromPlan')}
@@ -1267,10 +1026,7 @@ function PlanItemFormModal({
                 </ThemedText>
               </Pressable>
             </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </Pressable>
-    </Modal>
+    </SheetModal>
   );
 }
 
@@ -1464,134 +1220,67 @@ function GoalFormModal({
     });
   };
   return (
-    <Modal transparent animationType="slide" visible onRequestClose={onClose}>
-      <Pressable
-        wrapperStyle={{ flex: 1 }}
-        style={[styles.overlay, { backgroundColor: theme.overlay }]}
-        onPress={onClose}
+    <SheetModal
+      title={goal ? t('common.editGoal', { name: goal.name }) : t('common.goalNew')}
+      closeLabel={t('common.closeGoalForm')}
+      onClose={onClose}
+      keyboardAvoiding
+      sheetStyle={styles.goalSheet}
+    >
+      <ScrollView
+        style={styles.sheetScroll}
+        contentContainerStyle={styles.goalSheetContent}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+        keyboardDismissMode="interactive"
       >
-        <KeyboardAvoidingView
-          style={styles.sheetKeyboard}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={0}
+        <ThemedText type="small" themeColor="muted">
+          {t('common.goalProgressCopy')}
+        </ThemedText>
+        <FieldLabel>{t('common.goalName')}</FieldLabel>
+        <ThemedInput
+          accessibilityLabel={t('common.goalName')}
+          placeholder={t('common.goalNamePlaceholder')}
+          value={name}
+          onChangeText={setName}
+          style={styles.goalInput}
+        />
+        <MoneyField
+          label={t('common.targetNominal')}
+          value={target}
+          onChangeText={(value) => setTarget(formatMoneyInput(value))}
+          accessibilityLabel={t('common.goalTarget')}
+          inputStyle={styles.goalInput}
+        />
+        <FieldLabel>{t('common.goalWallet')}</FieldLabel>
+        <WalletPicker wallets={wallets} selected={walletId} onSelect={setWalletId} />
+        <FieldLabel>{t('common.targetOptional')}</FieldLabel>
+        <ThemedInput
+          accessibilityLabel={t('common.goalDate')}
+          placeholder="YYYY-MM-DD"
+          value={targetDate}
+          onChangeText={setTargetDate}
+          style={styles.goalInput}
+        />
+        <MoneyField
+          label={t('common.monthlyContributionLabel')}
+          value={monthly}
+          onChangeText={(value) => setMonthly(formatMoneyInput(value))}
+          accessibilityLabel={t('common.goalContribution')}
+          inputStyle={styles.goalInput}
+        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('common.saveGoal')}
+          onPress={submit}
+          style={[styles.saveGoal, { backgroundColor: theme.pine }]}
         >
-          <View style={[styles.goalSheet, { backgroundColor: theme.card }]}>
-            <View style={styles.sheetHeader}>
-              <ThemedText type="sectionHeading">
-                {goal ? t('common.editGoal', { name: goal.name }) : t('common.goalNew')}
-              </ThemedText>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('common.closeGoalForm')}
-                onPress={onClose}
-              >
-                <ThemedText type="subtitle" themeColor="muted">
-                  ×
-                </ThemedText>
-              </Pressable>
-            </View>
-            <ScrollView
-              style={styles.sheetScroll}
-              contentContainerStyle={styles.goalSheetContent}
-              keyboardShouldPersistTaps="handled"
-              automaticallyAdjustKeyboardInsets
-              keyboardDismissMode="interactive"
-            >
-              <ThemedText type="small" themeColor="muted">
-                {t('common.goalProgressCopy')}
-              </ThemedText>
-              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
-                {t('common.goalName').toUpperCase()}
-              </ThemedText>
-              <ThemedInput
-                accessibilityLabel={t('common.goalName')}
-                placeholder={t('common.goalNamePlaceholder')}
-                value={name}
-                onChangeText={setName}
-                style={styles.goalInput}
-              />
-              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
-                {t('common.targetNominal')}
-              </ThemedText>
-              <View style={styles.moneyInputRow}>
-                <CurrencyMark />
-                <ThemedInput
-                  accessibilityLabel={t('common.goalTarget')}
-                  keyboardType="numeric"
-                  placeholder="0"
-                  value={target}
-                  onChangeText={(value) => setTarget(formatMoneyInput(value))}
-                  style={[styles.goalInput, styles.moneyInput]}
-                />
-              </View>
-              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
-                {t('common.goalWallet').toUpperCase()}
-              </ThemedText>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.goalWallets}
-              >
-                {wallets.map((wallet) => (
-                  <Pressable
-                    key={wallet.id}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('common.selectWallet', { name: wallet.name })}
-                    onPress={() => setWalletId(wallet.id)}
-                    style={[
-                      styles.goalWallet,
-                      {
-                        borderColor: walletId === wallet.id ? theme.pine : theme.line,
-                        backgroundColor: walletId === wallet.id ? theme.mint : theme.card,
-                      },
-                    ]}
-                  >
-                    <ThemedText type="smallBold">{wallet.name}</ThemedText>
-                    <ThemedText type="small" themeColor="muted">
-                      {formatMoney(wallet.balance)}
-                    </ThemedText>
-                  </Pressable>
-                ))}
-              </ScrollView>
-              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
-                {t('common.targetOptional')}
-              </ThemedText>
-              <ThemedInput
-                accessibilityLabel={t('common.goalDate')}
-                placeholder="YYYY-MM-DD"
-                value={targetDate}
-                onChangeText={setTargetDate}
-                style={styles.goalInput}
-              />
-              <ThemedText type="code" themeColor="muted" style={styles.fieldLabel}>
-                {t('common.monthlyContributionLabel')}
-              </ThemedText>
-              <View style={styles.moneyInputRow}>
-                <CurrencyMark />
-                <ThemedInput
-                  accessibilityLabel={t('common.goalContribution')}
-                  keyboardType="numeric"
-                  placeholder="0"
-                  value={monthly}
-                  onChangeText={(value) => setMonthly(formatMoneyInput(value))}
-                  style={[styles.goalInput, styles.moneyInput]}
-                />
-              </View>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('common.saveGoal')}
-                onPress={submit}
-                style={[styles.saveGoal, { backgroundColor: theme.pine }]}
-              >
-                <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-                  {goal ? t('common.saveChanges') : t('common.saveGoal')}
-                </ThemedText>
-              </Pressable>
-            </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </Pressable>
-    </Modal>
+          <ThemedText type="smallBold" style={{ color: theme.heroText }}>
+            {goal ? t('common.saveChanges') : t('common.saveGoal')}
+          </ThemedText>
+        </Pressable>
+      </ScrollView>
+    </SheetModal>
   );
 }
 
@@ -1744,159 +1433,6 @@ function PlanItemContent({
   );
 }
 
-function LegacyPlanItem({
-  item,
-  category,
-  state,
-  action,
-  color,
-  theme,
-  onAction,
-  onEdit,
-  onDelete,
-}: {
-  item: BudgetPlanItem;
-  category?: Category;
-  state?: PlanItemState;
-  action: string;
-  color: string;
-  theme: ReturnType<typeof useTheme>;
-  onAction: (item: BudgetPlanItem) => void;
-  onEdit: () => void;
-  onDelete?: (item: BudgetPlanItem) => void | Promise<void>;
-}) {
-  const { t } = useTranslation();
-  const itemName = category ? getCategoryLabel(category) : item.name;
-  const progress = state?.progressPercent ?? 0;
-  const amountLabel = state?.realizedAmount ?? 0;
-  const subtitle = item.isAutomatic
-    ? t('common.planItemIncomeSource')
-    : item.type === 'income'
-      ? t('common.realizedFromTransactions')
-      : state?.overBudget
-        ? t('common.overBudget')
-        : t('common.remainingBudget');
-  const iconBackground = item.type === 'income' ? theme.incomeBackground : theme.expenseBackground;
-  const iconColor = item.type === 'income' ? theme.income : theme.expense;
-  const confirmDelete = () => undefined;
-  if (item.type === 'income')
-    return (
-      <View style={[styles.item, { borderBottomColor: theme.line }]}>
-        <View style={styles.planItemTop}>
-          <View style={[styles.categoryIcon, { backgroundColor: iconBackground }]}>
-            <ThemedText style={{ color: iconColor }}>{category?.icon ?? '◈'}</ThemedText>
-          </View>
-          <View style={styles.itemCopy}>
-            <ThemedText type="smallBold" style={styles.itemName}>
-              {itemName}
-            </ThemedText>
-            <ThemedText type="small" themeColor="muted" style={styles.itemSubtitle}>
-              {item.isAutomatic
-                ? t('common.planItemIncomeSource')
-                : t('common.realizedFromTransactions')}
-            </ThemedText>
-          </View>
-          <ThemedText type="code" style={[styles.itemValueText, { color: theme.income }]}>
-            {formatMoney(amountLabel)}
-          </ThemedText>
-        </View>
-        <View style={styles.itemActions}>
-          {!item.isAutomatic && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${t('common.edit')} ${itemName}`}
-              onPress={onEdit}
-              hitSlop={8}
-              style={styles.itemAction}
-            >
-              <ThemedText type="smallBold" themeColor="pine" style={styles.itemActionText}>
-                {t('common.edit')}
-              </ThemedText>
-            </Pressable>
-          )}
-          {!item.isAutomatic && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${t('common.delete')} ${itemName}`}
-              onPress={confirmDelete}
-              hitSlop={8}
-              style={styles.itemAction}
-            >
-              <ThemedText
-                type="smallBold"
-                style={[styles.itemActionText, { color: theme.expense }]}
-              >
-                {t('common.delete')}
-              </ThemedText>
-            </Pressable>
-          )}
-        </View>
-      </View>
-    );
-  return (
-    <View style={[styles.item, { borderBottomColor: theme.line }]}>
-      <View style={styles.planItemTop}>
-        <View style={[styles.categoryIcon, { backgroundColor: iconBackground }]}>
-          <ThemedText style={{ color: iconColor }}>{category?.icon ?? '◈'}</ThemedText>
-        </View>
-        <View style={styles.itemCopy}>
-          <ThemedText type="smallBold" style={styles.itemName}>
-            {itemName}
-          </ThemedText>
-          <ThemedText
-            type="small"
-            themeColor="muted"
-            style={[styles.itemSubtitle, state?.overBudget && { color: theme.expense }]}
-          >
-            {subtitle}
-          </ThemedText>
-        </View>
-        <ThemedText type="code" style={[styles.itemValueText, { color: theme.expense }]}>
-          {formatMoney(amountLabel)} / {formatMoney(item.targetAmount)}
-        </ThemedText>
-      </View>
-      <Progress value={progress} color={state?.overBudget ? theme.expense : color} theme={theme} />
-      <View style={styles.itemActions}>
-        {action && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`${action} ${itemName}`}
-            onPress={() => onAction(item)}
-            hitSlop={8}
-            style={styles.itemAction}
-          >
-            <ThemedText type="smallBold" style={[styles.itemActionText, { color }]}>
-              {action} →
-            </ThemedText>
-          </Pressable>
-        )}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${t('common.edit')} ${itemName}`}
-          onPress={onEdit}
-          hitSlop={8}
-          style={styles.itemAction}
-        >
-          <ThemedText type="smallBold" themeColor="pine" style={styles.itemActionText}>
-            {t('common.edit')}
-          </ThemedText>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${t('common.delete')} ${itemName}`}
-          onPress={confirmDelete}
-          hitSlop={8}
-          style={styles.itemAction}
-        >
-          <ThemedText type="smallBold" style={[styles.itemActionText, { color: theme.expense }]}>
-            {t('common.delete')}
-          </ThemedText>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
 function Progress({
   value,
   color,
@@ -1958,15 +1494,8 @@ const styles = StyleSheet.create({
   },
   aiAction: { flexShrink: 0 },
   aiButtonText: { fontSize: 11, lineHeight: 14 },
-  summaryCard: {
-    borderRadius: Radius.hero,
-    marginBottom: Layout.sectionGap,
-    padding: Layout.pagePadding,
-    ...Shadows.hero,
-  },
+  summaryCard: { marginBottom: Layout.sectionGap },
   summaryLabel: { ...Typography.eyebrow },
-  summaryAmount: { ...Typography.moneyHero, marginVertical: 8 },
-  summaryCaption: { fontFamily: Fonts.sans, fontSize: 11, lineHeight: 15 },
   summaryProgressRow: { alignItems: 'center', flexDirection: 'row', gap: 8, marginTop: 10 },
   summaryProgress: {
     borderRadius: Radius.pill,
@@ -2066,7 +1595,6 @@ const styles = StyleSheet.create({
   goalStatus: { fontSize: 10, lineHeight: 14 },
   emptyGoal: { paddingVertical: 16 },
   overlay: { flex: 1, justifyContent: 'flex-end' },
-  sheetKeyboard: { flex: 1, justifyContent: 'flex-end' },
   sheetScroll: { flexGrow: 1 },
   goalSheetContent: { gap: 8, paddingBottom: 4 },
   sheet: { borderTopLeftRadius: 27, borderTopRightRadius: 27, gap: 8, padding: 21 },
@@ -2077,7 +1605,6 @@ const styles = StyleSheet.create({
     maxHeight: '90%',
     padding: 21,
   },
-  sheetHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
   categoryEditorHeader: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -2091,7 +1618,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   sheetOption: { borderTopWidth: StyleSheet.hairlineWidth, paddingVertical: 15 },
-  fieldLabel: { ...Typography.eyebrow, marginTop: 8 },
   dateButton: {
     alignItems: 'center',
     borderRadius: 13,
@@ -2101,15 +1627,8 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: 12,
   },
-  calendar: { borderRadius: 13, borderWidth: 1, marginTop: 8, padding: 10 },
-  calendarHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
-  calendarGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  calendarDay: { alignItems: 'center', height: 34, justifyContent: 'center', width: '14.2857%' },
   goalInput: { borderBottomWidth: 1, fontSize: 16, minHeight: 44, paddingHorizontal: 8 },
-  moneyInputRow: { alignItems: 'center', flexDirection: 'row', gap: 8 },
-  moneyInput: { flex: 1 },
   goalWallets: { gap: 8, paddingVertical: 4 },
-  goalWallet: { borderRadius: 12, borderWidth: 1, gap: 2, minWidth: 120, padding: 10 },
   planCategoryCell: { width: 132 },
   planCategoryChoice: {
     alignItems: 'center',

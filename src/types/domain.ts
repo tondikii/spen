@@ -89,7 +89,9 @@ export type Transaction = {
   sourceExpenseItemId?: string | null;
 };
 
-export type TransactionDraft = Omit<Transaction, 'id'>;
+export type TransactionDraft = Omit<Transaction, 'id'> & {
+  systemCategoryKey?: SystemCategoryKey | null;
+};
 
 export type BudgetPeriod = {
   id: string;

@@ -2,6 +2,8 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import i18n from '@/i18n';
 import { AppError } from '@/lib/app-error';
+import { todayISO } from '@/lib/date';
+import { parseRequiredPrefixedId, withExclusiveWrite } from '@/lib/db-helpers';
 import {
   getDatabaseTransaction,
   getDatabaseTransactionCategories,
@@ -9,30 +11,12 @@ import {
 } from '@/services/transaction-service';
 import { getWallet, getWallets } from '@/services/wallet-service';
 import type { Goal, GoalProgress, Transaction, Wallet } from '@/types/domain';
+import type { GoalRow } from '@/types/db-rows';
 
-type GoalRow = {
-  id: number;
-  name: string;
-  target_amount: number;
-  target_date: string | null;
-  wallet_id: number;
-  monthly_contribution: number;
-  archived: number;
-};
 export type GoalDraft = Omit<Goal, 'id' | 'archived'>;
 
 function databaseId(value: string | number) {
-  const id =
-    typeof value === 'number'
-      ? value
-      : Number(
-          String(value)
-            .replace(/^goal-/, '')
-            .replace(/^wallet-/, ''),
-        );
-  if (!Number.isInteger(id) || id < 1)
-    throw new AppError('validation', undefined, `ID Goal/Wallet tidak valid: ${value}`);
-  return id;
+  return parseRequiredPrefixedId(value, ['goal-', 'wallet-'], `ID Goal/Wallet tidak valid: ${value}`);
 }
 
 function toGoal(row: GoalRow): Goal {
@@ -54,17 +38,6 @@ function validateDraft(draft: GoalDraft) {
   if (!Number.isSafeInteger(draft.monthlyContribution) || draft.monthlyContribution < 0)
     throw new AppError('validation', undefined, 'Kontribusi Goal tidak valid');
   databaseId(draft.walletId);
-}
-
-async function withExclusiveWrite<T>(
-  database: SQLiteDatabase,
-  action: (connection: SQLiteDatabase) => Promise<T>,
-) {
-  let result: T;
-  await database.withExclusiveTransactionAsync(async (transaction) => {
-    result = await action(transaction as unknown as SQLiteDatabase);
-  });
-  return result!;
 }
 
 export async function getDatabaseGoals(
@@ -186,7 +159,7 @@ export async function updateGoal(
           walletId,
           transferCategory.id,
           oldWallet.balance,
-          localDate(),
+          todayISO(),
           now.toTimeString().slice(0, 5),
           i18n.t('common.goalWalletMoveNote', { name: currentGoal.name }),
         );
@@ -228,17 +201,12 @@ export async function archiveGoal(database: SQLiteDatabase, goalId: string): Pro
   });
 }
 
-function localDate() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-}
-
 export async function saveToGoal(
   database: SQLiteDatabase,
   goalId: string,
   sourceWalletId: string,
   amount: number,
-  date = localDate(),
+  date = todayISO(),
   time = '12:00',
 ): Promise<Transaction> {
   if (!Number.isSafeInteger(amount) || amount <= 0)
@@ -287,7 +255,7 @@ export async function withdrawFromGoal(
   database: SQLiteDatabase,
   goalId: string,
   amount: number,
-  date = localDate(),
+  date = todayISO(),
   time = '12:00',
 ): Promise<Transaction> {
   if (!Number.isSafeInteger(amount) || amount <= 0)

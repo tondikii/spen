@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react-native';
 
-import FaqRoute from '@/app/faq';
+import FaqRoute from '@/app/faq.native';
 import PrivacyRoute from '@/app/privacy';
 import TermsRoute from '@/app/terms';
 import { AppThemeProvider } from '@/components/theme-provider';

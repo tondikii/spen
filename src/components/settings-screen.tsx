@@ -12,7 +12,7 @@ import { CurrencyPicker } from '@/components/currency-picker';
 import { LanguagePicker } from '@/components/language-picker';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { PageHeader } from '@/components/ui-primitives';
+import { BoxedCard, PageHeader } from '@/components/ui-primitives';
 import { ConfirmationModal } from '@/components/confirmation-modal';
 import { useAppTheme } from '@/components/theme-provider';
 import { BottomTabInset, Fonts, Radius, Typography } from '@/constants/theme';
@@ -131,8 +131,8 @@ export default function SettingsScreen({
             <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
               {t('common.appearance')}
             </ThemedText>
-            <ThemedView
-              style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
+            <BoxedCard
+              style={styles.group}
             >
               <SettingRow
                 icon="☼"
@@ -149,12 +149,12 @@ export default function SettingsScreen({
                   disabled={busy}
                 />
               </SettingRow>
-            </ThemedView>
+            </BoxedCard>
             <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
               {t('common.preferences')}
             </ThemedText>
-            <ThemedView
-              style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
+            <BoxedCard
+              style={styles.group}
             >
               <SettingRow
                 icon="文"
@@ -212,12 +212,12 @@ export default function SettingsScreen({
                   />
                 </MotionCollapsible>
               )}
-            </ThemedView>
+            </BoxedCard>
             <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
               {t('common.data')}
             </ThemedText>
-            <ThemedView
-              style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
+            <BoxedCard
+              style={styles.group}
             >
               <ActionRow
                 icon="↓"
@@ -237,12 +237,12 @@ export default function SettingsScreen({
                   void runRestore();
                 }}
               />
-            </ThemedView>
+            </BoxedCard>
             <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
               {t('common.help')}
             </ThemedText>
-            <ThemedView
-              style={[styles.group, { backgroundColor: theme.card, borderColor: theme.line }]}
+            <BoxedCard
+              style={styles.group}
             >
               <ActionRow
                 icon="?"
@@ -276,7 +276,7 @@ export default function SettingsScreen({
                   void openLink(getPublicDocumentUrl('/privacy'));
                 }}
               />
-            </ThemedView>
+            </BoxedCard>
             <View style={styles.footer}>
               <SpenLogo size={42} />
               <ThemedText type="smallBold" themeColor="muted">
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
   header: { marginBottom: 26, marginTop: 4 },
   eyebrow: { marginBottom: 4, ...Typography.eyebrow },
   groupLabel: { marginBottom: 8, marginTop: 18 },
-  group: { borderRadius: 19, borderWidth: 1, overflow: 'hidden' },
+  group: { borderRadius: 19, overflow: 'hidden' },
   row: {
     alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,

@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+
 import {
   useEffect,
   useState,
@@ -17,6 +17,8 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 
+import { EmptyState } from '@/components/empty-state';
+import { BoxedCard } from '@/components/ui-primitives';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { FinanceHeroCard } from '@/components/finance-hero-card';
@@ -54,19 +56,17 @@ const ClipPathCompat = ClipPath as unknown as ComponentType<{
 type ReportView =
   ReturnType<typeof getReportView> | Awaited<ReturnType<typeof getDatabaseReportView>>;
 
-function ReportScreenContent({
+  function ReportScreenContent({
   reportView = getReportView(),
   onRangeChange,
   onPeriodStartDayChange,
   onPeriodChange,
-  onCategoryPress,
   aiInput,
 }: {
   reportView?: ReportView;
   onRangeChange?: (months: number) => void | Promise<void>;
   onPeriodStartDayChange?: (day: number) => void | Promise<void>;
   onPeriodChange?: (periodId: string) => void | Promise<void>;
-  onCategoryPress?: (expense: ReportExpense, period: ReportView['period']) => void;
   aiInput?: BudgetAIInput;
 }) {
   const theme = useTheme();
@@ -146,18 +146,6 @@ function ReportScreenContent({
     t,
   ]);
 
-  const openCategory = (expense: ReportExpense) =>
-    onCategoryPress
-      ? onCategoryPress(expense, period)
-      : router.push({
-          pathname: '/history',
-          params: {
-            categoryId: expense.categoryId,
-            categoryName: expense.name,
-            startDate: period.startDate,
-            endDate: period.endDate,
-          },
-        } as never);
   const chartPoints = netSavingByPeriod.slice(-range);
   const updateRange = (months: number) => {
     setRange(months);
@@ -261,10 +249,7 @@ function ReportScreenContent({
           theme={theme}
         >
           {expenses.length === 0 ? (
-            <View style={styles.empty}>
-              <ThemedText style={styles.emptyGlyph}>◌</ThemedText>
-              <ThemedText type="smallBold">{t('common.noExpenses')}</ThemedText>
-            </View>
+            <EmptyState title={t('common.noExpenses')} style={styles.empty} />
           ) : (
             <View style={styles.chartReveal}>
               <View style={styles.pieArea}>
@@ -288,11 +273,8 @@ function ReportScreenContent({
           )}
           <View style={styles.legend}>
             {expenses.map((item, index) => (
-              <Pressable
+              <View
                 key={item.categoryId}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.viewCategory', { name: getCategoryLabel(item) })}
-                onPress={() => openCategory(item)}
                 style={[styles.legendRow, { borderTopColor: theme.line }]}
               >
                 <View
@@ -307,7 +289,7 @@ function ReportScreenContent({
                 <ThemedText type="smallBold" themeColor="muted">
                   {percentage(item.amount, snapshot.totalExpense)}%
                 </ThemedText>
-              </Pressable>
+              </View>
             ))}
           </View>
         </ChartCard>
@@ -347,10 +329,7 @@ function ReportScreenContent({
           theme={theme}
         >
           {chartPoints.length === 0 ? (
-            <View style={styles.empty}>
-              <ThemedText style={styles.emptyGlyph}>◌</ThemedText>
-              <ThemedText type="smallBold">{t('common.noNetSaving')}</ThemedText>
-            </View>
+            <EmptyState title={t('common.noNetSaving')} style={styles.empty} />
           ) : (
             <>
               <View style={styles.chartReveal}>
@@ -656,10 +635,10 @@ function ChartCard({
   theme: ReturnType<typeof useTheme>;
 }) {
   return (
-    <ThemedView
+    <BoxedCard
       accessible
       accessibilityLabel={`${title}${trailing ? `, ${trailing}` : ''}`}
-      style={[styles.card, { backgroundColor: theme.card, borderColor: theme.line }]}
+      style={styles.card}
     >
       <View style={styles.cardHeader}>
         <ThemedText type="sectionHeading">{title}</ThemedText>
@@ -687,7 +666,7 @@ function ChartCard({
         {trailingPopover}
       </View>
       {children}
-    </ThemedView>
+    </BoxedCard>
   );
 }
 
@@ -730,7 +709,7 @@ const styles = StyleSheet.create({
   aiButtonText: { fontSize: 11, lineHeight: 14 },
   summary: { marginBottom: 24 },
   metric: { flex: 1, gap: 5, minHeight: 58 },
-  card: { borderRadius: 22, borderWidth: 1, marginBottom: 16, padding: 18 },
+  card: { marginBottom: 16, padding: 18 },
   cardHeader: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -742,7 +721,6 @@ const styles = StyleSheet.create({
   pieArea: { alignItems: 'center', height: 183, justifyContent: 'center', marginTop: 8 },
   chartReveal: { overflow: 'hidden' },
   empty: { alignItems: 'center', gap: 7, paddingVertical: 38 },
-  emptyGlyph: { fontSize: 38 },
   pieLabel: { alignItems: 'center', position: 'absolute' },
   pieAmount: {
     fontFamily: Fonts.mono,

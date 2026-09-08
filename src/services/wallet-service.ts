@@ -2,26 +2,17 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import i18n from '@/i18n';
 import { AppError } from '@/lib/app-error';
-import type { Wallet, WalletTint } from '@/types/domain';
+import { parseRequiredPrefixedId, withExclusiveWrite } from '@/lib/db-helpers';
+import type { Wallet } from '@/types/domain';
+import type { WalletRow } from '@/types/db-rows';
+import { SYSTEM_CATEGORY_NAMES, WALLET_TINTS } from '@/constants/domain';
 
-type WalletRow = {
-  id: number;
-  name: string;
-  initial_balance: number;
-  is_savings: number;
-  archived: number;
-  balance: number;
-};
-
-const TINTS: WalletTint[] = ['coral', 'pine', 'gold', 'goal'];
-const INITIAL_BALANCE_CATEGORY_NAME = 'Saldo Awal';
-const BALANCE_ADJUSTMENT_CATEGORY_NAME = 'Penyesuaian Saldo';
+const TINTS = WALLET_TINTS;
+const INITIAL_BALANCE_CATEGORY_NAME = SYSTEM_CATEGORY_NAMES.openingBalance;
+const BALANCE_ADJUSTMENT_CATEGORY_NAME = SYSTEM_CATEGORY_NAMES.balanceAdjustment;
 
 function databaseId(walletId: string | number) {
-  const value = typeof walletId === 'number' ? walletId : Number(walletId.replace(/^wallet-/, ''));
-  if (!Number.isInteger(value) || value < 1)
-    throw new AppError('validation', undefined, `Wallet id tidak valid: ${walletId}`);
-  return value;
+  return parseRequiredPrefixedId(walletId, ['wallet-'], `Wallet id tidak valid: ${walletId}`);
 }
 
 function toWallet(row: WalletRow): Wallet {
@@ -59,25 +50,7 @@ const walletBalanceSql = `
   LEFT JOIN transactions t ON t.wallet_id = w.id OR t.to_wallet_id = w.id
 `;
 
-async function withExclusiveWrite<T>(
-  database: SQLiteDatabase,
-  action: (connection: SQLiteDatabase) => Promise<T>,
-) {
-  const connection = database as SQLiteDatabase & {
-    withExclusiveTransactionAsync?: (
-      task: (transaction: SQLiteDatabase) => Promise<void>,
-    ) => Promise<void>;
-  };
-  let result: T;
-  if (connection.withExclusiveTransactionAsync) {
-    await connection.withExclusiveTransactionAsync(async (transaction) => {
-      result = await action(transaction);
-    });
-  } else {
-    result = await action(database);
-  }
-  return result!;
-}
+
 
 async function getInternalCategoryId(database: SQLiteDatabase, categoryName: string) {
   const category = await database.getFirstAsync<{ id: number }>(

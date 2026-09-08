@@ -2,6 +2,9 @@ import i18n, { getCurrentLocale } from '@/i18n';
 import { getIntlLocale } from '@/i18n/format';
 import { getMockTransactions } from '@/services/transaction-service';
 import type { Locale, Transaction } from '@/types/domain';
+import { shiftDate } from '@/lib/calendar';
+
+export { shiftDate };
 
 export function getDailyTransactions(
   date: string,
@@ -22,12 +25,6 @@ export function getDailyTotals(transactions: Transaction[]) {
     },
     { income: 0, expense: 0 },
   );
-}
-
-export function shiftDate(date: string, days: number) {
-  const shifted = new Date(`${date}T12:00:00`);
-  shifted.setDate(shifted.getDate() + days);
-  return shifted.toISOString().slice(0, 10);
 }
 
 export function getDailyLabel(

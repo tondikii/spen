@@ -1,5 +1,12 @@
 import type { ReactNode } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
 import { Layout, MaxContentWidth, Radius, Shadows, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -148,13 +155,29 @@ export function StatusBadge({
   );
 }
 
-export function Card({ children, style }: { children: ReactNode; style?: object }) {
+/**
+ * Boxed card: rounded, bordered card surface shared by the report chart cards,
+ * settings groups and the home archived-wallets box. Ships without padding so
+ * both padded (report) and flush row-container (settings, home) usages keep
+ * their layout; `style` merges after the base.
+ */
+export function BoxedCard({
+  children,
+  style,
+  ...rest
+}: {
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+  accessible?: boolean;
+  accessibilityLabel?: string;
+}) {
   const theme = useTheme();
   return (
     <MotionAnimatedView
       entering={motionPresets.itemEntering}
       layout={motionPresets.layout}
       style={[styles.card, { backgroundColor: theme.card, borderColor: theme.line }, style]}
+      {...rest}
     >
       {children}
     </MotionAnimatedView>
@@ -196,7 +219,6 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: Radius.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: Layout.pagePadding,
+    borderWidth: 1,
   },
 });

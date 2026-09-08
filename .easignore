@@ -1,0 +1,86 @@
+# .easignore — diprioritaskan EAS CLI di atas .gitignore.
+# Aturan: salin semua isi .gitignore ke sini, lalu tambah file/folder
+# yang tidak dibutuhkan saat compile di cloud EAS Build.
+# Lihat: https://docs.expo.dev/build-reference/easignore/
+
+# === Salinan .gitignore ===
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# EAS Submit service account keys
+secrets/
+
+# typescript
+*.tsbuildinfo
+
+example
+
+# local ticket scratch
+.scratch/
+
+# generated native folders
+/ios
+/android
+
+# === Tambahan khusus EAS Build (tidak dibutuhkan saat compile) ===
+
+# Agent / IDE / CI config — tidak dipakai Metro/Prebuild
+.agents/
+.claude/
+.commandcode/
+.vscode/
+.github/
+
+# Dokumentasi & konteks repo — tidak dibundel ke app
+docs/
+CONTEXT.md
+AGENTS.md
+CLAUDE.md
+*.md
+
+# Test & coverage — tidak dibundel ke app
+coverage/
+.nyc_output/
+__tests__/
+**/__tests__/**
+**/*.test.{js,jsx,ts,tsx}
+**/*.spec.{js,jsx,ts,tsx}
+
+# Script dev-only — tidak dipakai saat build cloud
+scripts/database-baseline.cjs
+scripts/reset-project.js
+
+# Log / output lokal
+.eslint-out.txt
+.tsc-out.txt
+.tsc-done

@@ -122,13 +122,7 @@ export default function AppTabs() {
           tabBarStyle: { display: 'none' },
         }}
       />
-      <Tabs.Screen
-        name="history"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
-        }}
-      />
+
       <Tabs.Screen
         name="terms"
         options={{

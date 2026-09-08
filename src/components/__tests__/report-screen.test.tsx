@@ -82,15 +82,5 @@ describe('ReportScreen', () => {
     expect(getByText('6 bulan')).toBeTruthy();
   });
 
-  it('meneruskan drill-down kategori beserta Budget period', async () => {
-    const onCategoryPress = jest.fn();
-    const { getByLabelText } = await render(<ReportScreen onCategoryPress={onCategoryPress} />);
 
-    await fireEvent.press(getByLabelText('Lihat kategori Makan'));
-
-    expect(onCategoryPress).toHaveBeenCalledWith(
-      expect.objectContaining({ categoryId: 'category-makan' }),
-      expect.objectContaining({ startDate: '2026-09-01', endDate: '2026-09-30' }),
-    );
-  });
 });

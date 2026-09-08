@@ -1,6 +1,9 @@
 import mockData from '@/data/mock-data';
 import { AppError } from '@/lib/app-error';
+import { todayISO } from '@/lib/date';
+import { parsePrefixedId, withExclusiveWrite } from '@/lib/db-helpers';
 import type { SQLiteDatabase } from 'expo-sqlite';
+import type { DatabaseTransactionRow } from '@/types/db-rows';
 import type {
   Category,
   SystemCategoryKey,
@@ -39,9 +42,13 @@ export function getActiveTransactionCategories() {
 }
 
 export function getTransactionCategories(categories: Category[], type: TransactionType) {
+  if (type === 'adjustment') return [];
   const categoryType = type === 'income' ? 'income' : 'expense';
   return categories.filter(
-    (category) => category.type === categoryType && !category.archived && !category.isAdjustment,
+    (category) =>
+      category.type === categoryType &&
+      !category.archived &&
+      category.systemKey !== 'openingBalance',
   );
 }
 
@@ -105,33 +112,12 @@ export function deleteMockTransaction(transactions: Transaction[], transactionId
   return transactions.filter((transaction) => transaction.id !== transactionId);
 }
 
-type DatabaseTransactionRow = {
-  id: number;
-  type: Transaction['type'];
-  wallet_id: number | null;
-  to_wallet_id: number | null;
-  category_id: number | null;
-  amount: number;
-  date: string;
-  time: string;
-  note: string | null;
-  admin_fee: number;
-  is_initial: number;
-  is_adjustment: number;
-  source_income_item_id: number | null;
-  source_expense_item_id: number | null;
-};
-
 function databaseId(value: string | null) {
-  if (!value) return null;
-  const id = Number(value.replace(/^(wallet|category|transaction|expense-item|income-item)-/, ''));
-  if (!Number.isInteger(id) || id < 1)
-    throw new AppError('validation', undefined, `ID database tidak valid: ${value}`);
-  return id;
+  return parsePrefixedId(value, ['wallet-', 'category-', 'transaction-', 'expense-item-', 'income-item-'], `ID database tidak valid: ${value}`);
 }
 
 export function getLocalDateInput(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  return todayISO(date);
 }
 
 export function isValidTransactionDate(value: string, today = getLocalDateInput()) {
@@ -216,16 +202,7 @@ export async function getDatabaseTransactionCategories(
   }));
 }
 
-async function withExclusiveWrite<T>(
-  database: SQLiteDatabase,
-  action: (connection: SQLiteDatabase) => Promise<T>,
-) {
-  let result: T;
-  await database.withExclusiveTransactionAsync(async (transaction) => {
-    result = await action(transaction as unknown as SQLiteDatabase);
-  });
-  return result!;
-}
+
 
 function validateDraft(draft: TransactionDraft, today = getLocalDateInput()) {
   if (!draft.walletId || !Number.isSafeInteger(draft.amount) || draft.amount <= 0) {
@@ -242,6 +219,12 @@ function validateDraft(draft: TransactionDraft, today = getLocalDateInput()) {
     throw new AppError('validation', undefined, 'Biaya admin hanya berlaku untuk Transfer');
   if (!isValidTransactionDate(draft.date, today))
     throw new AppError('validation', undefined, 'Tanggal transaksi tidak valid atau belum terjadi');
+  if (draft.systemCategoryKey === 'openingBalance' && draft.type !== 'income')
+    throw new AppError(
+      'validation',
+      undefined,
+      'Saldo awal hanya dapat dicatat sebagai Pendapatan',
+    );
 }
 
 async function resolveCategoryId(database: SQLiteDatabase, draft: TransactionDraft) {
@@ -252,7 +235,16 @@ async function resolveCategoryId(database: SQLiteDatabase, draft: TransactionDra
     if (!category) throw new AppError('notFound', undefined, 'Kategori Transfer belum tersedia');
     return category.id;
   }
-  return databaseId(draft.categoryId);
+  const isInitial = draft.systemCategoryKey === 'openingBalance';
+  const category = await database.getFirstAsync<{ id: number; system_key: string | null }>(
+    'SELECT id, system_key FROM categories WHERE id = ? AND type = ? AND archived = 0 AND (is_adjustment = 0 OR (? = 1 AND is_adjustment = 1)) LIMIT 1;',
+    databaseId(draft.categoryId),
+    draft.type,
+    isInitial ? 1 : 0,
+  );
+  if (!category) return null;
+  if (isInitial && category.system_key !== 'openingBalance') return null;
+  return category.id;
 }
 
 export async function saveDatabaseTransaction(
@@ -267,6 +259,7 @@ export async function saveDatabaseTransaction(
     let sourceExpenseItemId = draft.sourceExpenseItemId
       ? databaseId(draft.sourceExpenseItemId)
       : null;
+    let isInitialRow = 0;
     const wallet = await connection.getFirstAsync<{ id: number }>(
       'SELECT id FROM wallets WHERE id = ? AND archived = 0 LIMIT 1;',
       databaseId(draft.walletId),
@@ -289,12 +282,19 @@ export async function saveDatabaseTransaction(
           'Wallet tujuan tidak ditemukan atau sudah diarsipkan',
         );
     } else {
-      const category = await connection.getFirstAsync<{ id: number }>(
-        'SELECT id FROM categories WHERE id = ? AND type = ? AND archived = 0 AND is_adjustment = 0 LIMIT 1;',
+      const category = await connection.getFirstAsync<{ id: number; system_key: string | null }>(
+        'SELECT id, system_key FROM categories WHERE id = ? AND type = ? AND archived = 0 AND (is_adjustment = 0 OR (? = 1 AND is_adjustment = 1)) LIMIT 1;',
         databaseId(draft.categoryId),
         draft.type,
+        draft.systemCategoryKey === 'openingBalance' ? 1 : 0,
       );
       if (!category)
+        throw new AppError(
+          'notFound',
+          undefined,
+          'Kategori transaksi tidak sesuai atau sudah diarsipkan',
+        );
+      if (draft.systemCategoryKey === 'openingBalance' && category.system_key !== 'openingBalance')
         throw new AppError(
           'notFound',
           undefined,
@@ -307,18 +307,20 @@ export async function saveDatabaseTransaction(
         id: number;
         source_income_item_id: number | null;
         source_expense_item_id: number | null;
+        is_initial: number;
       }>(
-        'SELECT id, source_income_item_id, source_expense_item_id FROM transactions WHERE id = ? LIMIT 1;',
+        'SELECT id, source_income_item_id, source_expense_item_id, is_initial FROM transactions WHERE id = ? LIMIT 1;',
         id,
       );
       if (!existing) throw new AppError('notFound', undefined, 'Transaksi tidak ditemukan');
       sourceIncomeItemId = existing.source_income_item_id;
       sourceExpenseItemId = existing.source_expense_item_id;
+      isInitialRow = existing.is_initial;
       await connection.runAsync('DELETE FROM transactions WHERE id = ?;', id);
     }
     const result = await connection.runAsync(
-      `INSERT INTO transactions (type, wallet_id, to_wallet_id, category_id, amount, date, time, note, admin_fee, source_income_item_id, source_expense_item_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      `INSERT INTO transactions (type, wallet_id, to_wallet_id, category_id, amount, date, time, note, admin_fee, is_initial, source_income_item_id, source_expense_item_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       draft.type,
       databaseId(draft.walletId),
       draft.type === 'transfer' ? databaseId(draft.toWalletId) : null,
@@ -328,6 +330,7 @@ export async function saveDatabaseTransaction(
       draft.time,
       draft.note.trim() || null,
       draft.type === 'transfer' ? (draft.adminFee ?? 0) : 0,
+      isInitialRow,
       sourceIncomeItemId,
       sourceExpenseItemId,
     );

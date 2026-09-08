@@ -3,10 +3,10 @@ import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CategoryIcon } from '@/components/category-icon';
 import { ConfirmationModal } from '@/components/confirmation-modal';
-import { CurrencyMark } from '@/components/currency-mark';
+import { EmptyState } from '@/components/empty-state';
 import { FinanceHeroCard } from '@/components/finance-hero-card';
+import { FieldLabel, MoneyField } from '@/components/form-fields';
 import {
   MotionChevron,
   MotionCollapsible,
@@ -17,6 +17,8 @@ import {
 import { ThemedInput } from '@/components/themed-input';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { TransactionRow } from '@/components/transaction-row';
+import { BoxedCard } from '@/components/ui-primitives';
 import {
   BottomTabInset,
   Fonts,
@@ -27,27 +29,26 @@ import {
   Typography,
 } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { getCategoryLabel } from '@/i18n/categories';
-import { getIntlLocale } from '@/i18n/format';
+import { useIntlLocale } from '@/hooks/use-locale';
 import { formatMoney } from '@/lib/money';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import {
   addMockWallet,
   getHomeRecentTransactions,
   getHomeWallets,
-  getTransactionPresentation,
   getWalletTotal,
   restoreMockWallet,
   updateMockWallet,
 } from '@/services/home-service';
-import type { Category, Transaction, Wallet, WalletTint } from '@/types/domain';
+import type { Category, Transaction, Wallet } from '@/types/domain';
+import { WALLET_TINT_SEQUENCE } from '@/constants/domain';
 import { useTranslation } from 'react-i18next';
 
-const tintSequence: WalletTint[] = ['pine', 'coral', 'gold', 'goal'];
+const tintSequence = WALLET_TINT_SEQUENCE;
 
 function HomeHeader({ today = new Date() }: { today?: Date }) {
-  const { i18n } = useTranslation();
-  const label = new Intl.DateTimeFormat(getIntlLocale(i18n.language === 'en' ? 'en' : 'id'), {
+  const intlLocale = useIntlLocale();
+  const label = new Intl.DateTimeFormat(intlLocale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -165,9 +166,7 @@ function WalletCards({
         )}
       </View>
       {archivedWallets.length > 0 && (
-        <View
-          style={[styles.archivedWallets, { backgroundColor: theme.card, borderColor: theme.line }]}
-        >
+        <BoxedCard style={styles.archivedWallets}>
           <MotionPressable
             accessibilityRole="button"
             accessibilityLabel={
@@ -229,7 +228,7 @@ function WalletCards({
               </View>
             </MotionCollapsible>
           )}
-        </View>
+        </BoxedCard>
       )}
     </View>
   );
@@ -246,52 +245,15 @@ function RecentTransaction({
   categories?: Category[];
   onPress?: () => void;
 }) {
-  const theme = useTheme();
   const { t } = useTranslation();
-  const presentation = getTransactionPresentation(transaction, categories, wallets);
-  const category = categories?.find((item) => item.id === transaction.categoryId);
-  const categoryName = category ? getCategoryLabel(category) : presentation.categoryName;
-  const typeColor =
-    transaction.type === 'income' ? 'income' : transaction.type === 'expense' ? 'expense' : 'gold';
-  const iconBackground =
-    transaction.type === 'income'
-      ? theme.incomeBackground
-      : transaction.type === 'expense'
-        ? theme.expenseBackground
-        : theme.transferBackground;
-  const sign = transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '−' : '↔';
   return (
-    <MotionPressable
-      accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={onPress ? t('common.editTransaction', { name: categoryName }) : undefined}
+    <TransactionRow
+      transaction={transaction}
+      categories={categories}
+      wallets={wallets}
       onPress={onPress}
-      style={[styles.transactionRow, { borderBottomColor: theme.line }]}
-    >
-      <ThemedView style={[styles.categoryIcon, { backgroundColor: iconBackground }]}>
-        <CategoryIcon name={presentation.categoryIcon} color={theme[typeColor]} />
-      </ThemedView>
-      <View style={styles.transactionDescription}>
-        <ThemedText type="smallBold" style={styles.transactionName}>
-          {categoryName}
-        </ThemedText>
-        <ThemedText
-          type="small"
-          themeColor="muted"
-          style={styles.transactionDetail}
-          numberOfLines={1}
-        >
-          {presentation.walletName} · {transaction.note}
-        </ThemedText>
-      </View>
-      <View style={styles.transactionAmount}>
-        <ThemedText type="code" themeColor={typeColor} style={styles.transactionAmountText}>
-          {sign} {formatMoney(transaction.amount)}
-        </ThemedText>
-        <ThemedText type="small" themeColor="muted" style={styles.transactionTime}>
-          {transaction.time}
-        </ThemedText>
-      </View>
-    </MotionPressable>
+      accessibilityLabel={(name) => t('common.editTransaction', { name })}
+    />
   );
 }
 
@@ -355,35 +317,23 @@ function WalletForm(props: WalletFormProps) {
             keyboardShouldPersistTaps="handled"
             automaticallyAdjustKeyboardInsets
           >
-            <ThemedText type="code" themeColor="muted" style={styles.formLabel}>
-              {t('common.walletName').toUpperCase()}
-            </ThemedText>
+            <FieldLabel>{t('common.walletName')}</FieldLabel>
             <ThemedInput
               accessibilityLabel={t('common.walletName')}
               placeholder={t('common.walletNamePlaceholder')}
               value={name}
               onChangeText={setName}
             />
-            <ThemedText type="code" themeColor="muted" style={styles.formLabel}>
-              {props.mode === 'edit'
-                ? t('common.currentBalanceLabel')
-                : t('common.startingBalanceLabel')}
-            </ThemedText>
-            <View style={styles.moneyInputRow}>
-              <CurrencyMark />
-              <ThemedInput
-                accessibilityLabel={
-                  props.mode === 'edit'
-                    ? t('common.walletBalance')
-                    : t('common.walletInitialBalance')
-                }
-                keyboardType="numeric"
-                placeholder="0"
-                value={amount}
-                onChangeText={(value) => setAmount(formatMoneyInput(value))}
-                style={styles.moneyInput}
-              />
-            </View>
+            <MoneyField
+              label={
+                props.mode === 'edit' ? t('common.currentBalanceLabel') : t('common.startingBalanceLabel')
+              }
+              value={amount}
+              onChangeText={(value) => setAmount(formatMoneyInput(value))}
+              accessibilityLabel={
+                props.mode === 'edit' ? t('common.walletBalance') : t('common.walletInitialBalance')
+              }
+            />
             {props.mode === 'edit' && (
               <MotionPressable
                 accessibilityRole="button"
@@ -510,23 +460,12 @@ export default function HomeScreen({
                 </Pressable>
               </View>
               {recentTransactions.length === 0 ? (
-                <View style={styles.empty}>
-                  <ThemedText style={styles.emptyGlyph}>◌</ThemedText>
-                  <ThemedText type="smallBold">{t('common.noRecords')}</ThemedText>
-                  <ThemedText type="small" themeColor="muted">
-                    {t('common.firstTransactionCopy')}
-                  </ThemedText>
-                  <MotionPressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t('common.addTransaction')}
-                    onPress={onDailyPress}
-                    style={[styles.emptyButton, { backgroundColor: theme.pine }]}
-                  >
-                    <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-                      {t('common.addTransaction')}
-                    </ThemedText>
-                  </MotionPressable>
-                </View>
+                <EmptyState
+                  title={t('common.noRecords')}
+                  description={t('common.firstTransactionCopy')}
+                  actionLabel={t('common.addTransaction')}
+                  onAction={onDailyPress}
+                />
               ) : (
                 recentTransactions.map((transaction) => (
                   <RecentTransaction
@@ -608,12 +547,7 @@ const styles = StyleSheet.create({
   },
   sectionAction: { flexShrink: 0 },
   walletSection: { marginBottom: Spacing.six },
-  archivedWallets: {
-    borderRadius: 19,
-    borderWidth: 1,
-    marginTop: 2,
-    overflow: 'hidden',
-  },
+  archivedWallets: { borderRadius: 19, marginTop: 2, overflow: 'hidden' },
   archivedHeader: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -703,24 +637,6 @@ const styles = StyleSheet.create({
   quietAction: { fontSize: 12, lineHeight: 15 },
   pressed: { opacity: 0.7 },
   recent: { paddingBottom: Spacing.two },
-  transactionRow: {
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    gap: 11,
-    minHeight: 62,
-    paddingHorizontal: 1,
-    paddingVertical: 12,
-  },
-  categoryIcon: {
-    alignItems: 'center',
-    borderRadius: 12,
-    height: 35,
-    justifyContent: 'center',
-    width: 35,
-  },
-  transactionDescription: { flex: 1, minWidth: 0 },
-  transactionAmount: { alignItems: 'flex-end' },
   formPage: { flex: 1 },
   formHeader: {
     alignItems: 'center',
@@ -759,23 +675,4 @@ const styles = StyleSheet.create({
     width: 35,
   },
   archiveCopy: { flex: 1 },
-  formLabel: { ...Typography.eyebrow, marginTop: Spacing.two },
-  moneyInputRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: Spacing.two,
-  },
-  moneyInput: { flex: 1 },
-  transactionName: { fontSize: 12, lineHeight: 16 },
-  transactionDetail: { fontSize: 10, lineHeight: 14, marginTop: Spacing.half },
-  transactionAmountText: { fontSize: 12, lineHeight: 16 },
-  transactionTime: { fontSize: 10, lineHeight: 14 },
-  empty: { alignItems: 'center', gap: 7, paddingVertical: 34 },
-  emptyGlyph: { fontSize: 38 },
-  emptyButton: {
-    borderRadius: 15,
-    marginTop: 8,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-  },
 });

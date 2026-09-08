@@ -6,7 +6,7 @@ import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
-import { Card, PrimaryButton } from '@/components/ui-primitives';
+import { BoxedCard, PrimaryButton } from '@/components/ui-primitives';
 import { MotionAnimatedView, motionPresets } from '@/components/motion';
 
 export function ScreenSkeleton({ title, eyebrow }: { title: string; eyebrow: string }) {
@@ -21,13 +21,13 @@ export function ScreenSkeleton({ title, eyebrow }: { title: string; eyebrow: str
             {eyebrow}
           </ThemedText>
           <ThemedText type="title">{title}</ThemedText>
-          <Card style={styles.card}>
+          <BoxedCard style={styles.card}>
             <View style={[styles.dot, { backgroundColor: theme.pine }]} />
             <ThemedText type="subtitle">{t('common.comingSoon')}</ThemedText>
             <ThemedText themeColor="muted" style={styles.description}>
               {t('common.comingSoonCopy')}
             </ThemedText>
-          </Card>
+          </BoxedCard>
         </MotionAnimatedView>
       </SafeAreaView>
     </ThemedView>

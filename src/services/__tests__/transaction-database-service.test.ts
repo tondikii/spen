@@ -170,6 +170,32 @@ describe('database transaction service', () => {
     ]);
   });
 
+  it('menyimpan ulang transaksi saldo awal tanpa kehilangan kategori internal dan flag is_initial', async () => {
+    const initial = (await getDatabaseTransactions(database)).find((item) => item.isInitial)!;
+    expect(initial.type).toBe('income');
+
+    const edited = await saveDatabaseTransaction(
+      database,
+      {
+        type: 'income',
+        walletId,
+        toWalletId: null,
+        categoryId: initial.categoryId,
+        systemCategoryKey: 'openingBalance',
+        amount: 2000,
+        date: '2026-09-02',
+        time: '10:00',
+        note: 'Saldo awal diperbarui',
+      },
+      initial.id,
+    );
+
+    expect(edited.isInitial).toBe(true);
+    expect(edited.categoryId).toBe(initial.categoryId);
+    expect(await getDatabaseTransactions(database)).toHaveLength(1);
+    expect((await getWallets(database))[0].balance).toBe(2000);
+  });
+
   it('preserves Plan source relations when editing a generated transaction', async () => {
     await database.runAsync(
       "INSERT INTO budget_periods (start_date, end_date, duration_months) VALUES ('2026-09-01', '2026-09-30', 1);",
