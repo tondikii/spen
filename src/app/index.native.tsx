@@ -2,9 +2,8 @@ import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import HomeScreen from '@/components/home-screen';
 import { DataState } from '@/components/screen-skeleton';
-import { readHomeView } from '@/features/home';
+import HomeScreen, { readHomeView } from '@/features/home';
 import { archiveWallet, createWallet, restoreWallet, updateWallet } from '@/features/wallet';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';

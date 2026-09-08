@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { ComponentProps } from 'react';
 
-import HomeScreen from '@/components/home-screen';
+import HomeScreen from '@/features/home';
 import { changeLocale } from '@/i18n';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
