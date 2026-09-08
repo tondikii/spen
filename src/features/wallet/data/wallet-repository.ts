@@ -16,6 +16,8 @@ function databaseId(walletId: string | number) {
 }
 
 function toWallet(row: WalletRow): Wallet {
+  if (!Number.isSafeInteger(row.balance) || !Number.isSafeInteger(row.initial_balance))
+    throw new AppError('storage', undefined, 'Saldo Wallet melebihi batas aman');
   return {
     id: `wallet-${row.id}`,
     name: row.name,

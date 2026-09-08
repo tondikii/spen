@@ -140,3 +140,23 @@ describe('walletTotal', () => {
     expect(walletTotal(wallets)).toBe(5_350_000);
   });
 });
+
+describe('guard agregat uang', () => {
+  it('menolak hasil penjumlahan yang melewati batas integer aman', () => {
+    const big: Transaction = {
+      id: 'transaction-besar',
+      type: 'income',
+      walletId: 'wallet-1',
+      toWalletId: null,
+      categoryId: 'category-1',
+      amount: Number.MAX_SAFE_INTEGER,
+      date: '2026-09-01',
+      time: '08:00',
+      note: '',
+    };
+    expect(() => summarizeLedger([big, big])).toThrow();
+    expect(() =>
+      walletTotal([{ ...wallets[0], balance: Number.MAX_SAFE_INTEGER }, wallets[0]]),
+    ).toThrow();
+  });
+});
