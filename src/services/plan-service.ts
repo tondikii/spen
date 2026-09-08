@@ -15,6 +15,7 @@ import { parseRequiredPrefixedId } from '@/lib/db-helpers';
 import { getDatabaseTransactions } from '@/services/transaction-service';
 import { createWallet, getWallets } from '@/services/wallet-service';
 import { createGoal } from '@/services/goal-service';
+import { SYSTEM_CATEGORY_NAMES } from '@/constants/domain';
 import type { BudgetSuggestion } from '@/services/ai-service';
 import type {
   AllocationItem,
@@ -437,7 +438,10 @@ export async function applyDatabaseBudgetSuggestion(
         item.name.toLowerCase() === suggestion.categoryName?.toLowerCase(),
     ) ??
     context.categories.find(
-      (item) => item.type === 'expense' && !item.archived && item.name === 'Belanja',
+      (item) =>
+        item.type === 'expense' &&
+        !item.archived &&
+        item.name === SYSTEM_CATEGORY_NAMES.fallbackExpense,
     );
   if (
     !category ||

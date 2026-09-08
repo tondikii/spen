@@ -4,6 +4,7 @@ import i18n from '@/i18n';
 import { AppError } from '@/lib/app-error';
 import { todayISO } from '@/lib/date';
 import { parseRequiredPrefixedId, withExclusiveWrite } from '@/lib/db-helpers';
+import { SYSTEM_CATEGORY_NAMES } from '@/constants/domain';
 import {
   getDatabaseTransaction,
   getDatabaseTransactionCategories,
@@ -278,7 +279,8 @@ export async function withdrawFromGoal(
     if (!wallet || wallet.balance < amount)
       throw new AppError('validation', undefined, 'Saldo Dompet Tabungan tidak mencukupi');
     const category = await connection.getFirstAsync<{ id: number }>(
-      `SELECT id FROM categories WHERE type = 'expense' AND name = 'Belanja' AND is_adjustment = 0 LIMIT 1;`,
+      `SELECT id FROM categories WHERE type = 'expense' AND name = ? AND is_adjustment = 0 LIMIT 1;`,
+      SYSTEM_CATEGORY_NAMES.fallbackExpense,
     );
     if (!category) throw new AppError('notFound', undefined, 'Kategori pengeluaran belum tersedia');
     const result = await connection.runAsync(
