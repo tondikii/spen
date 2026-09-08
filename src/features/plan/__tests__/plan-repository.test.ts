@@ -1,23 +1,23 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import migrations from '../../../drizzle/migrations';
+import migrations from '../../../../drizzle/migrations';
 import { configureDatabase } from '@/db/client';
 import { seedDefaultCategories } from '@/db/seed';
-import { createWallet, getWallets, updateWallet } from '@/services/wallet-service';
+import { createWallet, getWallets, updateWallet } from '@/features/wallet';
 import {
   getDatabaseTransactionCategories,
   saveDatabaseTransaction,
-} from '@/services/transaction-service';
+} from '@/features/transactions';
 import {
   applyDatabaseBudgetSuggestion,
   createDatabasePlanItem,
   deleteDatabasePlanItem,
   ensureActiveBudgetPlan,
+  readPlanView,
   setBudgetPeriodStartDay,
   setDatabasePlanItemPaid,
   updateDatabasePlanItem,
-} from '@/services/plan-service';
-import { readPlanView } from '@/features/plan';
+} from '@/features/plan';
 import { periodBounds } from '@/lib/domain/period';
 
 const getDatabasePlanView = async (database: SQLiteDatabase, today: string) =>

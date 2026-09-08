@@ -1,16 +1,12 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import migrations from '../../../drizzle/migrations';
+import migrations from '../../../../drizzle/migrations';
 import { configureDatabase } from '@/db/client';
 import { seedDefaultCategories } from '@/db/seed';
-import {
-  getDatabaseSettings,
-  getSelectedCurrency,
-  getSelectedLocale,
-  setDatabaseCurrency,
-} from '@/services/settings-service';
-import { getSetupState, completeSetup } from '@/services/setup-service';
-import { getWallets } from '@/services/wallet-service';
+import { getDatabaseSettings, setDatabaseCurrency } from '@/features/settings';
+import { getSelectedCurrency, getSelectedLocale } from '@/lib/selection';
+import { getSetupState, completeSetup } from '@/features/setup';
+import { getWallets } from '@/features/wallet';
 
 type TempSQLite = {
   exec(source: string): void;

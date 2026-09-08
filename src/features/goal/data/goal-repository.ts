@@ -9,8 +9,8 @@ import {
   getDatabaseTransaction,
   getDatabaseTransactionCategories,
   saveDatabaseTransaction,
-} from '@/services/transaction-service';
-import { getWallet, getWallets } from '@/services/wallet-service';
+} from '@/features/transactions';
+import { getWallet, getWallets } from '@/features/wallet';
 import type { Goal, GoalProgress, Transaction, Wallet } from '@/types/domain';
 import type { GoalRow } from '@/types/db-rows';
 

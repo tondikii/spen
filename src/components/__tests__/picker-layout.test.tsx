@@ -2,7 +2,7 @@ import { render } from '@testing-library/react-native';
 
 import { CurrencyPicker } from '@/components/currency-picker';
 import { LanguagePicker } from '@/components/language-picker';
-import { currencyOptions } from '@/services/settings-service';
+import { currencyOptions } from '@/lib/selection';
 
 describe('picker option layout', () => {
   it('uses four equal columns for currency options', async () => {

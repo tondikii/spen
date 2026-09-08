@@ -9,14 +9,10 @@ import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 
 import { AppThemeProvider, useAppTheme } from '@/components/theme-provider';
 import { SpenSplash } from '@/components/brand-assets';
-import { getSetupState } from '@/services/setup-service';
-import {
-  getDatabaseSettings,
-  setSelectedCurrency,
-  setSelectedLocale,
-  setDatabaseThemeMode,
-} from '@/services/settings-service';
-import { retryDatabaseRead } from '@/services/database-read-retry';
+import { getSetupState } from '@/features/setup';
+import { getDatabaseSettings, setDatabaseThemeMode } from '@/features/settings';
+import { setSelectedCurrency, setSelectedLocale } from '@/lib/selection';
+import { retryDatabaseRead } from '@/lib/retry';
 import { configureDatabase } from '@/db/client';
 import { seedDefaultCategories } from '@/db/seed';
 import migrations from '../../drizzle/migrations';

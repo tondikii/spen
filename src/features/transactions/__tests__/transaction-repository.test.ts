@@ -1,16 +1,16 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import migrations from '../../../drizzle/migrations';
+import migrations from '../../../../drizzle/migrations';
 import { configureDatabase } from '@/db/client';
 import { seedDefaultCategories } from '@/db/seed';
-import { createWallet, getWallets } from '@/services/wallet-service';
+import { createWallet, getWallets } from '@/features/wallet';
 import { hasSimilarIncome } from '@/lib/presentation';
 import {
   archiveDatabaseCategory,
   getDatabaseTransactionCategories,
   getDatabaseTransactionsBetween,
   saveDatabaseTransaction,
-} from '@/services/transaction-service';
+} from '@/features/transactions';
 import type { TransactionDraft } from '@/types/domain';
 
 const getDatabaseTransactions = async (database: SQLiteDatabase) =>

@@ -1,12 +1,12 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { saveToGoal } from '@/services/goal-service';
+import { saveToGoal } from '@/features/goal';
 import {
   archiveDatabaseCategory,
   deleteDatabaseTransaction,
   saveDatabaseCategory,
   saveDatabaseTransaction,
-} from '@/services/transaction-service';
+} from '@/features/transactions';
 import type { TransactionDraft } from '@/types/domain';
 
 export async function saveTransactionEntry(

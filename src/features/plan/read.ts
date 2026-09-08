@@ -10,12 +10,12 @@ import {
 import { periodFromRow } from '@/lib/domain/period';
 import { todayISO } from '@/lib/date';
 import i18n from '@/i18n';
-import { ensureActiveBudgetPlan } from '@/services/plan-service';
+import { ensureActiveBudgetPlan } from '@/features/plan';
 import {
   getDatabaseTransactionCategories,
   getDatabaseTransactionsBetween,
-} from '@/services/transaction-service';
-import { getWallets } from '@/services/wallet-service';
+} from '@/features/transactions';
+import { getWallets } from '@/features/wallet';
 import type {
   AllocationItem,
   BudgetPlan,

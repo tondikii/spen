@@ -4,7 +4,7 @@ import * as Linking from 'expo-linking';
 import { SettingsScreen } from '@/features/settings';
 import { AppThemeProvider } from '@/components/theme-provider';
 import { changeLocale } from '@/i18n';
-import { setSelectedLocale } from '@/services/settings-service';
+import { setSelectedLocale } from '@/lib/selection';
 
 describe('SettingsScreen', () => {
   afterEach(async () => {

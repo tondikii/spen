@@ -22,7 +22,7 @@ import { useLocale } from '@/hooks/use-locale';
 import { formatMonth, formatMonthShort } from '@/i18n/format';
 import { getCategoryLabel } from '@/i18n/categories';
 import { formatMoney } from '@/lib/money';
-import type { BudgetAIInput } from '@/services/ai-service';
+import type { BudgetAIInput } from '@/lib/ai-service';
 import { readReportView } from '../read';
 import { useReportInsight } from '../hooks/use-report-insight';
 import { ChartCard, Donut, NetSavingLineChart, chartColors, percentage } from './report-charts';

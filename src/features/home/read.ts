@@ -3,8 +3,8 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import {
   getDatabaseRecentTransactions,
   getDatabaseTransactionCategories,
-} from '@/services/transaction-service';
-import { getWallets } from '@/services/wallet-service';
+} from '@/features/transactions';
+import { getWallets } from '@/features/wallet';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
 export type HomeView = {

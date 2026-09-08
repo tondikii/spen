@@ -3,11 +3,11 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import migrations from '../../../../drizzle/migrations';
 import { configureDatabase } from '@/db/client';
 import { seedDefaultCategories } from '@/db/seed';
-import { createWallet } from '@/services/wallet-service';
+import { createWallet } from '@/features/wallet';
 import {
   getDatabaseTransactionCategories,
   saveDatabaseTransaction,
-} from '@/services/transaction-service';
+} from '@/features/transactions';
 import { readDailyView } from '../read';
 
 type TempSQLite = {

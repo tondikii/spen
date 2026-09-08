@@ -6,7 +6,7 @@ import { MotionPressable } from '@/components/motion';
 import { ThemedText } from '@/components/themed-text';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { currencyOptions } from '@/services/settings-service';
+import { currencyOptions } from '@/lib/selection';
 import type { CurrencyCode } from '@/types/domain';
 
 export function CurrencyPicker({

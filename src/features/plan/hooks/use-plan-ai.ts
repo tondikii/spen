@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useLocale } from '@/hooks/use-locale';
 import { getErrorTranslationKey } from '@/lib/app-error';
-import { aiService, type BudgetAIInput, type BudgetSuggestion } from '@/services/ai-service';
+import { aiService, type BudgetAIInput, type BudgetSuggestion } from '@/lib/ai-service';
 import type { BudgetSnapshot } from '@/types/domain';
 
 type PlanAiSnapshot = Pick<

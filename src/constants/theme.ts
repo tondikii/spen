@@ -1,6 +1,6 @@
 import { getCurrentLocale } from '@/i18n';
 import { getIntlLocale } from '@/i18n/format';
-import { getSelectedCurrency } from '@/services/settings-service';
+import { getSelectedCurrency } from '@/lib/selection';
 
 export const Colors = {
   light: {

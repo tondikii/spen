@@ -5,11 +5,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useTranslation } from 'react-i18next';
 
-import { SetupWizard } from '@/features/setup';
+import { SetupWizard, completeSetup, getSetupState } from '@/features/setup';
 import { Fonts, Shadows, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { MotionPressable } from '@/components/motion';
-import { completeSetup, getSetupState } from '@/services/setup-service';
 
 type TabItem = {
   name: 'index' | 'plan' | 'report' | 'settings';

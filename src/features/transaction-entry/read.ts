@@ -1,13 +1,13 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { parsePrefixedId } from '@/lib/db-helpers';
-import { ensureActiveBudgetPlan } from '@/services/plan-service';
+import { ensureActiveBudgetPlan } from '@/features/plan';
 import {
   getDatabaseIncomeTransactions,
   getDatabaseTransaction,
   getDatabaseTransactionCategories,
-} from '@/services/transaction-service';
-import { getWallets } from '@/services/wallet-service';
+} from '@/features/transactions';
+import { getWallets } from '@/features/wallet';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
 export type TransactionEntryView = {

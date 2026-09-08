@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import migrations from '../../../drizzle/migrations';
+import migrations from '../../../../drizzle/migrations';
 import { configureDatabase } from '@/db/client';
 import { seedDefaultCategories } from '@/db/seed';
 import {
@@ -11,8 +11,8 @@ import {
   saveToGoal,
   updateGoal,
   withdrawFromGoal,
-} from '@/services/goal-service';
-import { createWallet, getWallets } from '@/services/wallet-service';
+} from '@/features/goal';
+import { createWallet, getWallets } from '@/features/wallet';
 
 type TempSQLite = {
   exec(source: string): void;

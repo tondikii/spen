@@ -1,14 +1,14 @@
-import PlanScreen, { readPlanView } from '@/features/plan';
-import { useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
-import {
+import PlanScreen, {
   applyDatabaseBudgetSuggestion,
   createDatabasePlanItem,
   deleteDatabasePlanItem,
+  readPlanView,
   setBudgetPeriodStartDay,
   updateDatabasePlanItem,
-} from '@/features/budget';
-import type { BudgetSuggestion } from '@/services/ai-service';
+} from '@/features/plan';
+import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { BudgetSuggestion } from '@/lib/ai-service';
 import { saveDatabaseCategory, saveDatabaseTransaction } from '@/features/transactions';
 import {
   archiveGoal,
@@ -16,7 +16,7 @@ import {
   updateGoal,
   withdrawFromGoal,
   type GoalDraft,
-} from '@/features/budget';
+} from '@/features/goal';
 import { DataState } from '@/components/screen-skeleton';
 import useAppDatabase from '@/db/database-provider';
 import { useFocusedRead } from '@/hooks/use-focused-read';

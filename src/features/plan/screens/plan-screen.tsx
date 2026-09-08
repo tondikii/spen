@@ -12,8 +12,8 @@ import { Fonts, Radius } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { todayISO } from '@/lib/date';
 import type { BudgetPlanItem, Category, Goal, PlanItemType } from '@/types/domain';
-import type { PlanItemDraft } from '@/services/plan-service';
-import type { BudgetAIInput, BudgetSuggestion } from '@/services/ai-service';
+import type { PlanItemDraft } from '@/features/plan';
+import type { BudgetAIInput, BudgetSuggestion } from '@/lib/ai-service';
 
 import { usePlanAi } from '../hooks/use-plan-ai';
 import type { PlanView } from '../read';

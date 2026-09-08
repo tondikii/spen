@@ -7,7 +7,7 @@ import {
   getSelectedLocale,
   setSelectedCurrency,
   setSelectedLocale,
-} from '@/services/settings-service';
+} from '@/lib/selection';
 import type { CurrencyCode, Locale } from '@/types/domain';
 
 function isCurrency(value: string): value is CurrencyCode {

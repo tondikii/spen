@@ -1,4 +1,4 @@
-import { AIService, type BudgetAIInput } from '@/services/ai-service';
+import { AIService, type BudgetAIInput } from '@/lib/ai-service';
 
 const input: BudgetAIInput = {
   spareBudget: 1_000_000,

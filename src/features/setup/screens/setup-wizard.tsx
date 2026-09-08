@@ -17,11 +17,11 @@ import { Fonts, Radius, Spacing, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoneyInput, parseMoneyInput } from '@/lib/money-input';
 import { ThemedInput } from '@/components/themed-input';
-import type { SetupWalletDraft } from '@/services/setup-service';
+import type { SetupWalletDraft } from '@/features/setup';
 import type { CurrencyCode, Locale } from '@/types/domain';
 import { changeLocale } from '@/i18n';
 import { LanguagePicker } from '@/components/language-picker';
-import { getSelectedLocale, setSelectedLocale } from '@/services/settings-service';
+import { getSelectedLocale, setSelectedLocale } from '@/lib/selection';
 import { useTranslation } from 'react-i18next';
 import { MotionPressable as Pressable, MotionScreen } from '@/components/motion';
 

@@ -1,1 +1,1 @@
-export * from '@/services/transaction-service';
+export * from './data/transaction-repository';

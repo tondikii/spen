@@ -5,10 +5,10 @@ import { AppError } from '@/lib/app-error';
 import { todayISO, isValidTransactionDate } from '@/lib/date';
 import { periodBounds } from '@/lib/domain/period';
 import { parseRequiredPrefixedId } from '@/lib/db-helpers';
-import { createWallet } from '@/services/wallet-service';
-import { createGoal } from '@/services/goal-service';
+import { createWallet } from '@/features/wallet';
+import { createGoal } from '@/features/goal';
 import { SYSTEM_CATEGORY_NAMES } from '@/constants/domain';
-import type { BudgetSuggestion } from '@/services/ai-service';
+import type { BudgetSuggestion } from '@/lib/ai-service';
 import type {
   BudgetPlan,
   BudgetPlanItem,

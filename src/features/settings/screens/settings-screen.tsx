@@ -22,15 +22,15 @@ import {
   pickBackupContent,
   restoreDatabase,
   shareBackupFile,
-} from '@/services/backup-service';
+  setDatabaseCurrency,
+  setDatabaseLocale,
+} from '@/features/settings';
 import {
   getSelectedCurrency,
   getSelectedLocale,
-  setDatabaseLocale,
-  setSelectedLocale,
-  setDatabaseCurrency,
   setSelectedCurrency,
-} from '@/services/settings-service';
+  setSelectedLocale,
+} from '@/lib/selection';
 import type { CurrencyCode, Locale } from '@/types/domain';
 import { changeLocale } from '@/i18n';
 import { getPublicDocumentUrl } from '@/lib/public-documents';

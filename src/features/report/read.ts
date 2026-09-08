@@ -3,11 +3,11 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import { netSaving, summarizeLedger, type LedgerType } from '@/lib/domain/ledger';
 import { periodFromRow } from '@/lib/domain/period';
 import { todayISO } from '@/lib/date';
-import { ensureActiveBudgetPlan } from '@/services/plan-service';
+import { ensureActiveBudgetPlan } from '@/features/plan';
 import {
   getDatabaseTransactionCategories,
   getDatabaseTransactionsBetween,
-} from '@/services/transaction-service';
+} from '@/features/transactions';
 import type { BudgetPeriod, SystemCategoryKey, Transaction } from '@/types/domain';
 
 export type ReportExpense = {
