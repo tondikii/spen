@@ -58,7 +58,7 @@ export default function HomeRoute() {
       onTransactionPress={(transaction) =>
         router.push({ pathname: '/create', params: { transactionId: transaction.id } })
       }
-      onDailyPress={() => router.push('/daily')}
+      onDailyPress={() => router.push('/home/daily')}
     />
   );
 }

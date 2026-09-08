@@ -11,17 +11,17 @@ import { useTheme } from '@/hooks/use-theme';
 import { MotionPressable } from '@/components/ui/motion';
 
 type TabItem = {
-  name: 'index' | 'plan' | 'report' | 'settings';
+  name: 'home/index' | 'plan' | 'report' | 'settings/index';
   translationKey: 'home' | 'plan' | 'report' | 'settings';
   icon: string;
   iconSize?: number;
 };
 
 const tabs: TabItem[] = [
-  { name: 'index', translationKey: 'home', icon: '⌂' },
+  { name: 'home/index', translationKey: 'home', icon: '⌂' },
   { name: 'plan', translationKey: 'plan', icon: '▤' },
   { name: 'report', translationKey: 'report', icon: '◔', iconSize: 23 },
-  { name: 'settings', translationKey: 'settings', icon: '☼', iconSize: 23 },
+  { name: 'settings/index', translationKey: 'settings', icon: '☼', iconSize: 23 },
 ];
 
 function AppTabs() {
@@ -117,6 +117,9 @@ function AppTabs() {
           }}
         />
       ))}
+      {/* Nested screens: not items in the persistent tab bar. */}
+      <Tabs.Screen name="home/daily" options={{ href: null }} />
+      <Tabs.Screen name="settings/faq" options={{ href: null }} />
     </Tabs>
   );
 }
