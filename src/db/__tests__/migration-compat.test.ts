@@ -1,4 +1,4 @@
-import migrations from '../../drizzle/migrations';
+import migrations from '../../../drizzle/migrations';
 
 describe('consolidated migration baseline', () => {
   // Schema sudah final (DB fix), jadi semua migrasi di-squash menjadi satu

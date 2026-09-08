@@ -1,6 +1,6 @@
 import SettingsScreen from '@/components/settings-screen';
 import { useRouter } from 'expo-router';
-import useAppDatabase from '@/hooks/use-app-database';
+import useAppDatabase from '@/db/database-provider';
 
 export default function SettingsRoute() {
   const router = useRouter();

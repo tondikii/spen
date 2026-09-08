@@ -18,7 +18,7 @@ import {
   type GoalDraft,
 } from '@/features/budget';
 import { DataState } from '@/components/screen-skeleton';
-import useAppDatabase from '@/hooks/use-app-database';
+import useAppDatabase from '@/db/database-provider';
 import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function PlanRoute() {

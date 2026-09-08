@@ -12,7 +12,7 @@ import {
   saveTransactionEntryCategory,
 } from '@/features/transaction-entry';
 import type { TransactionType } from '@/types/domain';
-import useAppDatabase from '@/hooks/use-app-database';
+import useAppDatabase from '@/db/database-provider';
 import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function CreateTransactionScreen() {

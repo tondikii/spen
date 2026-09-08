@@ -1,7 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import migrations from '../../../drizzle/migrations';
-import { seedDefaultCategories } from '../../../db/seed';
+import { seedDefaultCategories } from '@/db/seed';
 import { exportDatabase, parseBackupPayload, restoreDatabase } from '@/services/backup-service';
 
 type TempSQLite = {

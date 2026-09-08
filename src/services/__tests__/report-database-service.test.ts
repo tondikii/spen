@@ -1,8 +1,8 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import migrations from '../../../drizzle/migrations';
-import { configureDatabase } from '../../../db/database';
-import { seedDefaultCategories } from '../../../db/seed';
+import { configureDatabase } from '@/db/client';
+import { seedDefaultCategories } from '@/db/seed';
 import { ensureActiveBudgetPlan } from '@/services/plan-service';
 import { readReportView } from '@/features/report';
 import {

@@ -1,7 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import migrations from '../../drizzle/migrations';
-import { configureDatabase } from '../database';
+import migrations from '../../../drizzle/migrations';
+import { configureDatabase } from '../client';
 import { DEFAULT_CATEGORIES, seedDefaultCategories } from '../seed';
 
 describe('database foundation', () => {

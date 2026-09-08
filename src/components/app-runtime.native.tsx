@@ -17,8 +17,8 @@ import {
   setDatabaseThemeMode,
 } from '@/services/settings-service';
 import { retryDatabaseRead } from '@/services/database-read-retry';
-import { configureDatabase } from '../../db/database';
-import { seedDefaultCategories } from '../../db/seed';
+import { configureDatabase } from '@/db/client';
+import { seedDefaultCategories } from '@/db/seed';
 import migrations from '../../drizzle/migrations';
 import i18n, { changeLocale } from '@/i18n';
 import { MotionPressable } from '@/components/motion';

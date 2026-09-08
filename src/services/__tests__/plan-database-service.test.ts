@@ -1,8 +1,8 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import migrations from '../../../drizzle/migrations';
-import { configureDatabase } from '../../../db/database';
-import { seedDefaultCategories } from '../../../db/seed';
+import { configureDatabase } from '@/db/client';
+import { seedDefaultCategories } from '@/db/seed';
 import { createWallet, getWallets, updateWallet } from '@/services/wallet-service';
 import {
   getDatabaseTransactionCategories,

@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { setBudgetPeriodStartDay } from '@/features/budget';
 import { DataState } from '@/components/screen-skeleton';
-import useAppDatabase from '@/hooks/use-app-database';
+import useAppDatabase from '@/db/database-provider';
 import { useFocusedRead } from '@/hooks/use-focused-read';
 
 export default function ReportRoute() {
