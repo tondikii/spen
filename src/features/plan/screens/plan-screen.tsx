@@ -17,12 +17,12 @@ import type { BudgetAIInput, BudgetSuggestion } from '@/lib/ai-service';
 
 import { usePlanAi } from '../hooks/use-plan-ai';
 import type { PlanView } from '../read';
-import { GoalSection } from './goal-section';
-import { PlanItem } from './plan-item';
-import { PlanItemFormModal } from './plan-item-form-modal';
-import { PlanPaymentModal } from './plan-payment-modal';
-import { EmptyPlan, PlanSection } from './plan-section';
-import { PlanSummaryCard } from './plan-summary-card';
+import { GoalSection } from '../components/goal-section';
+import { PlanItem } from '../components/plan-item';
+import { PlanItemFormModal } from '../components/plan-item-form-modal';
+import { PlanPaymentModal } from '../components/plan-payment-modal';
+import { EmptyPlan, PlanSection } from '../components/plan-section';
+import { PlanSummaryCard } from '../components/plan-summary-card';
 
 type GoalDraft = Omit<Goal, 'id' | 'archived'>;
 

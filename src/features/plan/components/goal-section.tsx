@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
-import { SheetModal } from '../components/sheet-modal';
+import { SheetModal } from './sheet-modal';
 import {
   MotionAnimatedView,
   MotionPressable as Pressable,

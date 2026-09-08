@@ -15,8 +15,8 @@ import { useIntlLocale } from '@/hooks/use-locale';
 import { walletTotal } from '@/utils/domain/ledger';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
-import { WalletCards } from './wallet-cards';
-import { WalletForm } from './wallet-form';
+import { WalletCards } from '../components/wallet-cards';
+import { WalletForm } from '../components/wallet-form';
 
 type HomeScreenProps = {
   wallets: Wallet[];

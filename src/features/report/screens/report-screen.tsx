@@ -25,7 +25,13 @@ import { formatMoney } from '@/utils/money';
 import type { BudgetAIInput } from '@/lib/ai-service';
 import { readReportView } from '../read';
 import { useReportInsight } from '../hooks/use-report-insight';
-import { ChartCard, Donut, NetSavingLineChart, chartColors, percentage } from './report-charts';
+import {
+  ChartCard,
+  Donut,
+  NetSavingLineChart,
+  chartColors,
+  percentage,
+} from '../components/report-charts';
 
 type ReportView = Awaited<ReturnType<typeof readReportView>>;
 

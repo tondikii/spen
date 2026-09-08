@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { CATEGORY_ICON_CHOICES, CategoryIcon } from '@/components/ui/category-icon';
 import { MonthCalendar } from '@/components/ui/month-calendar';
-import { SheetModal } from '../components/sheet-modal';
+import { SheetModal } from './sheet-modal';
 import { WalletPicker } from '@/components/ui/wallet-picker';
 import { MotionPressable as Pressable } from '@/components/ui/motion';
 import { ThemedInput } from '@/components/ui/themed-input';
