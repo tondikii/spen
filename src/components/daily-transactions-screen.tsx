@@ -17,38 +17,36 @@ import { TransactionRow } from '@/components/transaction-row';
 import { MonthCalendar } from '@/components/month-calendar';
 import { Fonts, Layout, MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useLocale } from '@/hooks/use-locale';
 import i18n from '@/i18n';
-import { getIntlLocale } from '@/i18n/format';
+import { formatDayLabel, getIntlLocale } from '@/i18n/format';
+import { shiftDate } from '@/lib/calendar';
 import { formatMoney } from '@/lib/money';
-import {
-  getDailyLabel,
-  getDailyTotals,
-  getDailyTransactions,
-  shiftDate,
-} from '@/services/daily-service';
+import { getDailyTotals, getDailyTransactions } from '@/lib/presentation';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
 export default function DailyTransactionsScreen({
-  transactions: transactionsProp,
+  transactions,
   categories,
   wallets,
   today,
 }: {
-  transactions?: Transaction[];
-  categories?: Category[];
-  wallets?: Wallet[];
-  today?: string;
-} = {}) {
+  transactions: Transaction[];
+  categories: Category[];
+  wallets: Wallet[];
+  today: string;
+}) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const [date, setDate] = useState(today ?? '2026-09-01');
-  const [calendarMonth, setCalendarMonth] = useState((today ?? '2026-09-01').slice(0, 7));
+  const locale = useLocale();
+  const [date, setDate] = useState(today);
+  const [calendarMonth, setCalendarMonth] = useState(today.slice(0, 7));
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const transactions = useMemo(
-    () => getDailyTransactions(date, transactionsProp),
-    [date, transactionsProp],
+  const dailyTransactions = useMemo(
+    () => getDailyTransactions(date, transactions),
+    [date, transactions],
   );
-  const totals = getDailyTotals(transactions);
+  const totals = getDailyTotals(dailyTransactions);
 
   const selectDate = (nextDate: string) => {
     setDate(nextDate);
@@ -102,10 +100,12 @@ export default function DailyTransactionsScreen({
                   wrapperStyle={styles.dateButtonWrapper}
                   style={styles.dateButton}
                 >
-                  <ThemedText type="sectionHeading">{getDailyLabel(date, today)}</ThemedText>
+                  <ThemedText type="sectionHeading">
+                    {formatDayLabel(date, today, locale)}
+                  </ThemedText>
                   <View style={styles.dateDetail}>
                     <ThemedText type="code" themeColor="muted" style={styles.dateDetailText}>
-                      {formatFullDate(date)}
+                      {formatFullDate(date, locale)}
                     </ThemedText>
                     <MotionChevron expanded={calendarOpen} color={theme.muted} size={16} />
                   </View>
@@ -140,15 +140,15 @@ export default function DailyTransactionsScreen({
                     setCalendarOpen(false);
                   }}
                   onMonthChange={setCalendarMonth}
-                  dayAccessibilityLabel={(candidate某) => t('common.date', { date: candidate某 })}
+                  dayAccessibilityLabel={(candidate) => t('common.date', { date: candidate })}
                   style={{ backgroundColor: theme.card }}
                 />
               </MotionCollapsible>
             )}
 
-            {transactions.length > 0 ? (
+            {dailyTransactions.length > 0 ? (
               <View>
-                {transactions.map((transaction) => (
+                {dailyTransactions.map((transaction) => (
                   <TransactionRow
                     key={transaction.id}
                     transaction={transaction}
@@ -169,7 +169,9 @@ export default function DailyTransactionsScreen({
                 boxed
                 title={t('common.noRecords')}
                 titleType="sectionHeading"
-                description={t('common.noTransactionsOn', { date: formatDateLabel(date) })}
+                description={t('common.noTransactionsOn', {
+                  date: formatDateLabel(date, locale),
+                })}
                 actionLabel={t('common.addTransaction')}
                 onAction={() => router.push('/create')}
                 style={styles.empty}
@@ -204,15 +206,15 @@ function SummaryItem({
   );
 }
 
-function formatDateLabel(date: string) {
-  return new Intl.DateTimeFormat(getIntlLocale(i18n.language === 'en' ? 'en' : 'id'), {
+function formatDateLabel(date: string, locale: 'id' | 'en') {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
     day: 'numeric',
     month: 'short',
   }).format(new Date(`${date}T12:00:00`));
 }
 
-function formatFullDate(date: string) {
-  return new Intl.DateTimeFormat(getIntlLocale(i18n.language === 'en' ? 'en' : 'id'), {
+function formatFullDate(date: string, locale: 'id' | 'en') {
+  return new Intl.DateTimeFormat(getIntlLocale(locale), {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
