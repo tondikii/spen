@@ -2,7 +2,13 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 import migrations from '../../../../drizzle/migrations';
 import { seedDefaultCategories } from '@/db/seed';
-import { exportDatabase, parseBackupPayload, restoreDatabase } from '@/features/settings';
+import {
+  BACKUP_MAX_JSON_LENGTH,
+  BACKUP_MAX_RECORDS,
+  exportDatabase,
+  parseBackupPayload,
+  restoreDatabase,
+} from '@/features/settings';
 
 type TempSQLite = {
   exec(source: string): void;
@@ -69,6 +75,32 @@ describe('backup service', () => {
     expect(() => parseBackupPayload(JSON.stringify({ version: 99, data: {} }))).toThrow(
       /Versi backup tidak didukung/,
     );
+  });
+
+  it('menolak file backup yang terlalu besar', () => {
+    expect(() => parseBackupPayload('x'.repeat(BACKUP_MAX_JSON_LENGTH + 1))).toThrow(
+      /terlalu besar/,
+    );
+  });
+
+  it('menolak backup dengan jumlah record berlebihan', () => {
+    const emptyTables = {
+      categories: [],
+      transactions: [],
+      budgetPeriods: [],
+      budgetPlans: [],
+      incomeItems: [],
+      fixedExpenseItems: [],
+      allocationItems: [],
+      expenseItems: [],
+      goals: [],
+      settings: [],
+    };
+    const payload = {
+      version: 1,
+      data: { wallets: Array(BACKUP_MAX_RECORDS + 1).fill({}), ...emptyTables },
+    };
+    expect(() => parseBackupPayload(payload as never)).toThrow(/terlalu banyak data/);
   });
 
   it('restore menimpa data lama secara atomik', async () => {

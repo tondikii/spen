@@ -104,6 +104,10 @@ const TABLES = [
   'wallets',
 ] as const;
 
+/** Batas keamanan saat restore (panduan seksi 19): tolak file yang tidak wajar. */
+export const BACKUP_MAX_JSON_LENGTH = 16_000_000;
+export const BACKUP_MAX_RECORDS = 200_000;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -115,6 +119,8 @@ function isArrayOfRecords(value: unknown) {
 export function parseBackupPayload(value: string | unknown): BackupPayload {
   let parsed: unknown = value;
   if (typeof value === 'string') {
+    if (value.length > BACKUP_MAX_JSON_LENGTH)
+      throw new AppError('backupInvalid', undefined, 'File backup terlalu besar');
     try {
       parsed = JSON.parse(value) as unknown;
     } catch {
@@ -145,61 +151,18 @@ export function parseBackupPayload(value: string | unknown): BackupPayload {
   if (!keys.every((key) => isArrayOfRecords(data[key]))) {
     throw new AppError('backupInvalid', undefined, 'Struktur file backup tidak lengkap atau rusak');
   }
+  const totalRecords = keys.reduce((total, key) => total + data[key].length, 0);
+  if (totalRecords > BACKUP_MAX_RECORDS)
+    throw new AppError('backupInvalid', undefined, 'File backup berisi terlalu banyak data');
   return parsed as unknown as BackupPayload;
 }
 
 export async function exportDatabase(database: SQLiteDatabase): Promise<BackupPayload> {
-  const [
-    wallets,
-    categories,
-    transactions,
-    budgetPeriods,
-    budgetPlans,
-    incomeItems,
-    fixedExpenseItems,
-    allocationItems,
-    expenseItems,
-    goals,
-    settings,
-  ] = await Promise.all([
-    database.getAllAsync<WalletRow>(
-      'SELECT id, name, initial_balance, is_savings, archived FROM wallets ORDER BY id;',
-    ),
-    database.getAllAsync<CategoryRow>(
-      'SELECT id, name, system_key, type, is_adjustment, icon, archived FROM categories ORDER BY id;',
-    ),
-    database.getAllAsync<TransactionRow>(
-      'SELECT id, type, wallet_id, to_wallet_id, category_id, amount, date, time, note, is_initial, admin_fee, source_income_item_id, source_expense_item_id FROM transactions ORDER BY id;',
-    ),
-    database.getAllAsync<BudgetPeriodRow>(
-      'SELECT id, start_date, end_date, duration_months FROM budget_periods ORDER BY id;',
-    ),
-    database.getAllAsync<BudgetPlanRow>(
-      'SELECT id, budget_period_id FROM budget_plans ORDER BY id;',
-    ),
-    database.getAllAsync<PlanItemRow>(
-      'SELECT id, budget_plan_id, name, category_id, target_amount FROM income_items ORDER BY id;',
-    ),
-    database.getAllAsync<PlanItemRow>(
-      'SELECT id, budget_plan_id, name, category_id, target_amount FROM fixed_expense_items ORDER BY id;',
-    ),
-    database.getAllAsync<PlanItemRow>(
-      'SELECT id, budget_plan_id, name, category_id, target_amount FROM allocation_items ORDER BY id;',
-    ),
-    database.getAllAsync<PlanItemRow>(
-      'SELECT id, budget_plan_id, name, category_id, target_amount, is_paid FROM expense_items ORDER BY id;',
-    ),
-    database.getAllAsync<GoalRow>(
-      'SELECT id, name, target_amount, target_date, wallet_id, monthly_contribution, archived FROM goals ORDER BY id;',
-    ),
-    database.getAllAsync<SettingsRow>(
-      'SELECT id, currency, theme_mode, locale, budget_start_day FROM settings ORDER BY id;',
-    ),
-  ]);
-  return {
-    version: BACKUP_VERSION,
-    exportedAt: new Date().toISOString(),
-    data: {
+  // Seluruh tabel dibaca dalam satu transaksi eksklusif sehingga snapshot
+  // konsisten (panduan seksi 19) — tidak ada writer yang menyela di tengah.
+  let payload: BackupPayload | undefined;
+  await database.withExclusiveTransactionAsync(async (transaction) => {
+    const [
       wallets,
       categories,
       transactions,
@@ -211,8 +174,61 @@ export async function exportDatabase(database: SQLiteDatabase): Promise<BackupPa
       expenseItems,
       goals,
       settings,
-    },
-  };
+    ] = await Promise.all([
+      transaction.getAllAsync<WalletRow>(
+        'SELECT id, name, initial_balance, is_savings, archived FROM wallets ORDER BY id;',
+      ),
+      transaction.getAllAsync<CategoryRow>(
+        'SELECT id, name, system_key, type, is_adjustment, icon, archived FROM categories ORDER BY id;',
+      ),
+      transaction.getAllAsync<TransactionRow>(
+        'SELECT id, type, wallet_id, to_wallet_id, category_id, amount, date, time, note, is_initial, admin_fee, source_income_item_id, source_expense_item_id FROM transactions ORDER BY id;',
+      ),
+      transaction.getAllAsync<BudgetPeriodRow>(
+        'SELECT id, start_date, end_date, duration_months FROM budget_periods ORDER BY id;',
+      ),
+      transaction.getAllAsync<BudgetPlanRow>(
+        'SELECT id, budget_period_id FROM budget_plans ORDER BY id;',
+      ),
+      transaction.getAllAsync<PlanItemRow>(
+        'SELECT id, budget_plan_id, name, category_id, target_amount FROM income_items ORDER BY id;',
+      ),
+      transaction.getAllAsync<PlanItemRow>(
+        'SELECT id, budget_plan_id, name, category_id, target_amount FROM fixed_expense_items ORDER BY id;',
+      ),
+      transaction.getAllAsync<PlanItemRow>(
+        'SELECT id, budget_plan_id, name, category_id, target_amount FROM allocation_items ORDER BY id;',
+      ),
+      transaction.getAllAsync<PlanItemRow>(
+        'SELECT id, budget_plan_id, name, category_id, target_amount, is_paid FROM expense_items ORDER BY id;',
+      ),
+      transaction.getAllAsync<GoalRow>(
+        'SELECT id, name, target_amount, target_date, wallet_id, monthly_contribution, archived FROM goals ORDER BY id;',
+      ),
+      transaction.getAllAsync<SettingsRow>(
+        'SELECT id, currency, theme_mode, locale, budget_start_day FROM settings ORDER BY id;',
+      ),
+    ]);
+    payload = {
+      version: BACKUP_VERSION,
+      exportedAt: new Date().toISOString(),
+      data: {
+        wallets,
+        categories,
+        transactions,
+        budgetPeriods,
+        budgetPlans,
+        incomeItems,
+        fixedExpenseItems,
+        allocationItems,
+        expenseItems,
+        goals,
+        settings,
+      },
+    };
+  });
+  if (!payload) throw new AppError('storage', undefined, 'Ekspor backup gagal');
+  return payload;
 }
 
 async function insertRows(database: SQLiteDatabase, payload: BackupPayload) {
@@ -340,10 +356,12 @@ export async function restoreDatabase(
 }
 
 export async function createBackupFile(database: SQLiteDatabase): Promise<string> {
-  if (!FileSystem.documentDirectory)
-    throw new AppError('storage', undefined, 'Penyimpanan file tidak tersedia');
+  // Ditulis ke cache (bukan documentDirectory) agar tidak menumpuk permanen;
+  // pemanggil tetap menghapus setelah share sebagai best-effort.
+  const directory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
+  if (!directory) throw new AppError('storage', undefined, 'Penyimpanan file tidak tersedia');
   const payload = await exportDatabase(database);
-  const fileUri = `${FileSystem.documentDirectory}spen-backup-${payload.exportedAt.replace(/[:.]/g, '-')}.json`;
+  const fileUri = `${directory}spen-backup-${payload.exportedAt.replace(/[:.]/g, '-')}.json`;
   await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(payload, null, 2), {
     encoding: FileSystem.EncodingType.UTF8,
   });

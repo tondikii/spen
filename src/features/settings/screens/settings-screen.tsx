@@ -1,5 +1,6 @@
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Linking from 'expo-linking';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { useState, type ReactNode } from 'react';
@@ -89,8 +90,14 @@ export default function SettingsScreen({
     }
     setBusy(true);
     try {
-      await shareBackupFile(await createBackupFile(database));
-      showToast(t('common.backupReady'));
+      const fileUri = await createBackupFile(database);
+      try {
+        await shareBackupFile(fileUri);
+        showToast(t('common.backupReady'));
+      } finally {
+        // Best-effort: file backup tidak menumpuk setelah dibagikan.
+        await FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => undefined);
+      }
     } catch {
       showToast(t('errors.storage'));
     } finally {
