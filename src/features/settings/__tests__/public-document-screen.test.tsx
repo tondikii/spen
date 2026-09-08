@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 
 import { PublicDocumentScreen, termsDocument } from '@/features/settings';
 import { AppThemeProvider } from '@/providers/theme-provider';

@@ -5,11 +5,7 @@ import { AppError } from '@/utils/app-error';
 import { todayISO } from '@/utils/date';
 import { parseRequiredPrefixedId, withExclusiveWrite } from '@/lib/db-helpers';
 import { SYSTEM_CATEGORY_NAMES } from '@/utils/domain/constants';
-import {
-  getDatabaseTransaction,
-  getDatabaseTransactionCategories,
-  saveDatabaseTransaction,
-} from '@/features/transactions';
+import { getDatabaseTransaction } from '@/features/transactions';
 import { getWallet, getWallets } from '@/features/wallet';
 import type { Goal, GoalProgress, Transaction, Wallet } from '@/types/domain';
 import type { GoalRow } from '@/types/db-rows';

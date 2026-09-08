@@ -6,9 +6,11 @@ describe('web locale resolution', () => {
     expect(resolveWebLocale('?lang=id', 'en-US')).toBe('id');
   });
 
-  it('uses the browser language and falls back to Bahasa Indonesia', () => {
+  it('uses the browser language and falls back to English', () => {
     expect(resolveWebLocale('', 'en-US')).toBe('en');
-    expect(resolveWebLocale('', 'fr-FR')).toBe('id');
-    expect(resolveWebLocale()).toBe('id');
+    expect(resolveWebLocale('', 'id-ID')).toBe('id');
+    expect(resolveWebLocale('', 'fr-FR')).toBe('en');
+    expect(resolveWebLocale('?lang=fr', 'en-US')).toBe('en');
+    expect(resolveWebLocale()).toBe('en');
   });
 });

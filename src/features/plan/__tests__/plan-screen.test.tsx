@@ -238,8 +238,7 @@ function renderScreen(
 
 describe('PlanScreen', () => {
   it('menampilkan ringkasan plan yang ringkas bersama section plan', async () => {
-    const { getAllByText, getByLabelText, getByText, queryByLabelText, queryByText } =
-      await renderScreen();
+    const { getAllByText, getByText, queryByLabelText, queryByText } = await renderScreen();
 
     expect(getByText('SISA ANGGARAN')).toBeTruthy();
     expect(getByText('masih bisa dialokasikan')).toBeTruthy();
