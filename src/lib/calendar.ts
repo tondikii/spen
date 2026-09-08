@@ -43,5 +43,7 @@ export function getWeekdayLabels(locale: string) {
 
 /** "September 2026"-style label for a `YYYY-MM` string. */
 export function formatCalendarMonth(month: string, locale: string) {
-  return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(parseDay(month));
+  return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(
+    parseDay(month),
+  );
 }

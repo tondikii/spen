@@ -4,7 +4,12 @@ import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { MotionAnimatedView, MotionPulse, MotionPressable as Pressable, motionPresets } from '@/components/motion';
+import {
+  MotionAnimatedView,
+  MotionPulse,
+  MotionPressable as Pressable,
+  motionPresets,
+} from '@/components/motion';
 
 type Props = {
   open: boolean;
@@ -18,13 +23,30 @@ type Props = {
   children?: React.ReactNode;
 };
 
-export function AiSheet({ open, onClose, loading, source, title, fallbackNote, loadingTitle, loadingSubtitle, children }: Props) {
+export function AiSheet({
+  open,
+  onClose,
+  loading,
+  source,
+  title,
+  fallbackNote,
+  loadingTitle,
+  loadingSubtitle,
+  children,
+}: Props) {
   const theme = useTheme();
   const { t } = useTranslation();
   return (
     <Modal transparent animationType="slide" visible={open} onRequestClose={onClose}>
-      <Pressable wrapperStyle={{ flex: 1 }} style={[styles.overlay, { backgroundColor: theme.overlay }]} onPress={onClose}>
-        <MotionAnimatedView entering={motionPresets.itemEntering} style={[styles.sheet, { backgroundColor: theme.card }]}>
+      <Pressable
+        wrapperStyle={{ flex: 1 }}
+        style={[styles.overlay, { backgroundColor: theme.overlay }]}
+        onPress={onClose}
+      >
+        <MotionAnimatedView
+          entering={motionPresets.itemEntering}
+          style={[styles.sheet, { backgroundColor: theme.card }]}
+        >
           <ThemedText type="sectionHeading">✦ {title ?? t('common.aiSuggestion')}</ThemedText>
           {loading ? (
             <MotionPulse style={styles.loading}>

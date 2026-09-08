@@ -81,6 +81,4 @@ describe('ReportScreen', () => {
 
     expect(getByText('6 bulan')).toBeTruthy();
   });
-
-
 });

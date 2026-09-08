@@ -25,7 +25,10 @@ function daysInMonth(year: number, month: number): number {
 function addMonths(date: string, months: number, anchorDay?: number): string {
   const [year, month, day] = date.split('-').map(Number);
   const value = new Date(Date.UTC(year, month - 1 + months, 1, 12));
-  const effectiveDay = Math.min(anchorDay ?? day, daysInMonth(value.getUTCFullYear(), value.getUTCMonth() + 1));
+  const effectiveDay = Math.min(
+    anchorDay ?? day,
+    daysInMonth(value.getUTCFullYear(), value.getUTCMonth() + 1),
+  );
   return `${value.getUTCFullYear()}-${String(value.getUTCMonth() + 1).padStart(2, '0')}-${String(effectiveDay).padStart(2, '0')}`;
 }
 

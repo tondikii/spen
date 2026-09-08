@@ -326,7 +326,9 @@ function WalletForm(props: WalletFormProps) {
             />
             <MoneyField
               label={
-                props.mode === 'edit' ? t('common.currentBalanceLabel') : t('common.startingBalanceLabel')
+                props.mode === 'edit'
+                  ? t('common.currentBalanceLabel')
+                  : t('common.startingBalanceLabel')
               }
               value={amount}
               onChangeText={(value) => setAmount(formatMoneyInput(value))}

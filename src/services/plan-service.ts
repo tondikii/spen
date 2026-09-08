@@ -95,7 +95,14 @@ function toGoal(row: GoalRow): Goal {
 function databaseId(value: string | number) {
   return parseRequiredPrefixedId(
     value,
-    ['category-', 'wallet-', 'income-item-', 'expense-item-', 'fixed-expense-item-', 'allocation-item-'],
+    [
+      'category-',
+      'wallet-',
+      'income-item-',
+      'expense-item-',
+      'fixed-expense-item-',
+      'allocation-item-',
+    ],
     `ID plan tidak valid: ${value}`,
   );
 }

@@ -90,7 +90,9 @@ export default function CreateTransactionScreen() {
     <TransactionForm
       mode={transaction ? 'edit' : 'create'}
       transaction={transaction}
-      initialType={type === 'income' || type === 'expense' || type === 'transfer' ? type : undefined}
+      initialType={
+        type === 'income' || type === 'expense' || type === 'transfer' ? type : undefined
+      }
       initialCategoryId={categoryId}
       initialAmount={amount ? Number(amount) : undefined}
       initialWalletId={walletId}

@@ -28,7 +28,11 @@ export function WalletPicker({
   const theme = useTheme();
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.picker}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.picker}
+    >
       {wallets
         .filter((wallet) => wallet.id !== exclude)
         .map((wallet) => (

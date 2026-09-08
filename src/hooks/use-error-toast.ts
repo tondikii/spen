@@ -5,9 +5,6 @@ import { getErrorTranslationKey } from '@/lib/app-error';
 
 export function useErrorToast() {
   const { t } = useTranslation();
-  const getMessage = useCallback(
-    (cause: unknown) => t(getErrorTranslationKey(cause)),
-    [t],
-  );
+  const getMessage = useCallback((cause: unknown) => t(getErrorTranslationKey(cause)), [t]);
   return { getMessage };
 }

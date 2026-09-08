@@ -11,4 +11,15 @@ export const SYSTEM_CATEGORY_NAMES = {
   fallbackExpense: 'Belanja',
 } as const;
 
-export const CURRENCY_CODES = ['IDR', 'USD', 'SGD', 'MYR', 'EUR', 'GBP', 'JPY', 'AUD', 'SAR', 'AED'] as const;
+export const CURRENCY_CODES = [
+  'IDR',
+  'USD',
+  'SGD',
+  'MYR',
+  'EUR',
+  'GBP',
+  'JPY',
+  'AUD',
+  'SAR',
+  'AED',
+] as const;

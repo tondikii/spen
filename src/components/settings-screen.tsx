@@ -131,9 +131,7 @@ export default function SettingsScreen({
             <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
               {t('common.appearance')}
             </ThemedText>
-            <BoxedCard
-              style={styles.group}
-            >
+            <BoxedCard style={styles.group}>
               <SettingRow
                 icon="☼"
                 iconStyle={styles.themeIcon}
@@ -153,9 +151,7 @@ export default function SettingsScreen({
             <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
               {t('common.preferences')}
             </ThemedText>
-            <BoxedCard
-              style={styles.group}
-            >
+            <BoxedCard style={styles.group}>
               <SettingRow
                 icon="文"
                 iconStyle={styles.smallIcon}
@@ -216,9 +212,7 @@ export default function SettingsScreen({
             <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
               {t('common.data')}
             </ThemedText>
-            <BoxedCard
-              style={styles.group}
-            >
+            <BoxedCard style={styles.group}>
               <ActionRow
                 icon="↓"
                 iconStyle={styles.dataIcon}
@@ -241,9 +235,7 @@ export default function SettingsScreen({
             <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
               {t('common.help')}
             </ThemedText>
-            <BoxedCard
-              style={styles.group}
-            >
+            <BoxedCard style={styles.group}>
               <ActionRow
                 icon="?"
                 title={t('common.faq')}

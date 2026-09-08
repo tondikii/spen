@@ -47,7 +47,7 @@ export function MonthCalendar({
   isDisabled?: (date: string) => boolean;
   /** Also disable dates outside the visible month. */
   disableOutOfMonth?: boolean;
-/** Selected-day styling: `mint` (tinted bg + pine text) or `pine` (inverse). */
+  /** Selected-day styling: `mint` (tinted bg + pine text) or `pine` (inverse). */
   selectedVariant?: 'mint' | 'pine';
   /** Accessibility label per day cell; defaults to `common.selectTransactionDate`. */
   dayAccessibilityLabel?: (date: string) => string;
@@ -112,12 +112,7 @@ export function MonthCalendar({
               wrapperStyle={styles.calendarCell}
               style={[styles.calendarPressable, disabled && { opacity: 0.35 }]}
             >
-              <View
-                style={[
-                  styles.calendarDay,
-                  isSelected && { backgroundColor: theme.pine },
-                ]}
-              >
+              <View style={[styles.calendarDay, isSelected && { backgroundColor: theme.pine }]}>
                 <ThemedText
                   type={isSelected ? 'smallBold' : 'small'}
                   themeColor={isSelected ? 'heroText' : calendarDate.inMonth ? 'ink' : 'muted'}

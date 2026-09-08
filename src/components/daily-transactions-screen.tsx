@@ -204,7 +204,6 @@ function SummaryItem({
   );
 }
 
-
 function formatDateLabel(date: string) {
   return new Intl.DateTimeFormat(getIntlLocale(i18n.language === 'en' ? 'en' : 'id'), {
     day: 'numeric',
@@ -220,7 +219,6 @@ function formatFullDate(date: string) {
     year: 'numeric',
   }).format(new Date(`${date}T12:00:00`));
 }
-
 
 const styles = StyleSheet.create({
   page: { flex: 1 },

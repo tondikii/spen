@@ -110,10 +110,10 @@ export function TransactionForm({
       : (transaction?.type ??
         initialType ??
         (initialSystemCategoryKey
-            ? (categoriesProp ?? getActiveTransactionCategories()).find(
-                (category) => category.systemKey === initialSystemCategoryKey,
-              )?.type
-            : undefined) ??
+          ? (categoriesProp ?? getActiveTransactionCategories()).find(
+              (category) => category.systemKey === initialSystemCategoryKey,
+            )?.type
+          : undefined) ??
         'income');
   const [type, setType] = useState<TransactionType>(resolvedInitialType);
   const [walletId, setWalletId] = useState(
@@ -176,7 +176,9 @@ export function TransactionForm({
     (category) => category.id === categoryId && category.isAdjustment,
   );
   const isInternalCategory = internalCategory !== undefined;
-  const effectiveType: TransactionType = isInternalCategory ? (internalCategory?.type ?? type) : type;
+  const effectiveType: TransactionType = isInternalCategory
+    ? (internalCategory?.type ?? type)
+    : type;
 
   const toggleCalendar = () => {
     if (!calendarOpen) setCalendarMonth(date.slice(0, 7));
@@ -463,9 +465,7 @@ export function TransactionForm({
                   >
                     <CategoryIcon name={internalCategory.icon} color={theme.pine} />
                     <View style={styles.internalCategoryCopy}>
-                      <ThemedText type="smallBold">
-                        {getCategoryLabel(internalCategory)}
-                      </ThemedText>
+                      <ThemedText type="smallBold">{getCategoryLabel(internalCategory)}</ThemedText>
                       <ThemedText type="small" themeColor="muted">
                         {t('common.openingBalanceNote')}
                       </ThemedText>

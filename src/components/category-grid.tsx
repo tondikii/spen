@@ -38,7 +38,11 @@ export function CategoryGrid({ categories, selectedId, onSelect, columns = 4, em
   }
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.container}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.container}
+    >
       {categories.map((category) => (
         <Pressable
           key={category.id}
@@ -77,7 +81,12 @@ export function IconGrid({
   const theme = useTheme();
   const rows = useMemo(() => chunk([...icons], columns), [icons, columns]);
   return (
-    <ScrollView style={styles.iconScroll} contentContainerStyle={styles.iconGrid} nestedScrollEnabled showsVerticalScrollIndicator>
+    <ScrollView
+      style={styles.iconScroll}
+      contentContainerStyle={styles.iconGrid}
+      nestedScrollEnabled
+      showsVerticalScrollIndicator
+    >
       {rows.map((row, rowIndex) => (
         <View key={`row-${rowIndex}`} style={styles.iconRow}>
           {row.map((icon) => (

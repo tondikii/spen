@@ -108,7 +108,11 @@ export function saveMockTransaction(
 }
 
 function databaseId(value: string | null) {
-  return parsePrefixedId(value, ['wallet-', 'category-', 'transaction-', 'expense-item-', 'income-item-'], `ID database tidak valid: ${value}`);
+  return parsePrefixedId(
+    value,
+    ['wallet-', 'category-', 'transaction-', 'expense-item-', 'income-item-'],
+    `ID database tidak valid: ${value}`,
+  );
 }
 
 export function getLocalDateInput(date = new Date()) {
@@ -196,8 +200,6 @@ export async function getDatabaseTransactionCategories(
     isAdjustment: Boolean(row.is_adjustment),
   }));
 }
-
-
 
 function validateDraft(draft: TransactionDraft, today = getLocalDateInput()) {
   if (!draft.walletId || !Number.isSafeInteger(draft.amount) || draft.amount <= 0) {

@@ -35,7 +35,9 @@ export function DateField({ label, value, onChange, minDate, maxDate }: Props) {
         onPress={() => setOpen((c) => !c)}
         style={[styles.dateButton, { borderColor: theme.line }]}
       >
-        <ThemedText type="smallBold">{formatDate(value, i18n.language === 'en' ? 'en' : 'id')}</ThemedText>
+        <ThemedText type="smallBold">
+          {formatDate(value, i18n.language === 'en' ? 'en' : 'id')}
+        </ThemedText>
         <ThemedText type="small" themeColor="muted">
           {t('common.openCalendar')}
         </ThemedText>

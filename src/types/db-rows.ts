@@ -1,4 +1,9 @@
-export type PeriodRow = { id: number; start_date: string; end_date: string; duration_months: number };
+export type PeriodRow = {
+  id: number;
+  start_date: string;
+  end_date: string;
+  duration_months: number;
+};
 export type GoalRow = {
   id: number;
   name: string;

@@ -1,4 +1,3 @@
-
 import {
   useEffect,
   useState,
@@ -56,7 +55,7 @@ const ClipPathCompat = ClipPath as unknown as ComponentType<{
 type ReportView =
   ReturnType<typeof getReportView> | Awaited<ReturnType<typeof getDatabaseReportView>>;
 
-  function ReportScreenContent({
+function ReportScreenContent({
   reportView = getReportView(),
   onRangeChange,
   onPeriodStartDayChange,

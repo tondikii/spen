@@ -50,8 +50,6 @@ const walletBalanceSql = `
   LEFT JOIN transactions t ON t.wallet_id = w.id OR t.to_wallet_id = w.id
 `;
 
-
-
 async function getInternalCategoryId(database: SQLiteDatabase, categoryName: string) {
   const category = await database.getFirstAsync<{ id: number }>(
     `SELECT id FROM categories WHERE name = ? AND is_adjustment = 1 LIMIT 1;`,

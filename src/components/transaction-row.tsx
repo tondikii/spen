@@ -50,7 +50,9 @@ export function TransactionRow({
   return (
     <MotionPressable
       accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={onPress && accessibilityLabel ? accessibilityLabel(categoryName) : undefined}
+      accessibilityLabel={
+        onPress && accessibilityLabel ? accessibilityLabel(categoryName) : undefined
+      }
       onPress={onPress}
       style={[styles.row, { borderBottomColor: theme.line }, style]}
     >

@@ -13,7 +13,8 @@ export function parsePrefixedId(
 ): number | null {
   if (value === null || value === '') return null;
   if (typeof value === 'number') {
-    if (!Number.isInteger(value) || value < 1) throw new AppError('validation', undefined, errorMessage);
+    if (!Number.isInteger(value) || value < 1)
+      throw new AppError('validation', undefined, errorMessage);
     return value;
   }
   let stripped = String(value);

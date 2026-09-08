@@ -16,7 +16,11 @@ import type { GoalRow } from '@/types/db-rows';
 export type GoalDraft = Omit<Goal, 'id' | 'archived'>;
 
 function databaseId(value: string | number) {
-  return parseRequiredPrefixedId(value, ['goal-', 'wallet-'], `ID Goal/Wallet tidak valid: ${value}`);
+  return parseRequiredPrefixedId(
+    value,
+    ['goal-', 'wallet-'],
+    `ID Goal/Wallet tidak valid: ${value}`,
+  );
 }
 
 function toGoal(row: GoalRow): Goal {

@@ -60,7 +60,6 @@ type PlanAction = {
   tone?: 'default' | 'danger' | 'primary';
 };
 
-
 function PlanSummaryCard({ snapshot }: { snapshot: PlanView['snapshot'] }) {
   const theme = useTheme();
   const { t } = useTranslation();
@@ -701,54 +700,52 @@ function PlanPaymentModal({
           inputStyle={styles.goalInput}
         />
         <FieldLabel>{t('common.transactionDate')}</FieldLabel>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('common.openCalendar')}
-                onPress={() => setCalendarOpen((current) => !current)}
-                style={[styles.dateButton, { borderColor: theme.line }]}
-              >
-                <ThemedText type="smallBold">
-                  {formatDate(date, i18n.language === 'en' ? 'en' : 'id')}
-                </ThemedText>
-                <ThemedText type="small" themeColor="muted">
-                  {t('common.openCalendar')}
-                </ThemedText>
-              </Pressable>
-              {calendarOpen && (
-                <MonthCalendar
-                  month={calendarMonth}
-                  selected={date}
-                  maxMonth={today.slice(0, 7)}
-                  onSelect={(candidate) => {
-                    setDate(candidate);
-                    setCalendarOpen(false);
-                  }}
-                  onMonthChange={setCalendarMonth}
-                  isDisabled={(candidate) =>
-                    candidate > today || (minDate ? candidate < minDate : false)
-                  }
-                  selectedVariant="mint"
-                />
-              )}
-              {showWalletPicker && (
-                <>
-                  <FieldLabel>{t('common.sourceWallet')}</FieldLabel>
-                  <WalletPicker wallets={activeWallets} selected={walletId} onSelect={setWalletId} />
-                </>
-              )}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t(
-                  showWalletPicker ? 'common.confirmPayment' : 'common.saveGoalMoney',
-                )}
-                onPress={submit}
-                style={[styles.saveGoal, { backgroundColor: theme.pine }]}
-              >
-                <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-                  {t(showWalletPicker ? 'common.confirmPayment' : 'common.saveGoalMoney')}
-                </ThemedText>
-              </Pressable>
-            </ScrollView>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('common.openCalendar')}
+          onPress={() => setCalendarOpen((current) => !current)}
+          style={[styles.dateButton, { borderColor: theme.line }]}
+        >
+          <ThemedText type="smallBold">
+            {formatDate(date, i18n.language === 'en' ? 'en' : 'id')}
+          </ThemedText>
+          <ThemedText type="small" themeColor="muted">
+            {t('common.openCalendar')}
+          </ThemedText>
+        </Pressable>
+        {calendarOpen && (
+          <MonthCalendar
+            month={calendarMonth}
+            selected={date}
+            maxMonth={today.slice(0, 7)}
+            onSelect={(candidate) => {
+              setDate(candidate);
+              setCalendarOpen(false);
+            }}
+            onMonthChange={setCalendarMonth}
+            isDisabled={(candidate) => candidate > today || (minDate ? candidate < minDate : false)}
+            selectedVariant="mint"
+          />
+        )}
+        {showWalletPicker && (
+          <>
+            <FieldLabel>{t('common.sourceWallet')}</FieldLabel>
+            <WalletPicker wallets={activeWallets} selected={walletId} onSelect={setWalletId} />
+          </>
+        )}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t(
+            showWalletPicker ? 'common.confirmPayment' : 'common.saveGoalMoney',
+          )}
+          onPress={submit}
+          style={[styles.saveGoal, { backgroundColor: theme.pine }]}
+        >
+          <ThemedText type="smallBold" style={{ color: theme.heroText }}>
+            {t(showWalletPicker ? 'common.confirmPayment' : 'common.saveGoalMoney')}
+          </ThemedText>
+        </Pressable>
+      </ScrollView>
     </SheetModal>
   );
 }
@@ -886,146 +883,146 @@ function PlanItemFormModal({
                 selectedVariant="mint"
               />
             )}
-            </>
-          )}
-          <View style={styles.categoryLabelRow}>
-                <FieldLabel>{t('common.category')}</FieldLabel>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={t('common.addCategoryFromPlan')}
-                  onPress={() => setCategoryEditorOpen(true)}
-                >
-                  <ThemedText type="smallBold" themeColor="pine">
-                    {t('common.add')}
-                  </ThemedText>
-                </Pressable>
-              </View>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.goalWallets}
-              >
-                {options.map((category) => (
-                  <Pressable
-                    key={category.id}
-                    wrapperStyle={styles.planCategoryCell}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('common.categoryFor', {
-                      name: getCategoryLabel(category),
-                    })}
-                    onPress={() => setCategoryId(category.id)}
-                    style={[
-                      styles.planCategoryChoice,
-                      {
-                        borderColor: categoryId === category.id ? theme.pine : theme.line,
-                        backgroundColor: categoryId === category.id ? theme.mint : theme.card,
-                      },
-                    ]}
-                  >
-                    <CategoryIcon name={category.icon} color={theme.pine} size={18} />
-                    <ThemedText type="smallBold" style={styles.planCategoryName}>
-                      {getCategoryLabel(category)}
-                    </ThemedText>
-                  </Pressable>
-                ))}
-              </ScrollView>
-              {options.length === 0 && (
-                <ThemedText type="small" style={{ color: theme.expense }}>
-                  {t('common.noMatchingCategory')}
-                </ThemedText>
-              )}
-              {categoryEditorOpen && (
-                <View
-                  style={[
-                    styles.inlineCategoryEditor,
-                    { borderColor: theme.line, backgroundColor: theme.background },
-                  ]}
-                >
-                  <View style={styles.categoryEditorHeader}>
-                    <ThemedText type="smallBold">{t('common.addCategory')}</ThemedText>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={t('common.cancelCategoryEdit')}
-                      onPress={() => {
-                        setCategoryEditorOpen(false);
-                        setCategoryName('');
-                      }}
-                      hitSlop={8}
-                    >
-                      <ThemedText type="smallBold" style={{ color: theme.expense }}>
-                        {t('common.cancel')}
-                      </ThemedText>
-                    </Pressable>
-                  </View>
-                  <ThemedInput
-                    accessibilityLabel={t('common.newCategory')}
-                    placeholder={t('common.categoryName')}
-                    value={categoryName}
-                    onChangeText={setCategoryName}
-                    style={styles.goalInput}
-                  />
-                  <ScrollView
-                    style={styles.planIconScroll}
-                    contentContainerStyle={styles.planIconGrid}
-                    nestedScrollEnabled
-                    showsVerticalScrollIndicator
-                  >
-                    {iconRows.map((row, rowIndex) => (
-                      <View key={`plan-icon-row-${rowIndex}`} style={styles.planIconRow}>
-                        {row.map((icon) => (
-                          <Pressable
-                            key={icon}
-                            wrapperStyle={styles.planIconCell}
-                            accessibilityRole="button"
-                            accessibilityLabel={t('common.chooseIcon', { icon })}
-                            onPress={() => setCategoryIcon(icon)}
-                            style={[
-                              styles.planIconChoice,
-                              {
-                                borderColor: icon === categoryIcon ? theme.pine : theme.line,
-                                backgroundColor: icon === categoryIcon ? theme.mint : theme.card,
-                              },
-                            ]}
-                          >
-                            <CategoryIcon name={icon} color={theme.pine} size={18} />
-                          </Pressable>
-                        ))}
-                      </View>
-                    ))}
-                  </ScrollView>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t('common.saveCategory')}
-                    disabled={!categoryName.trim()}
-                    onPress={() => void saveCategory()}
-                    style={({ pressed }) => [
-                      styles.planSaveCategory,
-                      {
-                        backgroundColor: categoryName.trim() ? theme.pine : theme.line,
-                        opacity: pressed ? 0.78 : 1,
-                      },
-                    ]}
-                  >
-                    <ThemedText
-                      type="smallBold"
-                      style={{ color: categoryName.trim() ? theme.heroText : theme.muted }}
-                    >
-                      {t('common.saveCategory')}
-                    </ThemedText>
-                  </Pressable>
-                </View>
-              )}
+          </>
+        )}
+        <View style={styles.categoryLabelRow}>
+          <FieldLabel>{t('common.category')}</FieldLabel>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('common.addCategoryFromPlan')}
+            onPress={() => setCategoryEditorOpen(true)}
+          >
+            <ThemedText type="smallBold" themeColor="pine">
+              {t('common.add')}
+            </ThemedText>
+          </Pressable>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.goalWallets}
+        >
+          {options.map((category) => (
+            <Pressable
+              key={category.id}
+              wrapperStyle={styles.planCategoryCell}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.categoryFor', {
+                name: getCategoryLabel(category),
+              })}
+              onPress={() => setCategoryId(category.id)}
+              style={[
+                styles.planCategoryChoice,
+                {
+                  borderColor: categoryId === category.id ? theme.pine : theme.line,
+                  backgroundColor: categoryId === category.id ? theme.mint : theme.card,
+                },
+              ]}
+            >
+              <CategoryIcon name={category.icon} color={theme.pine} size={18} />
+              <ThemedText type="smallBold" style={styles.planCategoryName}>
+                {getCategoryLabel(category)}
+              </ThemedText>
+            </Pressable>
+          ))}
+        </ScrollView>
+        {options.length === 0 && (
+          <ThemedText type="small" style={{ color: theme.expense }}>
+            {t('common.noMatchingCategory')}
+          </ThemedText>
+        )}
+        {categoryEditorOpen && (
+          <View
+            style={[
+              styles.inlineCategoryEditor,
+              { borderColor: theme.line, backgroundColor: theme.background },
+            ]}
+          >
+            <View style={styles.categoryEditorHeader}>
+              <ThemedText type="smallBold">{t('common.addCategory')}</ThemedText>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={t('common.savePlanItem')}
-                onPress={submit}
-                style={[styles.saveGoal, { backgroundColor: theme.pine }]}
+                accessibilityLabel={t('common.cancelCategoryEdit')}
+                onPress={() => {
+                  setCategoryEditorOpen(false);
+                  setCategoryName('');
+                }}
+                hitSlop={8}
               >
-                <ThemedText type="smallBold" style={{ color: theme.heroText }}>
-                  {item ? t('common.saveChanges') : t('common.saveItem')}
+                <ThemedText type="smallBold" style={{ color: theme.expense }}>
+                  {t('common.cancel')}
                 </ThemedText>
               </Pressable>
+            </View>
+            <ThemedInput
+              accessibilityLabel={t('common.newCategory')}
+              placeholder={t('common.categoryName')}
+              value={categoryName}
+              onChangeText={setCategoryName}
+              style={styles.goalInput}
+            />
+            <ScrollView
+              style={styles.planIconScroll}
+              contentContainerStyle={styles.planIconGrid}
+              nestedScrollEnabled
+              showsVerticalScrollIndicator
+            >
+              {iconRows.map((row, rowIndex) => (
+                <View key={`plan-icon-row-${rowIndex}`} style={styles.planIconRow}>
+                  {row.map((icon) => (
+                    <Pressable
+                      key={icon}
+                      wrapperStyle={styles.planIconCell}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('common.chooseIcon', { icon })}
+                      onPress={() => setCategoryIcon(icon)}
+                      style={[
+                        styles.planIconChoice,
+                        {
+                          borderColor: icon === categoryIcon ? theme.pine : theme.line,
+                          backgroundColor: icon === categoryIcon ? theme.mint : theme.card,
+                        },
+                      ]}
+                    >
+                      <CategoryIcon name={icon} color={theme.pine} size={18} />
+                    </Pressable>
+                  ))}
+                </View>
+              ))}
             </ScrollView>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('common.saveCategory')}
+              disabled={!categoryName.trim()}
+              onPress={() => void saveCategory()}
+              style={({ pressed }) => [
+                styles.planSaveCategory,
+                {
+                  backgroundColor: categoryName.trim() ? theme.pine : theme.line,
+                  opacity: pressed ? 0.78 : 1,
+                },
+              ]}
+            >
+              <ThemedText
+                type="smallBold"
+                style={{ color: categoryName.trim() ? theme.heroText : theme.muted }}
+              >
+                {t('common.saveCategory')}
+              </ThemedText>
+            </Pressable>
+          </View>
+        )}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('common.savePlanItem')}
+          onPress={submit}
+          style={[styles.saveGoal, { backgroundColor: theme.pine }]}
+        >
+          <ThemedText type="smallBold" style={{ color: theme.heroText }}>
+            {item ? t('common.saveChanges') : t('common.saveItem')}
+          </ThemedText>
+        </Pressable>
+      </ScrollView>
     </SheetModal>
   );
 }
