@@ -1,7 +1,28 @@
 import * as Notifications from 'expo-notifications';
 import { Linking, Platform } from 'react-native';
 
-export type NotificationPermissionStatus = 'granted' | 'denied' | 'undetermined' | 'unsupported';
+import type {
+  NotificationPermissionStatus,
+  NotificationResponseSubscription,
+  ReminderNotificationRequest,
+  ScheduledReminderNotification,
+} from './notification-service.types';
+
+export type {
+  NotificationPermissionStatus,
+  NotificationResponseSubscription,
+  ReminderNotificationRequest,
+  ScheduledReminderNotification,
+} from './notification-service.types';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 function normalizePermission(
   settings: Notifications.NotificationPermissionsStatus,
@@ -36,6 +57,54 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 
 export async function cancelAllReminderNotifications(): Promise<void> {
   await Notifications.cancelAllScheduledNotificationsAsync();
+}
+
+export async function scheduleReminderNotification(
+  request: ReminderNotificationRequest,
+): Promise<void> {
+  await ensureReminderChannel();
+  await Notifications.scheduleNotificationAsync({
+    identifier: request.identifier,
+    content: {
+      title: request.title,
+      body: request.body,
+      data: request.data,
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: request.triggerAt,
+      channelId: 'spen-reminders',
+    },
+  });
+}
+
+export async function getScheduledReminderNotifications(): Promise<
+  ScheduledReminderNotification[]
+> {
+  const notifications = await Notifications.getAllScheduledNotificationsAsync();
+  return notifications.map((notification) => ({
+    identifier: notification.identifier,
+    data: notification.content.data ?? {},
+  }));
+}
+
+export async function cancelReminderNotification(identifier: string): Promise<void> {
+  await Notifications.cancelScheduledNotificationAsync(identifier);
+}
+
+export function addNotificationResponseListener(
+  handler: (data: Record<string, unknown>) => void,
+): NotificationResponseSubscription {
+  return Notifications.addNotificationResponseReceivedListener((response) => {
+    handler(response.notification.request.content.data ?? {});
+  });
+}
+
+export async function consumeLastNotificationResponseData(): Promise<Record<string, unknown> | null> {
+  const response = await Notifications.getLastNotificationResponseAsync();
+  if (!response) return null;
+  await Notifications.clearLastNotificationResponseAsync();
+  return response.notification.request.content.data ?? {};
 }
 
 export async function openNotificationSettings(): Promise<void> {

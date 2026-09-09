@@ -1,6 +1,6 @@
-import { DarkTheme, DefaultTheme, ThemeProvider, usePathname } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider, router, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
@@ -26,6 +26,11 @@ import migrations from '../../drizzle/migrations';
 import { privacyDocument, termsDocument } from '@/lib/public-documents';
 import i18n, { changeLocale } from '@/i18n';
 import { MotionPressable } from '@/components/motion';
+import {
+  addNotificationResponseListener,
+  consumeLastNotificationResponseData,
+} from '@/services/notification-service';
+import { reconcileTransactionReminders } from '@/services/reminder-reconciler';
 
 function AppNavigation({ initialSetupComplete }: { initialSetupComplete: boolean }) {
   const { colorScheme } = useAppTheme();
@@ -56,6 +61,24 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
   const [setupComplete, setSetupComplete] = useState(false);
   const [themeMode, setThemeMode] = useState<'system' | 'light' | 'dark'>('light');
   const [startupSplash, setStartupSplash] = useState(true);
+  const handledReminderRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const handleResponse = (data: Record<string, unknown>) => {
+      if (data.reminderKind !== 'transaction-daily' || data.route !== '/create') return;
+      const reminderId = typeof data.reminderId === 'string' ? data.reminderId : null;
+      if (reminderId && handledReminderRef.current === reminderId) return;
+      handledReminderRef.current = reminderId;
+      router.push('/create' as never);
+    };
+    const subscription = addNotificationResponseListener(handleResponse);
+    void consumeLastNotificationResponseData()
+      .then((data) => {
+        if (data) handleResponse(data);
+      })
+      .catch(() => undefined);
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     if (!success) return;
@@ -70,6 +93,7 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
         setSelectedLocale(settings.locale as 'id' | 'en');
         await changeLocale(settings.locale);
         setThemeMode(settings.themeMode as 'system' | 'light' | 'dark');
+        void reconcileTransactionReminders(sqlite).catch(() => undefined);
         if (!cancelled) {
           setSetupComplete(setup.hasWallet);
           setSeeded(true);

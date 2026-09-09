@@ -44,6 +44,7 @@ import {
   requestNotificationPermission,
   type NotificationPermissionStatus,
 } from '@/services/notification-service';
+import { reconcileTransactionReminders } from '@/services/reminder-reconciler';
 import { ThemedInput } from '@/components/themed-input';
 import { changeLocale } from '@/i18n';
 import { getPublicDocumentUrl } from '@/lib/public-documents';
@@ -132,6 +133,7 @@ export default function SettingsScreen({
       setReminders(saved);
       setReminderTimeDraft(saved.transactionReminderTime);
       setPermissionStatus(permission);
+      if (database) void reconcileTransactionReminders(database).catch(() => undefined);
     } catch {
       showToast(t('errors.storage'));
     }
@@ -166,6 +168,7 @@ export default function SettingsScreen({
       const next = database ? await setDatabaseLocale(database, option) : setSelectedLocale(option);
       setLocale(next);
       await changeLocale(next);
+      if (database) void reconcileTransactionReminders(database).catch(() => undefined);
       setLanguageOpen(false);
     } catch {
       showToast(t('errors.storage'));
