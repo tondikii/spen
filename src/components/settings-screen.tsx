@@ -15,7 +15,7 @@ import { ThemedView } from '@/components/themed-view';
 import { BoxedCard, PageHeader } from '@/components/ui-primitives';
 import { ConfirmationModal } from '@/components/confirmation-modal';
 import { useAppTheme } from '@/components/theme-provider';
-import { BottomTabInset, Fonts, Typography } from '@/constants/theme';
+import { BottomTabInset, Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
   createBackupFile,
@@ -130,7 +130,7 @@ export default function SettingsScreen({
       <MotionScreen>
         <SafeAreaView style={styles.safeArea}>
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-            <PageHeader eyebrow={t('common.settings').toUpperCase()} title={t('common.settings')} />
+            <PageHeader title={t('common.settings')} />
             <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
               {t('common.appearance')}
             </ThemedText>
@@ -425,7 +425,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   header: { marginBottom: 26, marginTop: 4 },
-  eyebrow: { marginBottom: 4, ...Typography.eyebrow },
   groupLabel: { marginBottom: 8, marginTop: 18 },
   group: { borderRadius: 19, overflow: 'hidden' },
   row: {

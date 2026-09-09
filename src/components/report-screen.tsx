@@ -24,7 +24,7 @@ import { ThemedView } from '@/components/themed-view';
 import { FinanceHeroCard } from '@/components/finance-hero-card';
 import { BudgetPeriodPicker } from '@/components/budget-period-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BottomTabInset, Fonts, Motion, Radius, Typography } from '@/constants/theme';
+import { BottomTabInset, Fonts, Motion, Radius } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoney } from '@/lib/money';
 import { aiService, type BudgetAIInput } from '@/services/ai-service';
@@ -158,9 +158,6 @@ type ReportView =
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <View>
-            <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-              {t('common.planEyebrow')}
-            </ThemedText>
             <ThemedText type="title">{t('common.report')}</ThemedText>
             <BudgetPeriodPicker
               period={period}
@@ -687,7 +684,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 20,
   },
-  eyebrow: { ...Typography.eyebrow },
   periodStepper: { alignItems: 'center', flexDirection: 'row', gap: 8, marginTop: 8 },
   stepperButton: {
     alignItems: 'center',
