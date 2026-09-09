@@ -24,12 +24,13 @@ Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · 
 
 ### Status malam 8 Sep
 ✅ **Selesai & isu ditutup**: T02 (#91), T03 (#84), T07 (#90), T09 (#85), T10 (#89), T11 (#88), T08 (#87). Tanpa isu: T12 (+not-found), T16 (CONTRIBUTING + release checklist), T17 (ADR typed routes), T21 (skeleton + provider, amandemen ADR-0009). D1 & D7 dikerjakan langsung (ADR-0010 + web locale).
-⬜ **Terbuka**: T04 (#82), T05 (#83), T06 (#86). Wave 2 backlog: T13, T15, T18, T19 (butuh produk/hosting), T20 (butuh produk).
+⬜ **Terbuka**: Wave 2 backlog: T13, T15, T18, T19 (butuh produk/hosting), T20 (butuh produk).
 
 ### Lanjutan otomatis 9 Sep
 ✅ **T01 (#81) selesai** — `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` aktif; `npm run verify` hijau (commit `2406480`, `06912d5`). Isu ditutup.
 ✅ **T04 (#82) selesai** — tipe milik fitur plan pindah ke `features/plan/model.ts` (commit `11d881f`); `domain.ts` hanya tipe lintas. Isu ditutup.
 ✅ **T05 (#83) selesai** — efektif turun: `transaction-form` 524→272, `transaction-category-picker` 489→312, `plan-repository` 532→347, `settings-screen` 467→126; sibling modul baru per fitur. Isu ditutup.
+✅ **T06 (#86) selesai** — `SettingsScreen` pure screen ADR-0008: props wajib (tanpa default longgar), DB/berkas/link pindah ke route adapter `(tabs)/settings/index.tsx`. Isu ditutup.
 
 ### Wave 0 — Baseline harian
 | ID | Tiket | Blocker | Status |
@@ -39,7 +40,7 @@ Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · 
 | T03 | Validasi route params eksplisit `(tabs)/create.tsx` (`amount` NaN, `categoryId`/`transactionId`) | — | open (GH) |
 | T04 | Pecah `src/types/domain.ts`: hapus legacy `@deprecated`, pindahkan tipe milik fitur, sisakan yang lintas | — | ✅ selesai & isu ditutup (9 Sep) |
 | T05 | Ekstraksi file >400 baris batch 1: `transaction-form.tsx` (512), `transaction-category-picker.tsx` (503), `plan-repository.ts` (553), `settings-screen.tsx` (467) | — | ✅ selesai & isu ditutup (9 Sep) |
-| T06 | `SettingsScreen` ikuti kontrak pure screen ADR-0008 (hapus props opsional + injeksi DB dari route) | — | open (GH) |
+| T06 | `SettingsScreen` ikuti kontrak pure screen ADR-0008 (hapus props opsional + injeksi DB dari route) | — | ✅ selesai & isu ditutup (9 Sep) |
 | T07 | Hentikan impor barrel fitur sendiri → path langsung (4 file: plan, setup, settings) | — | open (GH) |
 | T08 | Amandemen panduan (selaraskan §2/§4/§6/§14 + `db/migrations`→`drizzle/`, route-adapter, tanpa `.types.ts`, `docs/adr/`) + commit panduan ke `docs/` | D2–D6 | open (GH) |
 | T21 | Rapikan sisa refactor: hapus/konfirmasi `screen-skeleton.tsx` (tanpa konsumen); putuskan status provider (lapisan app) | — | open (backlog) |
