@@ -46,6 +46,7 @@ import {
 } from '@/services/notification-service';
 import {
   reconcileBudgetPeriodReminders,
+  reconcileGoalReminders,
   reconcileTransactionReminders,
 } from '@/services/reminder-reconciler';
 import { ThemedInput } from '@/components/themed-input';
@@ -139,6 +140,7 @@ export default function SettingsScreen({
       if (database) {
         void reconcileTransactionReminders(database).catch(() => undefined);
         void reconcileBudgetPeriodReminders(database).catch(() => undefined);
+        void reconcileGoalReminders(database).catch(() => undefined);
       }
     } catch {
       showToast(t('errors.storage'));
@@ -177,6 +179,7 @@ export default function SettingsScreen({
       if (database) {
         void reconcileTransactionReminders(database).catch(() => undefined);
         void reconcileBudgetPeriodReminders(database).catch(() => undefined);
+        void reconcileGoalReminders(database).catch(() => undefined);
       }
       setLanguageOpen(false);
     } catch {

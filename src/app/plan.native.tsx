@@ -21,7 +21,10 @@ import {
 import { DataState } from '@/components/screen-skeleton';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
-import { reconcileBudgetPeriodReminders } from '@/services/reminder-reconciler';
+import {
+  reconcileBudgetPeriodReminders,
+  reconcileGoalReminders,
+} from '@/services/reminder-reconciler';
 
 export default function PlanRoute() {
   const { t } = useTranslation();
@@ -29,6 +32,7 @@ export default function PlanRoute() {
   const read = useCallback(async () => {
     const result = await getBudgetGoalOverview(database);
     void reconcileBudgetPeriodReminders(database).catch(() => undefined);
+    void reconcileGoalReminders(database).catch(() => undefined);
     return result;
   }, [database]);
   const { data, error, retry } = useFocusedRead(read, t('common.planLoadError'));
@@ -118,10 +122,12 @@ export default function PlanRoute() {
       onGoalSave={async (goal, draft: GoalDraft) => {
         if (goal) await updateGoal(database, goal.id, draft);
         else await createGoal(database, draft);
+        await reconcileGoalReminders(database).catch(() => undefined);
         await load();
       }}
       onGoalArchive={async (goal) => {
         await archiveGoal(database, goal.id);
+        await reconcileGoalReminders(database).catch(() => undefined);
         await load();
       }}
       onGoalAllocate={async (goal, amount) => {
@@ -132,10 +138,12 @@ export default function PlanRoute() {
           walletId: goal.walletId,
           monthlyContribution: amount,
         });
+        await reconcileGoalReminders(database).catch(() => undefined);
         await load();
       }}
       onGoalWithdraw={async (goal, amount) => {
         if (amount > 0) await withdrawFromGoal(database, goal.id, amount);
+        await reconcileGoalReminders(database).catch(() => undefined);
         await load();
       }}
     />

@@ -32,6 +32,7 @@ import {
 } from '@/services/notification-service';
 import {
   reconcileBudgetPeriodReminders,
+  reconcileGoalReminders,
   reconcileTransactionReminders,
 } from '@/services/reminder-reconciler';
 import { getReminderRoute } from '@/services/reminder-navigation';
@@ -74,6 +75,13 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
       const reminderId = typeof data.reminderId === 'string' ? data.reminderId : null;
       if (reminderId && handledReminderRef.current === reminderId) return;
       handledReminderRef.current = reminderId;
+      if (route === '/plan' && data.reminderKind === 'goal-deadline') {
+        const goalId = typeof data.goalId === 'string' ? data.goalId : undefined;
+        router.push(
+          goalId ? ({ pathname: '/plan', params: { goalId } } as never) : (route as never),
+        );
+        return;
+      }
       router.push(route as never);
     };
     const subscription = addNotificationResponseListener(handleResponse);
@@ -100,6 +108,7 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
         setThemeMode(settings.themeMode as 'system' | 'light' | 'dark');
         void reconcileTransactionReminders(sqlite).catch(() => undefined);
         void reconcileBudgetPeriodReminders(sqlite).catch(() => undefined);
+        void reconcileGoalReminders(sqlite).catch(() => undefined);
         if (!cancelled) {
           setSetupComplete(setup.hasWallet);
           setSeeded(true);
