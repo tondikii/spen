@@ -28,6 +28,8 @@ Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · 
 
 ### Lanjutan otomatis 9 Sep
 ✅ **T01 (#81) selesai** — `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` aktif; `npm run verify` hijau (commit `2406480`, `06912d5`). Isu ditutup.
+✅ **T04 (#82) selesai** — tipe milik fitur plan pindah ke `features/plan/model.ts` (commit `11d881f`); `domain.ts` hanya tipe lintas. Isu ditutup.
+✅ **T05 (#83) selesai** — efektif turun: `transaction-form` 524→272, `transaction-category-picker` 489→312, `plan-repository` 532→347, `settings-screen` 467→126; sibling modul baru per fitur. Isu ditutup.
 
 ### Wave 0 — Baseline harian
 | ID | Tiket | Blocker | Status |
@@ -35,8 +37,8 @@ Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · 
 | T01 | tsconfig: `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` (bertahap; audit `undefined` ke prop opsional) | — | ✅ selesai & isu ditutup (9 Sep) |
 | T02 | Guard submit ganda + tangani rejection simpan di batas UI (`transaction-form`, `wallet-form`; pakai `useErrorToast`) | — | open (GH) |
 | T03 | Validasi route params eksplisit `(tabs)/create.tsx` (`amount` NaN, `categoryId`/`transactionId`) | — | open (GH) |
-| T04 | Pecah `src/types/domain.ts`: hapus legacy `@deprecated`, pindahkan tipe milik fitur, sisakan yang lintas | — | open (GH) |
-| T05 | Ekstraksi file >400 baris batch 1: `transaction-form.tsx` (512), `transaction-category-picker.tsx` (503), `plan-repository.ts` (553), `settings-screen.tsx` (467) | — | open (GH) |
+| T04 | Pecah `src/types/domain.ts`: hapus legacy `@deprecated`, pindahkan tipe milik fitur, sisakan yang lintas | — | ✅ selesai & isu ditutup (9 Sep) |
+| T05 | Ekstraksi file >400 baris batch 1: `transaction-form.tsx` (512), `transaction-category-picker.tsx` (503), `plan-repository.ts` (553), `settings-screen.tsx` (467) | — | ✅ selesai & isu ditutup (9 Sep) |
 | T06 | `SettingsScreen` ikuti kontrak pure screen ADR-0008 (hapus props opsional + injeksi DB dari route) | — | open (GH) |
 | T07 | Hentikan impor barrel fitur sendiri → path langsung (4 file: plan, setup, settings) | — | open (GH) |
 | T08 | Amandemen panduan (selaraskan §2/§4/§6/§14 + `db/migrations`→`drizzle/`, route-adapter, tanpa `.types.ts`, `docs/adr/`) + commit panduan ke `docs/` | D2–D6 | open (GH) |
