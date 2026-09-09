@@ -29,6 +29,8 @@ import { MotionPressable } from '@/components/motion';
 import {
   addNotificationResponseListener,
   consumeLastNotificationResponseData,
+  getNotificationPermissionStatus,
+  requestNotificationPermission,
 } from '@/services/notification-service';
 import {
   reconcileAllReminders,
@@ -104,6 +106,8 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
         setSelectedLocale(settings.locale as 'id' | 'en');
         await changeLocale(settings.locale);
         setThemeMode(settings.themeMode as 'system' | 'light' | 'dark');
+        const permission = await getNotificationPermissionStatus();
+        if (permission === 'undetermined') await requestNotificationPermission();
         void reconcileAllReminders(sqlite).catch(() => undefined);
         if (!cancelled) {
           setSetupComplete(setup.hasWallet);

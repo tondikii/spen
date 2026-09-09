@@ -4,36 +4,19 @@ import * as Linking from 'expo-linking';
 import SettingsScreen from '@/components/settings-screen';
 import { AppThemeProvider } from '@/components/theme-provider';
 import { changeLocale } from '@/i18n';
-import {
-  DEFAULT_REMINDER_SETTINGS,
-  setReminderSettings,
-  setSelectedLocale,
-} from '@/services/settings-service';
-import {
-  getNotificationPermissionStatus,
-  openNotificationSettings,
-  requestNotificationPermission,
-} from '@/services/notification-service';
-
-jest.mock('@/services/notification-service', () => ({
-  cancelAllReminderNotifications: jest.fn(),
-  getNotificationPermissionStatus: jest.fn().mockResolvedValue('granted'),
-  openNotificationSettings: jest.fn(),
-  requestNotificationPermission: jest.fn().mockResolvedValue('granted'),
-}));
+import { setSelectedLocale } from '@/services/settings-service';
 
 describe('SettingsScreen', () => {
   afterEach(async () => {
     cleanup();
     jest.clearAllMocks();
     jest.restoreAllMocks();
-    setReminderSettings(DEFAULT_REMINDER_SETTINGS);
     setSelectedLocale('id');
     await changeLocale('id');
   });
 
-  it('menampilkan pengaturan tema, currency, data, dan footer', async () => {
-    const { getByText } = await render(
+  it('menampilkan pengaturan tema, currency, data, dan footer tanpa section Pengingat', async () => {
+    const { getByText, queryByText } = await render(
       <AppThemeProvider>
         <SettingsScreen />
       </AppThemeProvider>,
@@ -44,49 +27,7 @@ describe('SettingsScreen', () => {
     expect(getByText('$')).toBeTruthy();
     expect(getByText('Backup data')).toBeTruthy();
     expect(getByText('Spen')).toBeTruthy();
-  });
-
-  it('menampilkan semua jenis Pengingat tanpa toggle per jenis', async () => {
-    const { getByDisplayValue, getByText, queryByLabelText } = await render(
-      <AppThemeProvider>
-        <SettingsScreen />
-      </AppThemeProvider>,
-    );
-
-    await waitFor(() => expect(getByText('Pengingat')).toBeTruthy());
-    expect(getByDisplayValue('20:00')).toBeTruthy();
-    expect(getByText('Catat transaksi harian')).toBeTruthy();
-    expect(getByText('Periode Anggaran')).toBeTruthy();
-    expect(getByText('Deadline Goal')).toBeTruthy();
-    expect(queryByLabelText('Pengingat aktif')).toBeNull();
-  });
-
-  it('meminta izin notifikasi dari aksi eksplisit', async () => {
-    jest.mocked(getNotificationPermissionStatus).mockResolvedValue('undetermined');
-    const { getByLabelText } = await render(
-      <AppThemeProvider>
-        <SettingsScreen />
-      </AppThemeProvider>,
-    );
-
-    await waitFor(() => expect(getByLabelText('Izinkan notifikasi')).toBeTruthy());
-    await fireEvent.press(getByLabelText('Izinkan notifikasi'));
-
-    expect(requestNotificationPermission).toHaveBeenCalledTimes(1);
-  });
-
-  it('menampilkan aksi Settings perangkat saat izin notifikasi ditolak', async () => {
-    jest.mocked(getNotificationPermissionStatus).mockResolvedValue('denied');
-    const { getByLabelText, getByText } = await render(
-      <AppThemeProvider>
-        <SettingsScreen />
-      </AppThemeProvider>,
-    );
-
-    await waitFor(() => expect(getByText('Izin notifikasi belum aktif')).toBeTruthy());
-    expect(requestNotificationPermission).not.toHaveBeenCalled();
-    await fireEvent.press(getByLabelText('Izin notifikasi belum aktif'));
-    expect(openNotificationSettings).toHaveBeenCalledTimes(1);
+    expect(queryByText('Pengingat')).toBeNull();
   });
 
   it('mengubah theme dan currency dari mock state', async () => {
