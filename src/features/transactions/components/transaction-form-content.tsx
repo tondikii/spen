@@ -8,18 +8,14 @@ import { MotionPressable as Pressable } from '@/components/ui/motion';
 import { ThemedInput } from '@/components/ui/themed-input';
 import { ThemedText } from '@/components/ui/themed-text';
 import { WalletPicker } from '@/components/ui/wallet-picker';
-import { Fonts, Radius, Spacing } from '@/theme';
+import { Fonts, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoneyInput } from '@/utils/money-input';
 import type { Category, TransactionType, Wallet } from '@/types/domain';
 
 import { TransactionCategoryPicker } from './transaction-category-picker';
-
-const tabs: { type: TransactionType; translationKey: string }[] = [
-  { type: 'income', translationKey: 'common.income' },
-  { type: 'expense', translationKey: 'common.expense' },
-  { type: 'transfer', translationKey: 'categories.transfer' },
-];
+import { TransactionTransferFields } from './transaction-transfer-fields';
+import { TransactionTypeTabs } from './transaction-type-tabs';
 
 type TransactionFormContentProps = {
   mode: 'create' | 'edit';
@@ -113,113 +109,18 @@ export function TransactionFormContent({
             </ThemedText>
           </View>
         )}
-        <View style={[styles.typeTabs, { borderBottomColor: theme.line }]}>
-          {tabs.map((tab) => (
-            <Pressable
-              key={tab.type}
-              wrapperStyle={styles.typeTabWrapper}
-              accessibilityRole="tab"
-              accessibilityLabel={t('common.transactionType', {
-                type: t(tab.translationKey),
-              })}
-              accessibilityState={{ selected: effectiveType === tab.type }}
-              accessibilityHint={t('common.transactionTypeHint')}
-              onPress={() => onChangeType(tab.type)}
-              style={[
-                styles.typeTab,
-                effectiveType === tab.type && {
-                  borderBottomColor:
-                    tab.type === 'income'
-                      ? theme.income
-                      : tab.type === 'expense'
-                        ? theme.expense
-                        : theme.pine,
-                },
-              ]}
-            >
-              <ThemedText
-                type="smallBold"
-                themeColor={
-                  effectiveType === tab.type
-                    ? tab.type === 'income'
-                      ? 'income'
-                      : tab.type === 'expense'
-                        ? 'expense'
-                        : 'pine'
-                    : 'muted'
-                }
-              >
-                {t(tab.translationKey)}
-              </ThemedText>
-            </Pressable>
-          ))}
-        </View>
-
+        <TransactionTypeTabs effectiveType={effectiveType} onChangeType={onChangeType} />
         {type === 'transfer' ? (
-          <>
-            <FieldLabel>{t('common.fromWallet')}</FieldLabel>
-            <WalletPicker wallets={wallets} selected={walletId} onSelect={onWalletChange} />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('common.swapTransferWallet')}
-              accessibilityHint={t('common.swapTransferWalletHint')}
-              onPress={() => {
-                onWalletChange(toWalletId);
-                onToWalletChange(walletId);
-              }}
-              style={styles.swap}
-            >
-              <ThemedText type="subtitle" themeColor="gold">
-                ↕
-              </ThemedText>
-            </Pressable>
-            <FieldLabel>{t('common.toWallet')}</FieldLabel>
-            {lockedToWalletId ? (
-              <View
-                style={[
-                  styles.lockedWallet,
-                  { borderColor: theme.line, backgroundColor: theme.mint },
-                ]}
-              >
-                <ThemedText type="smallBold">
-                  {wallets.find((wallet) => wallet.id === lockedToWalletId)?.name ??
-                    t('common.goalWallet')}
-                </ThemedText>
-                <ThemedText type="small" themeColor="muted">
-                  {t('common.lockedGoalWallet')}
-                </ThemedText>
-              </View>
-            ) : (
-              <WalletPicker
-                wallets={wallets}
-                selected={toWalletId}
-                onSelect={onToWalletChange}
-                exclude={walletId}
-              />
-            )}
-            <FieldLabel>
-              {t('common.adminFee').toUpperCase()}{' '}
-              <ThemedText type="small" themeColor="muted">
-                ({t('common.optional')})
-              </ThemedText>
-            </FieldLabel>
-            <View style={styles.moneyInputRow}>
-              <CurrencyMark />
-              <ThemedInput
-                accessibilityLabel={t('common.adminFee')}
-                keyboardType="numeric"
-                placeholder="0"
-                placeholderTextColor={theme.muted}
-                value={adminFee}
-                onChangeText={(value) => onAdminFeeChange(formatMoneyInput(value))}
-                style={[
-                  styles.input,
-                  styles.moneyInput,
-                  { borderBottomColor: theme.line, color: theme.ink },
-                ]}
-              />
-            </View>
-          </>
+          <TransactionTransferFields
+            wallets={wallets}
+            walletId={walletId}
+            onWalletChange={onWalletChange}
+            toWalletId={toWalletId}
+            onToWalletChange={onToWalletChange}
+            lockedToWalletId={lockedToWalletId}
+            adminFee={adminFee}
+            onAdminFeeChange={onAdminFeeChange}
+          />
         ) : (
           <>
             <FieldLabel>{t('common.wallet')}</FieldLabel>
@@ -236,7 +137,6 @@ export function TransactionFormContent({
             />
           </>
         )}
-
         <FieldLabel>
           {type === 'transfer' ? t('common.transferAmount') : t('common.nominal')}
         </FieldLabel>
@@ -316,28 +216,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 21,
     paddingTop: 24,
     paddingBottom: 40,
-  },
-  typeTabs: {
-    borderBottomWidth: 1,
-    flexDirection: 'row',
-    marginBottom: Spacing.four,
-  },
-  typeTabWrapper: { flex: 1 },
-  typeTab: {
-    alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-    flex: 1,
-    paddingVertical: 11,
-  },
-  lockedWallet: { borderRadius: 13, borderWidth: 1, gap: 2, padding: 11 },
-  swap: {
-    alignSelf: 'center',
-    alignItems: 'center',
-    borderRadius: Radius.pill,
-    height: 34,
-    justifyContent: 'center',
-    width: 34,
   },
   amountInput: {
     borderBottomWidth: 1,

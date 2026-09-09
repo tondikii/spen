@@ -1,14 +1,11 @@
 import { useCallback, useState, type ComponentProps } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AiSheetModal } from '@/components/ui/ai-sheet-modal';
-import { BudgetPeriodPicker } from '@/components/ui/budget-period-picker';
-import { MotionPressable as Pressable, MotionScreen } from '@/components/ui/motion';
+import { MotionScreen } from '@/components/ui/motion';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
-import { Fonts, Radius } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { todayISO } from '@/utils/date';
 import type { Category, Goal } from '@/types/domain';
@@ -19,10 +16,11 @@ import type { BudgetAIInput, BudgetSuggestion } from '@/lib/ai-service';
 import { usePlanAi } from '../hooks/use-plan-ai';
 import type { PlanView } from '../read';
 import { GoalSection } from '../components/goal-section';
-import { PlanItem } from '../components/plan-item';
+import { PlanAiSheet } from '../components/plan-ai-sheet';
+import { PlanHeader } from '../components/plan-header';
 import { PlanItemFormModal } from '../components/plan-item-form-modal';
+import { PlanItemsSection } from '../components/plan-items-section';
 import { PlanPaymentModal } from '../components/plan-payment-modal';
-import { EmptyPlan, PlanSection } from '../components/plan-section';
 import { PlanSummaryCard } from '../components/plan-summary-card';
 
 type GoalDraft = Omit<Goal, 'id' | 'archived'>;
@@ -63,8 +61,7 @@ function PlanScreenContent({
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const { snapshot, plan, goals, wallets, period, startDay: configuredStartDay } = planView;
-  const [startDay, setStartDay] = useState(configuredStartDay);
+  const { snapshot, plan, goals, wallets, period } = planView;
   const [planItemEditor, setPlanItemEditor] = useState<{
     type: PlanItemType;
     item?: BudgetPlanItem;
@@ -110,97 +107,29 @@ function PlanScreenContent({
         </ThemedText>
       )}
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.header}>
-          <View>
-            <ThemedText type="title" style={styles.title}>
-              {t('common.plan')}
-            </ThemedText>
-            <BudgetPeriodPicker
-              period={period}
-              startDay={startDay}
-              dismissSignal={dismissSignal}
-              onStartDayChange={(day) => {
-                setStartDay(day);
-                return onPeriodStartDayChange(day);
-              }}
-            />
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('common.aiSuggestion')}
-            accessibilityHint={t('common.aiSuggestion')}
-            onPress={ai.openAi}
-            wrapperStyle={styles.aiAction}
-            style={[styles.aiButton, { borderColor: theme.line, backgroundColor: theme.mint }]}
-          >
-            <ThemedText
-              type="smallBold"
-              themeColor="pine"
-              style={styles.aiButtonText}
-              numberOfLines={1}
-            >
-              ✦ {t('common.aiSuggestion')}
-            </ThemedText>
-          </Pressable>
-        </View>
+        <PlanHeader
+          period={period}
+          configuredStartDay={planView.startDay}
+          dismissSignal={dismissSignal}
+          onPeriodStartDayChange={onPeriodStartDayChange}
+          onOpenAi={ai.openAi}
+        />
         <PlanSummaryCard snapshot={snapshot} />
-        <PlanSection
-          title={t('common.incomePlan')}
-          action={t('common.add')}
-          menuOpen={openMenuSection === 'income'}
-          onAction={() => setPlanItemEditor({ type: 'income' })}
-        >
-          {plan.incomeItems.length ? (
-            plan.incomeItems.map((item) => (
-              <PlanItem
-                key={item.id}
-                item={item}
-                category={categories.find((category) => category.id === item.categoryId)}
-                state={itemState(item)}
-                action={'isAutomatic' in item && item.isAutomatic ? '' : t('common.addTransaction')}
-                color={theme.income}
-                onAction={handleItemAction}
-                onEdit={() => setPlanItemEditor({ type: item.type, item })}
-                onDelete={onPlanItemDelete}
-                onMenuOpenChange={handleIncomeMenuOpenChange}
-                dismissSignal={dismissSignal}
-              />
-            ))
-          ) : (
-            <EmptyPlan message={t('common.noIncomePlan')} />
-          )}
-        </PlanSection>
-        <PlanSection
-          title={t('common.expensePlan')}
-          action={t('common.add')}
-          menuOpen={openMenuSection === 'expense'}
-          testID="plan-section-expense"
-          onAction={() => setPlanItemEditor({ type: 'expense' })}
-        >
-          {plan.expenseItems.length ? (
-            plan.expenseItems.map((item) => (
-              <PlanItem
-                key={item.id}
-                item={item}
-                category={categories.find((category) => category.id === item.categoryId)}
-                state={itemState(item)}
-                action={
-                  itemState(item)?.progressPercent && itemState(item)!.progressPercent >= 100
-                    ? ''
-                    : t('common.pay')
-                }
-                color={theme.expense}
-                onAction={handleItemAction}
-                onEdit={() => setPlanItemEditor({ type: item.type, item })}
-                onDelete={onPlanItemDelete}
-                onMenuOpenChange={handleExpenseMenuOpenChange}
-                dismissSignal={dismissSignal}
-              />
-            ))
-          ) : (
-            <EmptyPlan message={t('common.noExpensePlan')} />
-          )}
-        </PlanSection>
+        <PlanItemsSection
+          incomeItems={plan.incomeItems}
+          expenseItems={plan.expenseItems}
+          categories={categories}
+          itemStates={snapshot.planItems}
+          incomeMenuOpen={openMenuSection === 'income'}
+          expenseMenuOpen={openMenuSection === 'expense'}
+          onAddItem={(type) => setPlanItemEditor({ type })}
+          onEditItem={(item) => setPlanItemEditor({ type: item.type, item })}
+          onDeleteItem={onPlanItemDelete}
+          onItemAction={handleItemAction}
+          onIncomeMenuOpenChange={handleIncomeMenuOpenChange}
+          onExpenseMenuOpenChange={handleExpenseMenuOpenChange}
+          dismissSignal={dismissSignal}
+        />
         <GoalSection
           goals={goals}
           wallets={wallets}
@@ -260,41 +189,15 @@ function PlanScreenContent({
           }}
         />
       )}
-      <AiSheetModal
+      <PlanAiSheet
         visible={ai.open}
         onClose={ai.closeAi}
         loading={ai.loading}
-        heading={t('common.aiSuggestion')}
-      >
-        {ai.source === 'fallback' && (
-          <ThemedText type="small" themeColor="muted">
-            {t('common.aiUnavailablePlan')}
-          </ThemedText>
-        )}
-        {ai.suggestions.map((suggestion) => (
-          <View key={suggestion.title} style={[styles.suggestion, { borderTopColor: theme.line }]}>
-            <ThemedText type="small" style={styles.suggestionText}>
-              {suggestion.title}
-              {`\n`}
-              {suggestion.description}
-            </ThemedText>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('common.applySuggestion', { title: suggestion.title })}
-              onPress={() => void ai.applySuggestion(suggestion)}
-            >
-              <ThemedText
-                type="smallBold"
-                themeColor={ai.applied.includes(suggestion.title) ? 'income' : 'pine'}
-              >
-                {ai.applied.includes(suggestion.title)
-                  ? `✓ ${t('common.applied')}`
-                  : t('common.apply')}
-              </ThemedText>
-            </Pressable>
-          </View>
-        ))}
-      </AiSheetModal>
+        source={ai.source}
+        suggestions={ai.suggestions}
+        applied={ai.applied}
+        onApply={ai.applySuggestion}
+      />
     </ThemedView>
   );
 }
@@ -321,34 +224,4 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     width: '100%',
   },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  title: {
-    fontFamily: Fonts.serifSemiBold,
-    fontSize: 29,
-    lineHeight: 31,
-    letterSpacing: -1.16,
-    marginBottom: 5,
-  },
-  aiButton: {
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    marginTop: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  aiAction: { flexShrink: 0 },
-  aiButtonText: { fontSize: 11, lineHeight: 14 },
-  suggestion: {
-    alignItems: 'center',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    gap: 10,
-    paddingVertical: 15,
-  },
-  suggestionText: { flex: 1 },
 });

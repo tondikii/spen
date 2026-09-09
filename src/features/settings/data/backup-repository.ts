@@ -7,88 +7,23 @@ import { normalizeLocale } from '@/i18n';
 import { AppError } from '@/utils/app-error';
 import type { Locale } from '@/types/domain';
 
-export const BACKUP_VERSION = 1;
+import { BACKUP_VERSION } from './backup-format';
+import type {
+  BackupPayload,
+  BudgetPeriodRow,
+  BudgetPlanRow,
+  CategoryRow,
+  GoalRow,
+  PlanItemRow,
+  SettingsRow,
+  TransactionRow,
+  WalletRow,
+} from './backup-format';
+import { parseBackupPayload } from './backup-validation';
 
-type WalletRow = {
-  id: number;
-  name: string;
-  initial_balance: number;
-  is_savings: number;
-  archived: number;
-};
-type CategoryRow = {
-  id: number;
-  name: string;
-  system_key?: string | null;
-  type: string;
-  is_adjustment: number;
-  icon: string;
-  archived: number;
-};
-type TransactionRow = {
-  id: number;
-  type: string;
-  wallet_id: number | null;
-  to_wallet_id: number | null;
-  category_id: number | null;
-  amount: number;
-  date: string;
-  time: string;
-  note: string | null;
-  is_initial: number;
-  admin_fee: number;
-  source_income_item_id: number | null;
-  source_expense_item_id: number | null;
-};
-type BudgetPeriodRow = {
-  id: number;
-  start_date: string;
-  end_date: string;
-  duration_months: number;
-};
-type BudgetPlanRow = { id: number; budget_period_id: number };
-type PlanItemRow = {
-  id: number;
-  budget_plan_id: number;
-  name: string;
-  category_id: number;
-  target_amount: number;
-  is_paid?: number;
-};
-type GoalRow = {
-  id: number;
-  name: string;
-  target_amount: number;
-  target_date: string | null;
-  wallet_id: number;
-  monthly_contribution: number;
-  archived: number;
-};
-type SettingsRow = {
-  id: number;
-  currency: string;
-  theme_mode: string;
-  locale: string;
-  budget_start_day: number;
-};
-
-export type BackupPayload = {
-  version: number;
-  exportedAt: string;
-  data: {
-    wallets: WalletRow[];
-    categories: CategoryRow[];
-    transactions: TransactionRow[];
-    budgetPeriods: BudgetPeriodRow[];
-    budgetPlans: BudgetPlanRow[];
-    incomeItems: PlanItemRow[];
-    fixedExpenseItems: PlanItemRow[];
-    allocationItems: PlanItemRow[];
-    expenseItems: PlanItemRow[];
-    goals: GoalRow[];
-    settings: SettingsRow[];
-  };
-};
+export { BACKUP_MAX_JSON_LENGTH, BACKUP_MAX_RECORDS, BACKUP_VERSION } from './backup-format';
+export type { BackupPayload } from './backup-format';
+export { parseBackupPayload } from './backup-validation';
 
 const TABLES = [
   'transactions',
@@ -103,53 +38,6 @@ const TABLES = [
   'categories',
   'wallets',
 ] as const;
-
-/** Batas keamanan saat restore (panduan seksi 19): tolak file yang tidak wajar. */
-export const BACKUP_MAX_JSON_LENGTH = 16_000_000;
-export const BACKUP_MAX_RECORDS = 200_000;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-function isArrayOfRecords(value: unknown) {
-  return Array.isArray(value) && value.every(isRecord);
-}
-
-export function parseBackupPayload(value: string | unknown): BackupPayload {
-  let parsed: unknown = value;
-  if (typeof value === 'string') {
-    if (value.length > BACKUP_MAX_JSON_LENGTH) throw new AppError('backupInvalid');
-    try {
-      parsed = JSON.parse(value) as unknown;
-    } catch {
-      throw new AppError('backupInvalid');
-    }
-  }
-  if (!isRecord(parsed) || parsed.version !== BACKUP_VERSION || !isRecord(parsed.data)) {
-    throw new AppError('backupInvalid', { version: BACKUP_VERSION });
-  }
-  const data = parsed.data;
-  const keys = [
-    'wallets',
-    'categories',
-    'transactions',
-    'budgetPeriods',
-    'budgetPlans',
-    'incomeItems',
-    'fixedExpenseItems',
-    'allocationItems',
-    'expenseItems',
-    'goals',
-    'settings',
-  ];
-  if (!keys.every((key) => isArrayOfRecords(data[key]))) {
-    throw new AppError('backupInvalid');
-  }
-  const totalRecords = keys.reduce((total, key) => total + (data[key] as unknown[]).length, 0);
-  if (totalRecords > BACKUP_MAX_RECORDS) throw new AppError('backupInvalid');
-  return parsed as unknown as BackupPayload;
-}
 
 export async function exportDatabase(database: SQLiteDatabase): Promise<BackupPayload> {
   // Seluruh tabel dibaca dalam satu transaksi eksklusif sehingga snapshot

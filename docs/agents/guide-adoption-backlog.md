@@ -20,7 +20,7 @@ Cara pakai: kerjakan tiket open yang paling depan (blockers-first). Tiap tiket: 
 
 ## Tiket
 
-Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · T07=#90 · T08=#87 · T09=#85 · T10=#89 · T11=#88 · T22=#92. (Isu #73 = spec ADR-0009 yang sudah ada sebelumnya, terkait.)
+Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · T07=#90 · T08=#87 · T09=#85 · T10=#89 · T11=#88 · T22=#92 · T23=#93. (Isu #73 = spec ADR-0009 yang sudah ada sebelumnya, terkait.)
 
 ### Status malam 8 Sep (snapshot historis — status terkini di "Lanjutan otomatis 9 Sep")
 ✅ **Selesai & isu ditutup**: T02 (#91), T03 (#84), T07 (#90), T09 (#85), T10 (#89), T11 (#88), T08 (#87). Tanpa isu: T12 (+not-found), T16 (CONTRIBUTING + release checklist), T17 (ADR typed routes), T21 (skeleton + provider, amandemen ADR-0009). D1 & D7 dikerjakan langsung (ADR-0010 + web locale).
@@ -37,6 +37,7 @@ Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · 
 ✅ **Spec #73 ditutup** — seluruh tracer bullet (#74–#80) + T21 + audit struktur ADR-0009 tuntas; repo hijau.
 ✅ **T22 (#92) selesai** — ekstraksi batch 2 (file >400 baris efektif → ambang panduan §7): `report-screen.tsx` 421→252 (sub-UI header → `components/report-header.tsx`, styles → `report-screen.styles.ts`); `plan-repository.test.ts` 545 → 4 file ber-tema (period 52, snapshot 157, items 188, transactions 170) + helper `plan-repository-test-db.ts`; `plan-screen.test.tsx` 442 → fixtures `plan-screen-test-utils.tsx` + 3 file (summary 58, items 123, goals 28). Tanpa perubahan perilaku; suite hijau 164/164, `npm run verify` hijau. Isu ditutup. Catatan: 10 file produksi tersisa di zona 301–400 (evaluasi panduan, bukan pelanggaran review); ambang eslint diselaraskan ke 300 warn setelah zona itu tuntas (D5).
 ✅ **T18 bagian kode selesai** — `accessibilityHint` pada 12 kontrol ikon-murni (stepper hari/bulan/periode laporan, tombol tutup × form, meatball aksi plan, tukar Dompet transfer) + 9 key i18n baru id/en (`*Hint`, paritas via tipe); tambahan `accessibilityState.disabled` panah bulan berikutnya di `month-calendar`; prosedur uji TalkBack/VoiceOver + dynamic type ditulis di `docs/acceptance-checklist.md` (langkah manusia). Suite hijau 164/164.
+✅ **T23 (#93) selesai — ekstraksi zona 301–400 + eslint diselaraskan (D5)** — 7 file produksi turun ke ≤300 baris efektif: `backup-repository.ts` 364→258 (`backup-format.ts`, `backup-validation.ts`); `setup-wizard.tsx` 360→227 (`components/wallets-step.tsx`); `transaction-form-content.tsx` 352→233 (`transaction-type-tabs.tsx`, `transaction-transfer-fields.tsx`); `plan-screen.tsx` 346→219 (`plan-header.tsx`, `plan-ai-sheet.tsx`, `plan-items-section.tsx`); `plan-item-form-modal.tsx` 332→142 (`plan-category-picker.tsx`, `plan-category-editor.tsx`); `plan-repository.ts` 322→208 (`data/plan-period.ts`, konsolidasi get-or-create periode+plan); `transaction-category-picker.tsx` 312→193 (`transaction-category-editor.tsx`). Tanpa perubahan perilaku/API; suite hijau 164/164. **D5 tuntas**: eslint `max-lines` kini 300 warn; data deklaratif (`i18n/**`, `db/seed.ts`) di-override. Isu ditutup.
 
 ### Wave 0 — Baseline harian
 | ID | Tiket | Blocker | Status |
@@ -84,7 +85,7 @@ Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · 
 ## Lanjutan otomatis
 Job cron satu-kali (durable) dijadwalkan untuk melanjutkan tiket open berikutnya saat sesi berikutnya terbuka. Bila job tak jalan (app tertutup), mulai sesi berikutnya dengan membaca dokumen ini lalu `gh issue list` untuk frontier.
 
-### Keadaan frontier (9 Sep, setelah T18 + T22)
+### Keadaan frontier (9 Sep, setelah T23 + #93)
+- **D5 selesai**: seluruh file produksi ≤ 300 baris efektif (kecuali data deklaratif `i18n/**` & `db/seed.ts` yang di-override); eslint `max-lines` = 300 warn. Perlu perhatian: batas ini warning, jadi drift ke >300 muncul sebagai warning lint, bukan error — pertahankan dengan ekstraksi bertahap.
 - Semua isu GitHub CLOSED. Sisa open hanya di dokumen ini: **T19** (backend Groq — butuh keputusan produk/hosting), **T20** (enkripsi at-rest — butuh keputusan produk), dan **verifikasi perangkat T18** (TalkBack/VoiceOver — langkah manusia, prosedur di `docs/acceptance-checklist.md`).
-- Kandidat gelombang berikutnya (D5, bukan pelanggaran keras): 10 file produksi di zona 301–400 baris efektif, terbesar `settings/data/backup-repository.ts` 364, `setup/screens/setup-wizard.tsx` 360, `i18n/translations/common-*.ts` 352, `transactions/components/transaction-form-content.tsx` 351, `plan/screens/plan-screen.tsx` 346. Setelah zona ini tuntas, selaraskan eslint `max-lines` ke 300 warn (panduan §7).
 - `npm run verify` lokal = jalur keputusan: format:check + lint + typecheck + `npm test` (NODE_ENV=test via cross-env).

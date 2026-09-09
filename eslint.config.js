@@ -9,17 +9,21 @@ module.exports = [
   {
     files: ['src/**/*.{ts,tsx}'],
     rules: {
-      // Code standard Spen: satu file ≤ 600 baris efektif (D5: diselaraskan
-      // bertahap ke 300 warn panduan seksi 7 setelah ekstraksi selesai), satu
-      // fungsi ≤ 400 baris efektif (i18n.ts mendapat override sampai K7
-      // memecahnya per namespace).
-      'max-lines': ['error', { max: 600, skipBlankLines: true, skipComments: true }],
+      // Code standard Spen (D5, panduan seksi 7): ≤ 300 baris efektif sebagai
+      // warning setelah ekstraksi batch 1–3 tuntas; satu fungsi ≤ 400 baris
+      // efektif (error). Data deklaratif & i18n di-override di bawah.
+      'max-lines': ['warn', { max: 300, skipBlankLines: true, skipComments: true }],
       'max-lines-per-function': ['error', { max: 400, skipBlankLines: true, skipComments: true }],
     },
   },
   {
     files: ['src/i18n.ts', 'src/i18n/**'],
     rules: { 'max-lines': 'off', 'max-lines-per-function': 'off' },
+  },
+  {
+    // Data deklaratif besar (kategori seed default) — panduan seksi 7.
+    files: ['src/db/seed.ts'],
+    rules: { 'max-lines': 'off' },
   },
   {
     files: ['src/**/__tests__/**'],

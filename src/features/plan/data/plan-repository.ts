@@ -3,21 +3,21 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import i18n from '@/i18n';
 import { AppError } from '@/utils/app-error';
 import { todayISO, isValidTransactionDate } from '@/utils/date';
-import { periodBounds } from '@/utils/domain/period';
 import { createWallet } from '@/features/wallet';
 import { createGoal } from '@/features/goal';
 import { SYSTEM_CATEGORY_NAMES } from '@/utils/domain/constants';
 import type { BudgetSuggestion } from '@/lib/ai-service';
 import type { BudgetPlan, BudgetPlanItem } from '../model';
 import type { Category, Goal, Wallet } from '@/types/domain';
-import type { PeriodRow } from '@/types/db-rows';
 import { validatePlanItem, type PlanItemDraft } from './plan-item-draft';
 import { categoryTypeFor, databaseId, tableFor } from './plan-item-mapping';
 import { updateDatabasePlanItem } from './plan-item-mutations';
+import { ensureActiveBudgetPlan } from './plan-period';
 
 // Definisi yang dipindah ke sibling data, tetap diekspor dari sini agar API
 // publik file ini (via src/features/plan/index.ts) tidak berubah.
 export { setDatabasePlanItemPaid, updateDatabasePlanItem } from './plan-item-mutations';
+export { ensureActiveBudgetPlan, setBudgetPeriodStartDay } from './plan-period';
 export type { PlanItemDraft } from './plan-item-draft';
 
 export async function createDatabasePlanItem(
@@ -214,120 +214,4 @@ export async function applyDatabaseBudgetSuggestion(
       targetAmount: suggestion.amount,
     });
   }
-}
-
-export async function ensureActiveBudgetPlan(database: SQLiteDatabase, today = todayISO()) {
-  let planId = 0;
-  let periodId = 0;
-  let startDay = 1;
-  await database.withExclusiveTransactionAsync(async (transaction) => {
-    const setting = await transaction.getFirstAsync<{ budget_start_day: number }>(
-      'SELECT budget_start_day FROM settings WHERE id = 1 LIMIT 1;',
-    );
-    const bounds = periodBounds(setting?.budget_start_day ?? 1, today);
-    startDay = setting?.budget_start_day ?? 1;
-    const configuredPeriod = await transaction.getFirstAsync<PeriodRow>(
-      'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date = ? AND end_date = ? LIMIT 1;',
-      bounds.startDate,
-      bounds.endDate,
-    );
-    const configuredPlan =
-      configuredPeriod &&
-      (await transaction.getFirstAsync<{ id: number }>(
-        'SELECT id FROM budget_plans WHERE budget_period_id = ? LIMIT 1;',
-        configuredPeriod.id,
-      ));
-    if (configuredPeriod && configuredPlan) {
-      periodId = configuredPeriod.id;
-      planId = configuredPlan.id;
-      return;
-    }
-    const existingPeriod = await transaction.getFirstAsync<PeriodRow>(
-      'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date = ? AND end_date = ? LIMIT 1;',
-      bounds.startDate,
-      bounds.endDate,
-    );
-    periodId =
-      existingPeriod?.id ??
-      (
-        await transaction.runAsync(
-          `INSERT INTO budget_periods (start_date, end_date, duration_months) VALUES (?, ?, 1);`,
-          bounds.startDate,
-          bounds.endDate,
-        )
-      ).lastInsertRowId;
-    const existingPlan = await transaction.getFirstAsync<{ id: number }>(
-      'SELECT id FROM budget_plans WHERE budget_period_id = ? LIMIT 1;',
-      periodId,
-    );
-    planId =
-      existingPlan?.id ??
-      (
-        await transaction.runAsync(
-          'INSERT INTO budget_plans (budget_period_id) VALUES (?);',
-          periodId,
-        )
-      ).lastInsertRowId;
-  });
-  const period = await database.getFirstAsync<PeriodRow>(
-    'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE id = ?;',
-    periodId,
-  );
-  if (!period) throw new AppError('storage');
-  return { period, planId, startDay };
-}
-
-export async function setBudgetPeriodStartDay(
-  database: SQLiteDatabase,
-  startDay: number,
-  today = todayISO(),
-) {
-  const bounds = periodBounds(startDay, today);
-  let periodId = 0;
-  let planId = 0;
-  const safeStartDay = Math.min(Math.max(Math.trunc(startDay), 1), 31);
-  await database.withExclusiveTransactionAsync(async (transaction) => {
-    await transaction.runAsync(
-      "INSERT OR IGNORE INTO settings (id, currency, theme_mode, budget_start_day) VALUES (1, 'IDR', 'light', ?);",
-      safeStartDay,
-    );
-    await transaction.runAsync(
-      'UPDATE settings SET budget_start_day = ? WHERE id = 1;',
-      safeStartDay,
-    );
-    const existing = await transaction.getFirstAsync<PeriodRow>(
-      'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date = ? AND end_date = ? LIMIT 1;',
-      bounds.startDate,
-      bounds.endDate,
-    );
-    periodId =
-      existing?.id ??
-      (
-        await transaction.runAsync(
-          `INSERT INTO budget_periods (start_date, end_date, duration_months) VALUES (?, ?, 1);`,
-          bounds.startDate,
-          bounds.endDate,
-        )
-      ).lastInsertRowId;
-    const existingPlan = await transaction.getFirstAsync<{ id: number }>(
-      'SELECT id FROM budget_plans WHERE budget_period_id = ? LIMIT 1;',
-      periodId,
-    );
-    planId =
-      existingPlan?.id ??
-      (
-        await transaction.runAsync(
-          'INSERT INTO budget_plans (budget_period_id) VALUES (?);',
-          periodId,
-        )
-      ).lastInsertRowId;
-  });
-  return {
-    period: await database.getFirstAsync<PeriodRow>(
-      'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE id = ?;',
-      periodId,
-    ),
-    planId,
-    startDay: safeStartDay,
-  };
 }

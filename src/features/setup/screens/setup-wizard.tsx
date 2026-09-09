@@ -7,23 +7,23 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CurrencyPicker } from '@/components/ui/currency-picker';
+import { LanguagePicker } from '@/components/ui/language-picker';
+import { MotionPressable as Pressable, MotionScreen } from '@/components/ui/motion';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
-import { CurrencyMark } from '@/components/ui/currency-mark';
-import { CurrencyPicker } from '@/components/ui/currency-picker';
-import { Fonts, Radius, Spacing, Typography } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { formatMoneyInput, parseMoneyInput } from '@/utils/money-input';
-import { ThemedInput } from '@/components/ui/themed-input';
-import type { SetupWalletDraft } from '../data/setup-repository';
-import type { CurrencyCode, Locale } from '@/types/domain';
 import { changeLocale } from '@/i18n';
-import { LanguagePicker } from '@/components/ui/language-picker';
+import { Radius, Spacing, Typography } from '@/theme';
+import type { CurrencyCode, Locale } from '@/types/domain';
 import { getSelectedLocale, setSelectedLocale } from '@/utils/selection';
-import { useTranslation } from 'react-i18next';
-import { MotionPressable as Pressable, MotionScreen } from '@/components/ui/motion';
+import { parseMoneyInput } from '@/utils/money-input';
+
+import type { SetupWalletDraft } from '../data/setup-repository';
+import { WalletsStep, type WalletFormDraft } from '../components/wallets-step';
 
 const totalSteps = 3;
 
@@ -37,7 +37,7 @@ export function SetupWizard({
   const carouselRef = useRef<ScrollView>(null);
   const { width: windowWidth } = useWindowDimensions();
   const [step, setStep] = useState(0);
-  const [wallets, setWallets] = useState([{ name: '', balance: '' }]);
+  const [wallets, setWallets] = useState<WalletFormDraft[]>([{ name: '', balance: '' }]);
   const [locale, setLocale] = useState<Locale>(getSelectedLocale());
   const [currency, setCurrency] = useState<CurrencyCode>('IDR');
   const carouselWidth = Math.max(0, Math.min(windowWidth, 430) - 42);
@@ -164,117 +164,7 @@ export function SetupWizard({
                   />
                 </View>
 
-                <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
-                  <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-                    {t('common.createWallet')}
-                  </ThemedText>
-                  <ThemedText type="title" style={styles.title}>
-                    {t('common.whereMoney')}
-                  </ThemedText>
-                  <ThemedText type="small" themeColor="muted" style={styles.lead}>
-                    {t('common.walletHint')}
-                  </ThemedText>
-                  <ScrollView
-                    style={styles.walletList}
-                    contentContainerStyle={styles.walletListContent}
-                    keyboardShouldPersistTaps="handled"
-                    automaticallyAdjustKeyboardInsets
-                    keyboardDismissMode="interactive"
-                  >
-                    {wallets.map((wallet, index) => (
-                      <View key={index} style={styles.walletItem}>
-                        {index > 0 && (
-                          <View style={styles.walletItemActions}>
-                            <Pressable
-                              accessibilityRole="button"
-                              accessibilityLabel={t('common.removeWallet', { number: index + 1 })}
-                              onPress={() =>
-                                setWallets((current) =>
-                                  current.filter((_, itemIndex) => itemIndex !== index),
-                                )
-                              }
-                              hitSlop={8}
-                            >
-                              <ThemedText type="smallBold" style={{ color: theme.expense }}>
-                                {t('common.remove')}
-                              </ThemedText>
-                            </Pressable>
-                          </View>
-                        )}
-                        <ThemedText type="code" themeColor="muted">
-                          {t('common.walletName').toUpperCase()}
-                        </ThemedText>
-                        <ThemedInput
-                          accessibilityLabel={
-                            index === 0
-                              ? t('common.walletNameFirst')
-                              : t('common.walletNameNumber', { number: index + 1 })
-                          }
-                          placeholder={t('common.exampleCash')}
-                          placeholderTextColor={theme.muted}
-                          value={wallet.name}
-                          onChangeText={(name) =>
-                            setWallets((current) =>
-                              current.map((item, itemIndex) =>
-                                itemIndex === index ? { ...item, name } : item,
-                              ),
-                            )
-                          }
-                          style={[
-                            styles.input,
-                            { borderBottomColor: theme.line, color: theme.ink },
-                          ]}
-                        />
-                        <ThemedText type="code" themeColor="muted" style={styles.balanceLabel}>
-                          {t('common.initialBalance').toUpperCase()}
-                        </ThemedText>
-                        <View style={styles.moneyInputRow}>
-                          <CurrencyMark />
-                          <ThemedInput
-                            accessibilityLabel={
-                              index === 0
-                                ? t('common.startingBalanceWalletFirst')
-                                : t('common.startingBalanceWalletNumber', { number: index + 1 })
-                            }
-                            keyboardType="numeric"
-                            placeholder="0"
-                            placeholderTextColor={theme.muted}
-                            value={wallet.balance}
-                            onChangeText={(balance) =>
-                              setWallets((current) =>
-                                current.map((item, itemIndex) =>
-                                  itemIndex === index
-                                    ? {
-                                        ...item,
-                                        balance: formatMoneyInput(balance),
-                                      }
-                                    : item,
-                                ),
-                              )
-                            }
-                            style={[
-                              styles.input,
-                              styles.moneyInput,
-                              { borderBottomColor: theme.line, color: theme.ink },
-                            ]}
-                          />
-                        </View>
-                      </View>
-                    ))}
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={t('common.addWalletLabel')}
-                      onPress={() =>
-                        setWallets((current) => [...current, { name: '', balance: '' }])
-                      }
-                      style={[styles.addWallet, { borderBottomColor: theme.line }]}
-                    >
-                      <ThemedText type="smallBold" themeColor="pine">
-                        {t('common.addWallet')}
-                      </ThemedText>
-                    </Pressable>
-                  </ScrollView>
-                </View>
+                <WalletsStep width={carouselWidth} wallets={wallets} onWalletsChange={setWallets} />
 
                 <View style={[styles.slide, carouselWidth ? { width: carouselWidth } : null]}>
                   <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
@@ -350,28 +240,6 @@ const styles = StyleSheet.create({
     marginTop: 17,
     maxWidth: 290,
   },
-  walletList: { maxHeight: 350 },
-  walletListContent: { paddingBottom: Spacing.two },
-  walletItem: { paddingBottom: 16, paddingTop: 12 },
-  walletItemActions: {
-    alignItems: 'flex-end',
-    marginBottom: 6,
-  },
-  addWallet: {
-    alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 15,
-  },
   eyebrow: { ...Typography.eyebrow, marginBottom: 7 },
-  input: {
-    borderBottomWidth: 1,
-    fontFamily: Fonts.sans,
-    fontSize: 18,
-    minHeight: 52,
-    paddingHorizontal: 0,
-  },
-  moneyInputRow: { alignItems: 'center', flexDirection: 'row', gap: Spacing.two },
-  moneyInput: { flex: 1 },
-  balanceLabel: { marginTop: 25 },
   primary: { borderRadius: 15, marginTop: 'auto', padding: 15 },
 });
