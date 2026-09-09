@@ -59,6 +59,7 @@ export function WalletForm(props: WalletFormProps) {
           <MotionPressable
             accessibilityRole="button"
             accessibilityLabel={t('common.closeWalletForm')}
+            accessibilityHint={t('common.closeWithoutSavingHint')}
             onPress={props.onClose}
             style={styles.headerButton}
           >

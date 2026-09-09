@@ -61,6 +61,7 @@ export function ReportHeader({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('common.previousReport')}
+            accessibilityHint={t('common.previousReportHint')}
             accessibilityState={{ disabled: !hasPreviousPeriod }}
             disabled={!hasPreviousPeriod}
             onPress={() => {
@@ -80,6 +81,7 @@ export function ReportHeader({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('common.nextReport')}
+            accessibilityHint={t('common.nextReportHint')}
             accessibilityState={{ disabled: !hasNextPeriod }}
             disabled={!hasNextPeriod}
             onPress={() => {

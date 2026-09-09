@@ -78,6 +78,7 @@ export default function DailyTransactionsScreen({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t('common.closeTransactionForm')}
+                accessibilityHint={t('common.closeWithoutSavingHint')}
                 onPress={onBack}
                 style={styles.headerButton}
               >
@@ -94,6 +95,7 @@ export default function DailyTransactionsScreen({
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={t('common.previousDay')}
+                  accessibilityHint={t('common.previousDayHint')}
                   hitSlop={6}
                   onPress={() => moveDay(-1)}
                   wrapperStyle={styles.stepperWrapper}
@@ -122,6 +124,7 @@ export default function DailyTransactionsScreen({
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={t('common.nextDay')}
+                  accessibilityHint={t('common.nextDayHint')}
                   hitSlop={6}
                   onPress={() => moveDay(1)}
                   wrapperStyle={styles.stepperWrapper}

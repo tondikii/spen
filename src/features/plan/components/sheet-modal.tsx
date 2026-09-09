@@ -8,6 +8,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { MotionAnimatedView, MotionPressable, motionPresets } from '@/components/ui/motion';
 import { ThemedText } from '@/components/ui/themed-text';
@@ -39,6 +40,7 @@ export function SheetModal({
   sheetStyle?: StyleProp<ViewStyle>;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   const sheet = (
     <View style={[styles.sheet, { backgroundColor: theme.card }, sheetStyle]}>
@@ -48,6 +50,7 @@ export function SheetModal({
           <MotionPressable
             accessibilityRole="button"
             accessibilityLabel={closeLabel}
+            accessibilityHint={t('common.closeWithoutSavingHint')}
             onPress={onClose}
           >
             <ThemedText type="subtitle" themeColor="muted">

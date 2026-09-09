@@ -42,6 +42,7 @@ export function PlanActionMenu({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${t('common.moreActions')} ${label}`}
+        accessibilityHint={t('common.moreActionsHint')}
         accessibilityState={{ expanded: open }}
         onTouchStart={(event) => event.stopPropagation()}
         onPress={() => {

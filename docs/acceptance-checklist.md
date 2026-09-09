@@ -73,3 +73,14 @@ Ini bukan implementasi kode yang tertunda, tetapi pemeriksaan yang memerlukan si
 3. Di Beranda/Riwayat/Harian/Report, tap transaksi untuk edit/hapus, tap pie untuk drill-down, stepper + kalender, dan filter.
 4. Di Settings, lakukan export sampai share sheet native muncul; restore file JSON yang valid dan file dengan `version` salah untuk memastikan konfirmasi/error tampil.
 5. Untuk build produksi, letakkan `EXPO_PUBLIC_GROQ_API_KEY` melalui secret/environment build. Jangan commit API key; produksi idealnya memakai proxy server-side sesuai catatan spec.
+
+### Uji screen reader (T18 — langkah manusia)
+
+Verifikasi dilakukan dengan TalkBack (Android) / VoiceOver (iOS) pada perangkat nyata, mode light dan dark, bahasa Indonesia dan English. Navigasi pakai swipe + double-tap; catat model perangkat dan versi OS di catatan rilis.
+
+1. **Rencana**: meatball `Aksi lainnya {nama}` tiap item/goal — hint "Membuka menu aksi lainnya" terbaca, dan saat menu terbuka state `expanded` diumumkan; aksi Edit/Bayar/Hapus dapat diaktifkan.
+2. **Form transaksi & Transaksi Harian**: tombol tutup × — label + hint "Menutup tanpa menyimpan perubahan" terbaca; stepper ‹ › hari dan bulan mengumumkan arah (hint); mode transfer: tombol `↕ Tukar Dompet Transfer` membacakan hint "Menukar posisi Dompet asal dan tujuan".
+3. **Laporan**: stepper ‹ › periode mengumumkan arah; tombol ✦ Tanya AI dapat diaktifkan dan hasil insight terbaca saat muncul.
+4. **Form Dompet**: tombol tutup × membacakan label + hint; tombol Simpan mengumumkan state `busy` saat menyimpan.
+5. **Kebersihan umum**: tidak ada kontrol yang terbaca tanpa label; backdrop/modal yang menutup saat disentuh tidak menjadi fokus tak berlabel; state `disabled` (mis. stepper di ujung rentang) diumumkan.
+6. **Dynamic type/font scale**: perbesar font sistem ke ukuran maksimal — tidak ada teks terpotong atau tombol ikon yang saling menimpa di layar sempit; keyboard tidak menutupi input yang sedang fokus.

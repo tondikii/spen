@@ -198,6 +198,7 @@ export function TransactionForm({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('common.closeTransactionForm')}
+            accessibilityHint={t('common.closeWithoutSavingHint')}
             onPress={onClose}
             style={styles.headerButton}
           >

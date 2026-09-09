@@ -66,6 +66,7 @@ export function MonthCalendar({
         <MotionPressable
           accessibilityRole="button"
           accessibilityLabel={t('common.previousMonth')}
+          accessibilityHint={t('common.previousMonthHint')}
           onPress={() => onMonthChange(shiftMonth(month, -1))}
           wrapperStyle={styles.calendarMonthButton}
           style={styles.calendarMonthButton}
@@ -76,6 +77,8 @@ export function MonthCalendar({
         <MotionPressable
           accessibilityRole="button"
           accessibilityLabel={t('common.nextMonth')}
+          accessibilityHint={t('common.nextMonthHint')}
+          accessibilityState={{ disabled: maxMonth !== undefined && month >= maxMonth }}
           disabled={maxMonth !== undefined && month >= maxMonth}
           onPress={() => onMonthChange(shiftMonth(month, 1))}
           wrapperStyle={styles.calendarMonthButton}

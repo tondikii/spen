@@ -162,6 +162,7 @@ export function TransactionFormContent({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('common.swapTransferWallet')}
+              accessibilityHint={t('common.swapTransferWalletHint')}
               onPress={() => {
                 onWalletChange(toWalletId);
                 onToWalletChange(walletId);
