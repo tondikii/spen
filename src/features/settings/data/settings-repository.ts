@@ -13,8 +13,8 @@ export async function getDatabaseSettings(database: SQLiteDatabase) {
     currency: currencyOptions.includes(row?.currency as CurrencyCode)
       ? (row!.currency as CurrencyCode)
       : ('IDR' as CurrencyCode),
-    themeMode: row?.theme_mode === 'dark' ? 'dark' : 'light',
-    locale: row?.locale === 'id' ? 'id' : 'en',
+    themeMode: (row?.theme_mode === 'dark' ? 'dark' : 'light') as ThemeMode,
+    locale: (row?.locale === 'id' ? 'id' : 'en') as Locale,
   };
 }
 export async function setDatabaseLocale(database: SQLiteDatabase, locale: Locale) {

@@ -171,7 +171,7 @@ export function HelpSection({
   onFaqPress,
   onOpenLink,
 }: {
-  onFaqPress?: (() => void) | undefined;
+  onFaqPress: () => void;
   onOpenLink: (url: string) => void;
 }) {
   const { t } = useTranslation();
@@ -185,7 +185,7 @@ export function HelpSection({
           icon="?"
           title={t('common.faq')}
           detail={t('common.faqDetail')}
-          onPress={onFaqPress ?? (() => undefined)}
+          onPress={onFaqPress}
         />
         <ActionRow
           icon="!"

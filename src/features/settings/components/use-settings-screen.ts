@@ -1,40 +1,41 @@
-import * as FileSystem from 'expo-file-system/legacy';
-import * as Linking from 'expo-linking';
-import type { SQLiteDatabase } from 'expo-sqlite';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { changeLocale } from '@/i18n';
 import type { CurrencyCode, Locale } from '@/types/domain';
 import { getErrorTranslationKey } from '@/utils/app-error';
-import {
-  getSelectedCurrency,
-  getSelectedLocale,
-  setSelectedCurrency,
-  setSelectedLocale,
-} from '@/utils/selection';
 
-import {
-  createBackupFile,
-  pickBackupContent,
-  restoreDatabase,
-  shareBackupFile,
-} from '../data/backup-repository';
-import { setDatabaseCurrency, setDatabaseLocale } from '../data/settings-repository';
+export type RestorePick = { content: string; name: string };
+
+type SettingsActions = {
+  onCurrencyChange: (option: CurrencyCode) => void | Promise<void>;
+  onLocaleChange: (option: Locale) => void | Promise<void>;
+  onBackup: () => void | Promise<void>;
+  onPickRestore: () => Promise<RestorePick | null>;
+  onConfirmRestore: (content: string) => void | Promise<void>;
+  onOpenLink: (url: string) => void | Promise<void>;
+};
 
 /**
- * Local state + actions for SettingsScreen: UI toggles (currency/language
- * dropdowns), backup/restore flow, toast and link opening.
+ * UI state + orkestrasi SettingsScreen (pure screen ADR-0008): layar tidak
+ * memegang database — aksi datang sebagai callback dari route adapter, dan
+ * hook ini hanya mengelola toggle dropdown, busy, modal konfirmasi restore,
+ * serta toast hasil aksi.
  */
-export function useSettingsScreen({ database }: { database?: SQLiteDatabase | undefined }) {
+export function useSettingsScreen(actions: SettingsActions) {
   const { t } = useTranslation();
-  const [currency, setCurrency] = useState<CurrencyCode>(getSelectedCurrency());
-  const [locale, setLocale] = useState<Locale>(getSelectedLocale());
+  const {
+    onBackup,
+    onConfirmRestore,
+    onCurrencyChange,
+    onLocaleChange,
+    onOpenLink,
+    onPickRestore,
+  } = actions;
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
   const [toast, setToast] = useState('');
   const [busy, setBusy] = useState(false);
-  const [restoreFile, setRestoreFile] = useState<{ content: string; name: string } | null>(null);
+  const [restoreFile, setRestoreFile] = useState<RestorePick | null>(null);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -43,9 +44,7 @@ export function useSettingsScreen({ database }: { database?: SQLiteDatabase | un
 
   const chooseCurrency = async (option: CurrencyCode) => {
     try {
-      setCurrency(
-        database ? await setDatabaseCurrency(database, option) : setSelectedCurrency(option),
-      );
+      await onCurrencyChange(option);
       setCurrencyOpen(false);
     } catch {
       showToast(t('errors.storage'));
@@ -53,29 +52,17 @@ export function useSettingsScreen({ database }: { database?: SQLiteDatabase | un
   };
   const chooseLocale = async (option: Locale) => {
     try {
-      const next = database ? await setDatabaseLocale(database, option) : setSelectedLocale(option);
-      setLocale(next);
-      await changeLocale(next);
+      await onLocaleChange(option);
       setLanguageOpen(false);
     } catch {
       showToast(t('errors.storage'));
     }
   };
   const runBackup = async () => {
-    if (!database) {
-      showToast(t('common.backupAvailableInMainApp'));
-      return;
-    }
     setBusy(true);
     try {
-      const fileUri = await createBackupFile(database);
-      try {
-        await shareBackupFile(fileUri);
-        showToast(t('common.backupReady'));
-      } finally {
-        // Best-effort: file backup tidak menumpuk setelah dibagikan.
-        await FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => undefined);
-      }
+      await onBackup();
+      showToast(t('common.backupReady'));
     } catch {
       showToast(t('errors.storage'));
     } finally {
@@ -83,43 +70,35 @@ export function useSettingsScreen({ database }: { database?: SQLiteDatabase | un
     }
   };
   const runRestore = async () => {
-    if (!database) {
-      showToast(t('common.restoreAvailableInMainApp'));
-      return;
-    }
     setBusy(true);
     try {
-      const picked = await pickBackupContent();
-      setBusy(false);
-      if (!picked) return;
-      setRestoreFile(picked);
+      const picked = await onPickRestore();
+      if (picked) setRestoreFile(picked);
     } catch {
-      setBusy(false);
       showToast(t('common.backupUnreadable'));
-    }
-  };
-  const openLink = async (url: string) => {
-    try {
-      await Linking.openURL(url);
-    } catch {
-      showToast(t('common.pageCannotOpen'));
+    } finally {
+      setBusy(false);
     }
   };
   const confirmRestore = async () => {
-    if (!database || !restoreFile) return;
+    if (!restoreFile) return;
     const file = restoreFile;
     setRestoreFile(null);
     setBusy(true);
     try {
-      const restoredLocale = await restoreDatabase(database, file.content);
-      setLocale(restoredLocale);
-      setSelectedLocale(restoredLocale);
-      await changeLocale(restoredLocale);
+      await onConfirmRestore(file.content);
       showToast(t('common.restored'));
     } catch (cause) {
       showToast(t(getErrorTranslationKey(cause)));
     } finally {
       setBusy(false);
+    }
+  };
+  const openLink = async (url: string) => {
+    try {
+      await onOpenLink(url);
+    } catch {
+      showToast(t('common.pageCannotOpen'));
     }
   };
 
@@ -128,10 +107,8 @@ export function useSettingsScreen({ database }: { database?: SQLiteDatabase | un
     chooseCurrency,
     chooseLocale,
     confirmRestore,
-    currency,
     currencyOpen,
     languageOpen,
-    locale,
     openLink,
     restoreFile,
     runBackup,

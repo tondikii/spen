@@ -1,4 +1,3 @@
-import type { SQLiteDatabase } from 'expo-sqlite';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +9,7 @@ import { ThemedView } from '@/components/ui/themed-view';
 import { PageHeader } from '@/components/ui/ui-primitives';
 import { useTheme } from '@/hooks/use-theme';
 import { BottomTabInset, Typography } from '@/theme';
+import type { CurrencyCode, Locale } from '@/types/domain';
 
 import {
   AppearanceSection,
@@ -18,12 +18,31 @@ import {
   PreferencesSection,
   SettingsFooter,
 } from '../components/settings-sections';
-import { useSettingsScreen } from '../components/use-settings-screen';
+import { useSettingsScreen, type RestorePick } from '../components/use-settings-screen';
+
+export type SettingsScreenProps = {
+  currency: CurrencyCode;
+  locale: Locale;
+  onCurrencyChange: (option: CurrencyCode) => void | Promise<void>;
+  onLocaleChange: (option: Locale) => void | Promise<void>;
+  onBackup: () => void | Promise<void>;
+  onPickRestore: () => Promise<RestorePick | null>;
+  onConfirmRestore: (content: string) => void | Promise<void>;
+  onOpenLink: (url: string) => void | Promise<void>;
+  onFaqPress: () => void;
+};
 
 export default function SettingsScreen({
-  database,
+  currency,
+  locale,
+  onBackup,
+  onConfirmRestore,
+  onCurrencyChange,
   onFaqPress,
-}: { database?: SQLiteDatabase; onFaqPress?: () => void } = {}) {
+  onLocaleChange,
+  onOpenLink,
+  onPickRestore,
+}: SettingsScreenProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const {
@@ -31,10 +50,8 @@ export default function SettingsScreen({
     chooseCurrency,
     chooseLocale,
     confirmRestore,
-    currency,
     currencyOpen,
     languageOpen,
-    locale,
     openLink,
     restoreFile,
     runBackup,
@@ -43,7 +60,14 @@ export default function SettingsScreen({
     setLanguageOpen,
     setRestoreFile,
     toast,
-  } = useSettingsScreen({ database });
+  } = useSettingsScreen({
+    onBackup,
+    onConfirmRestore,
+    onCurrencyChange,
+    onLocaleChange,
+    onOpenLink,
+    onPickRestore,
+  });
 
   return (
     <ThemedView style={styles.page}>
