@@ -22,6 +22,7 @@ import { DataState } from '@/components/screen-skeleton';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
 import {
+  reconcileAllReminders,
   reconcileBudgetPeriodReminders,
   reconcileGoalReminders,
 } from '@/services/reminder-reconciler';
@@ -93,6 +94,7 @@ export default function PlanRoute() {
           note: t('common.planPaymentNote', { name: item.name }),
           sourceExpenseItemId: item.id,
         });
+        await reconcileAllReminders(database).catch(() => undefined);
         await load();
       }}
       onSuggestionApply={async (suggestion: BudgetSuggestion) => {
