@@ -15,5 +15,5 @@ Typed routes **tetap nonaktif** untuk fase ini. Alasan:
 
 ## Konsekuensi
 
-- Keputusan ini ditinjau ulang saat struktur route stabil (pasca refactor) atau saat bug typo route muncul; aktivasi cukup satu baris di `app.json` + `npx expo customize tsconfig.json` + generate di CI.
+- Keputusan ini ditinjau ulang saat struktur route stabil (pasca refactor) atau saat bug typo route muncul; aktivasi cukup satu baris di `app.config.js` (`experiments.typedRoutes`) + `npx expo customize tsconfig.json` + generate di CI.
 - Catatan informal di taste tidak lagi menjadi satu-satunya jejak; keputusan terdokumentasi di sini (ADR-0009 amandemen: route adapter tetap satu-satunya penyambung data).
