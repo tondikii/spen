@@ -22,7 +22,7 @@ Cara pakai: kerjakan tiket open yang paling depan (blockers-first). Tiap tiket: 
 
 Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · T07=#90 · T08=#87 · T09=#85 · T10=#89 · T11=#88. (Isu #73 = spec ADR-0009 yang sudah ada sebelumnya, terkait.)
 
-### Status malam 8 Sep
+### Status malam 8 Sep (snapshot historis — status terkini di "Lanjutan otomatis 9 Sep")
 ✅ **Selesai & isu ditutup**: T02 (#91), T03 (#84), T07 (#90), T09 (#85), T10 (#89), T11 (#88), T08 (#87). Tanpa isu: T12 (+not-found), T16 (CONTRIBUTING + release checklist), T17 (ADR typed routes), T21 (skeleton + provider, amandemen ADR-0009). D1 & D7 dikerjakan langsung (ADR-0010 + web locale).
 ⬜ **Terbuka**: Wave 2 backlog: T15 (dikerjakan 9 Sep), T18, T19 (butuh produk/hosting), T20 (butuh produk).
 
