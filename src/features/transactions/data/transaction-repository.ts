@@ -9,7 +9,7 @@ function databaseId(value: string | null) {
   return parsePrefixedId(
     value,
     ['wallet-', 'category-', 'transaction-', 'expense-item-', 'income-item-'],
-    `ID database tidak valid: ${value}`,
+    value ?? undefined,
   );
 }
 
@@ -152,26 +152,17 @@ export async function getDatabaseTransactionCategories(
 }
 
 function validateDraft(draft: TransactionDraft, today = getLocalDateInput()) {
-  if (!draft.walletId || !Number.isSafeInteger(draft.amount) || draft.amount <= 0) {
-    throw new AppError('validation', undefined, 'Wallet dan nominal transaksi wajib diisi');
-  }
-  if (draft.type !== 'transfer' && !draft.categoryId)
-    throw new AppError('validation', undefined, 'Kategori transaksi wajib dipilih');
-  if (draft.type === 'transfer' && (!draft.toWalletId || draft.toWalletId === draft.walletId)) {
-    throw new AppError('validation', undefined, 'Transfer membutuhkan dua Wallet yang berbeda');
-  }
+  if (!draft.walletId || !Number.isSafeInteger(draft.amount) || draft.amount <= 0)
+    throw new AppError('validation');
+  if (draft.type !== 'transfer' && !draft.categoryId) throw new AppError('validation');
+  if (draft.type === 'transfer' && (!draft.toWalletId || draft.toWalletId === draft.walletId))
+    throw new AppError('validation');
   if (!Number.isSafeInteger(draft.adminFee ?? 0) || (draft.adminFee ?? 0) < 0)
-    throw new AppError('validation', undefined, 'Biaya admin harus berupa angka bulat positif');
-  if (draft.type !== 'transfer' && (draft.adminFee ?? 0) !== 0)
-    throw new AppError('validation', undefined, 'Biaya admin hanya berlaku untuk Transfer');
-  if (!isValidTransactionDate(draft.date, today))
-    throw new AppError('validation', undefined, 'Tanggal transaksi tidak valid atau belum terjadi');
+    throw new AppError('validation');
+  if (draft.type !== 'transfer' && (draft.adminFee ?? 0) !== 0) throw new AppError('validation');
+  if (!isValidTransactionDate(draft.date, today)) throw new AppError('validation');
   if (draft.systemCategoryKey === 'openingBalance' && draft.type !== 'income')
-    throw new AppError(
-      'validation',
-      undefined,
-      'Saldo awal hanya dapat dicatat sebagai Pendapatan',
-    );
+    throw new AppError('validation');
 }
 
 async function resolveCategoryId(database: SQLiteDatabase, draft: TransactionDraft) {
@@ -179,7 +170,7 @@ async function resolveCategoryId(database: SQLiteDatabase, draft: TransactionDra
     const category = await database.getFirstAsync<{ id: number }>(
       `SELECT id FROM categories WHERE type = 'transfer' LIMIT 1;`,
     );
-    if (!category) throw new AppError('notFound', undefined, 'Kategori Transfer belum tersedia');
+    if (!category) throw new AppError('notFound');
     return category.id;
   }
   const isInitial = draft.systemCategoryKey === 'openingBalance';
@@ -211,23 +202,13 @@ export async function saveDatabaseTransaction(
       'SELECT id FROM wallets WHERE id = ? AND archived = 0 LIMIT 1;',
       databaseId(draft.walletId),
     );
-    if (!wallet)
-      throw new AppError(
-        'notFound',
-        undefined,
-        'Wallet transaksi tidak ditemukan atau sudah diarsipkan',
-      );
+    if (!wallet) throw new AppError('notFound', { walletId: draft.walletId ?? '' });
     if (draft.type === 'transfer') {
       const destination = await connection.getFirstAsync<{ id: number }>(
         'SELECT id FROM wallets WHERE id = ? AND archived = 0 LIMIT 1;',
         databaseId(draft.toWalletId),
       );
-      if (!destination)
-        throw new AppError(
-          'notFound',
-          undefined,
-          'Wallet tujuan tidak ditemukan atau sudah diarsipkan',
-        );
+      if (!destination) throw new AppError('notFound', { walletId: draft.toWalletId ?? '' });
     } else {
       const category = await connection.getFirstAsync<{ id: number; system_key: string | null }>(
         'SELECT id, system_key FROM categories WHERE id = ? AND type = ? AND archived = 0 AND (is_adjustment = 0 OR (? = 1 AND is_adjustment = 1)) LIMIT 1;',
@@ -235,18 +216,9 @@ export async function saveDatabaseTransaction(
         draft.type,
         draft.systemCategoryKey === 'openingBalance' ? 1 : 0,
       );
-      if (!category)
-        throw new AppError(
-          'notFound',
-          undefined,
-          'Kategori transaksi tidak sesuai atau sudah diarsipkan',
-        );
+      if (!category) throw new AppError('notFound', { categoryId: draft.categoryId ?? '' });
       if (draft.systemCategoryKey === 'openingBalance' && category.system_key !== 'openingBalance')
-        throw new AppError(
-          'notFound',
-          undefined,
-          'Kategori transaksi tidak sesuai atau sudah diarsipkan',
-        );
+        throw new AppError('notFound', { categoryId: draft.categoryId ?? '' });
     }
     if (transactionId) {
       const id = databaseId(transactionId);
@@ -259,7 +231,7 @@ export async function saveDatabaseTransaction(
         'SELECT id, source_income_item_id, source_expense_item_id, is_initial FROM transactions WHERE id = ? LIMIT 1;',
         id,
       );
-      if (!existing) throw new AppError('notFound', undefined, 'Transaksi tidak ditemukan');
+      if (!existing) throw new AppError('notFound', { transactionId });
       sourceIncomeItemId = existing.source_income_item_id;
       sourceExpenseItemId = existing.source_expense_item_id;
       isInitialRow = existing.is_initial;
@@ -284,7 +256,7 @@ export async function saveDatabaseTransaction(
     return result.lastInsertRowId;
   });
   const transaction = await getDatabaseTransaction(database, `transaction-${savedId}`);
-  if (!transaction) throw new AppError('storage', undefined, 'Transaksi gagal disimpan');
+  if (!transaction) throw new AppError('storage');
   return transaction;
 }
 
@@ -296,7 +268,7 @@ export async function deleteDatabaseTransaction(
     'DELETE FROM transactions WHERE id = ?;',
     databaseId(transactionId),
   );
-  if (result.changes === 0) throw new AppError('notFound', undefined, 'Transaksi tidak ditemukan');
+  if (result.changes === 0) throw new AppError('notFound', { transactionId });
 }
 
 export async function saveDatabaseCategory(
@@ -324,7 +296,7 @@ export async function saveDatabaseCategory(
   const saved = (await getDatabaseTransactionCategories(database)).find(
     (item) => item.id === category.id,
   );
-  if (!saved) throw new AppError('storage', undefined, 'Kategori gagal disimpan');
+  if (!saved) throw new AppError('storage');
   return saved;
 }
 
@@ -337,12 +309,7 @@ export async function archiveDatabaseCategory(
     'SELECT id FROM transactions WHERE category_id = ? LIMIT 1;',
     id,
   );
-  if (!used)
-    throw new AppError(
-      'validation',
-      undefined,
-      'Kategori hanya dapat diarsipkan setelah dipakai transaksi',
-    );
+  if (!used) throw new AppError('validation');
   const result = await database.runAsync('UPDATE categories SET archived = 1 WHERE id = ?;', id);
-  if (result.changes === 0) throw new AppError('notFound', undefined, 'Kategori tidak ditemukan');
+  if (result.changes === 0) throw new AppError('notFound', { categoryId });
 }

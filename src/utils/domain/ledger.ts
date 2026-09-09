@@ -12,8 +12,7 @@ export type LedgerTotals = {
 
 /** Menjaga invariant uang: hasil agregasi harus tetap integer aman (panduan seksi 9/19). */
 function assertSafeMoney(value: number): number {
-  if (!Number.isSafeInteger(value))
-    throw new AppError('validation', undefined, 'Total uang melebihi batas aman');
+  if (!Number.isSafeInteger(value)) throw new AppError('validation', { value });
   return value;
 }
 

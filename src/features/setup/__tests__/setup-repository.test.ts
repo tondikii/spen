@@ -87,7 +87,7 @@ describe('setup service', () => {
     await completeSetup(database, [{ name: 'Tunai', initialBalance: 100 }], 'IDR');
     await expect(
       completeSetup(database, [{ name: 'BCA', initialBalance: 200 }], 'USD'),
-    ).rejects.toThrow('Setup sudah selesai');
+    ).rejects.toMatchObject({ code: 'validation' });
     expect((await getWallets(database)).map((wallet) => wallet.name)).toEqual(['Tunai']);
   });
 

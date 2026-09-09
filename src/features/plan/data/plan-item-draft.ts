@@ -20,15 +20,10 @@ export function validatePlanItem(draft: PlanItemDraft) {
     draft.targetAmount < 0 ||
     (draft.type === 'expense' && draft.targetAmount <= 0)
   )
-    throw new AppError(
-      'validation',
-      undefined,
-      'Nominal item plan harus berupa angka bulat positif',
-    );
+    throw new AppError('validation', { targetAmount: draft.targetAmount });
   databaseId(draft.categoryId);
   if (draft.type === 'income') {
-    if (!draft.walletId)
-      throw new AppError('validation', undefined, 'Dompet Pendapatan wajib dipilih');
+    if (!draft.walletId) throw new AppError('validation');
     databaseId(draft.walletId);
   }
 }

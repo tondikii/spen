@@ -12,12 +12,12 @@ const INITIAL_BALANCE_CATEGORY_NAME = SYSTEM_CATEGORY_NAMES.openingBalance;
 const BALANCE_ADJUSTMENT_CATEGORY_NAME = SYSTEM_CATEGORY_NAMES.balanceAdjustment;
 
 function databaseId(walletId: string | number) {
-  return parseRequiredPrefixedId(walletId, ['wallet-'], `Wallet id tidak valid: ${walletId}`);
+  return parseRequiredPrefixedId(walletId, ['wallet-'], walletId);
 }
 
 function toWallet(row: WalletRow): Wallet {
   if (!Number.isSafeInteger(row.balance) || !Number.isSafeInteger(row.initial_balance))
-    throw new AppError('storage', undefined, 'Saldo Wallet melebihi batas aman');
+    throw new AppError('storage', { balance: row.balance, initialBalance: row.initial_balance });
   return {
     id: `wallet-${row.id}`,
     name: row.name,
@@ -57,8 +57,7 @@ async function getInternalCategoryId(database: SQLiteDatabase, categoryName: str
     `SELECT id FROM categories WHERE name = ? AND is_adjustment = 1 LIMIT 1;`,
     categoryName,
   );
-  if (!category)
-    throw new AppError('notFound', undefined, `Kategori ${categoryName} belum tersedia`);
+  if (!category) throw new AppError('notFound', { name: categoryName });
   return category.id;
 }
 
@@ -90,9 +89,8 @@ export async function createWallet(
   initialBalance: number,
 ): Promise<Wallet> {
   const cleanName = name.trim();
-  if (!cleanName) throw new AppError('validation', undefined, 'Nama Wallet wajib diisi');
-  if (!Number.isSafeInteger(initialBalance))
-    throw new AppError('validation', undefined, 'Saldo awal harus berupa angka bulat');
+  if (!cleanName) throw new AppError('validation');
+  if (!Number.isSafeInteger(initialBalance)) throw new AppError('validation', { initialBalance });
 
   const walletId = await withExclusiveWrite(database, async (connection) => {
     const result = await connection.runAsync(
@@ -116,7 +114,7 @@ export async function createWallet(
     return result.lastInsertRowId;
   });
   const wallet = await getWallet(database, walletId);
-  if (!wallet) throw new AppError('storage', undefined, 'Wallet gagal dibuat');
+  if (!wallet) throw new AppError('storage');
   return wallet;
 }
 
@@ -128,16 +126,15 @@ export async function updateWallet(
 ): Promise<Wallet> {
   const id = databaseId(walletId);
   const cleanName = name.trim();
-  if (!cleanName) throw new AppError('validation', undefined, 'Nama Wallet wajib diisi');
+  if (!cleanName) throw new AppError('validation');
 
   await withExclusiveWrite(database, async (connection) => {
     const current = await getWallet(connection, id);
-    if (!current) throw new AppError('notFound', undefined, 'Wallet tidak ditemukan');
+    if (!current) throw new AppError('notFound');
     await connection.runAsync('UPDATE wallets SET name = ? WHERE id = ?;', cleanName, id);
 
     if (targetBalance !== undefined) {
-      if (!Number.isSafeInteger(targetBalance))
-        throw new AppError('validation', undefined, 'Saldo Wallet harus berupa angka bulat');
+      if (!Number.isSafeInteger(targetBalance)) throw new AppError('validation', { targetBalance });
       const delta = targetBalance - current.balance;
       if (delta !== 0) {
         const categoryId = await getInternalCategoryId(
@@ -161,8 +158,7 @@ export async function updateWallet(
   });
 
   const wallet = await getWallet(database, id);
-  if (!wallet)
-    throw new AppError('notFound', undefined, 'Wallet tidak ditemukan setelah diperbarui');
+  if (!wallet) throw new AppError('notFound');
   return wallet;
 }
 
@@ -173,7 +169,7 @@ export async function archiveWallet(
   await withExclusiveWrite(database, async (connection) => {
     const id = databaseId(walletId);
     const result = await connection.runAsync('UPDATE wallets SET archived = 1 WHERE id = ?;', id);
-    if (result.changes === 0) throw new AppError('notFound', undefined, 'Wallet tidak ditemukan');
+    if (result.changes === 0) throw new AppError('notFound');
   });
 }
 
@@ -184,6 +180,6 @@ export async function restoreWallet(
   await withExclusiveWrite(database, async (connection) => {
     const id = databaseId(walletId);
     const result = await connection.runAsync('UPDATE wallets SET archived = 0 WHERE id = ?;', id);
-    if (result.changes === 0) throw new AppError('notFound', undefined, 'Wallet tidak ditemukan');
+    if (result.changes === 0) throw new AppError('notFound');
   });
 }

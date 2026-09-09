@@ -41,7 +41,7 @@ export async function readTransactionEntryView(
               `SELECT COALESCE(SUM(target_amount), 0) AS total FROM expense_items
                WHERE budget_plan_id = ? AND category_id = ?;`,
               active.planId,
-              parsePrefixedId(categoryId, ['category-'], `ID kategori tidak valid: ${categoryId}`),
+              parsePrefixedId(categoryId, ['category-'], categoryId),
             )
             .then((row) => row?.total ?? 0)
         : Promise.resolve(0),

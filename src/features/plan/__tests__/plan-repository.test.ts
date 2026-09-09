@@ -247,7 +247,7 @@ describe('database plan service', () => {
         categoryId: expense.id,
         targetAmount: 500,
       }),
-    ).rejects.toThrow(/sudah ada/);
+    ).rejects.toMatchObject({ code: 'validation' });
   });
 
   it('creates an income plan item and credits its selected Wallet', async () => {

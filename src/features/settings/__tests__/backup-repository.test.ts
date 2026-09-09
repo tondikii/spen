@@ -71,19 +71,19 @@ describe('backup service', () => {
     expect(parseBackupPayload(JSON.stringify(payload))).toEqual(payload);
   });
 
-  it('menolak versi backup yang tidak cocok', () => {
-    expect(() => parseBackupPayload(JSON.stringify({ version: 99, data: {} }))).toThrow(
-      /Versi backup tidak didukung/,
-    );
+  it('menolak versi backup yang tidak cocok', async () => {
+    await expect(
+      Promise.resolve().then(() => parseBackupPayload(JSON.stringify({ version: 99, data: {} }))),
+    ).rejects.toMatchObject({ code: 'backupInvalid' });
   });
 
-  it('menolak file backup yang terlalu besar', () => {
-    expect(() => parseBackupPayload('x'.repeat(BACKUP_MAX_JSON_LENGTH + 1))).toThrow(
-      /terlalu besar/,
-    );
+  it('menolak file backup yang terlalu besar', async () => {
+    await expect(
+      Promise.resolve().then(() => parseBackupPayload('x'.repeat(BACKUP_MAX_JSON_LENGTH + 1))),
+    ).rejects.toMatchObject({ code: 'backupInvalid' });
   });
 
-  it('menolak backup dengan jumlah record berlebihan', () => {
+  it('menolak backup dengan jumlah record berlebihan', async () => {
     const emptyTables = {
       categories: [],
       transactions: [],
@@ -100,7 +100,9 @@ describe('backup service', () => {
       version: 1,
       data: { wallets: Array(BACKUP_MAX_RECORDS + 1).fill({}), ...emptyTables },
     };
-    expect(() => parseBackupPayload(payload as never)).toThrow(/terlalu banyak data/);
+    await expect(
+      Promise.resolve().then(() => parseBackupPayload(payload as never)),
+    ).rejects.toMatchObject({ code: 'backupInvalid' });
   });
 
   it('restore menimpa data lama secara atomik', async () => {

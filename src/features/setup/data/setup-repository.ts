@@ -35,22 +35,20 @@ export async function completeSetup(
   currency: CurrencyCode,
   locale: Locale = getSelectedLocale(),
 ) {
-  if (wallets.length === 0) throw new AppError('validation', undefined, 'Buat minimal satu Dompet');
+  if (wallets.length === 0) throw new AppError('validation');
   const drafts = wallets.map((wallet) => ({
     name: wallet.name.trim(),
     initialBalance: wallet.initialBalance,
   }));
-  if (drafts.some((wallet) => !wallet.name))
-    throw new AppError('validation', undefined, 'Nama Dompet wajib diisi');
+  if (drafts.some((wallet) => !wallet.name)) throw new AppError('validation');
   if (drafts.some((wallet) => !Number.isSafeInteger(wallet.initialBalance)))
-    throw new AppError('validation', undefined, 'Saldo awal harus berupa angka bulat');
+    throw new AppError('validation');
 
   await database.withExclusiveTransactionAsync(async (transaction) => {
     const walletCount = await transaction.getFirstAsync<{ count: number }>(
       'SELECT COUNT(*) AS count FROM wallets;',
     );
-    if ((walletCount?.count ?? 0) > 0)
-      throw new AppError('validation', undefined, 'Setup sudah selesai');
+    if ((walletCount?.count ?? 0) > 0) throw new AppError('validation');
     const category = drafts.some((wallet) => wallet.initialBalance !== 0)
       ? await transaction.getFirstAsync<{ id: number }>(
           'SELECT id FROM categories WHERE name = ? AND is_adjustment = 1 LIMIT 1;',
@@ -58,7 +56,7 @@ export async function completeSetup(
         )
       : null;
     if (drafts.some((wallet) => wallet.initialBalance !== 0) && !category)
-      throw new AppError('notFound', undefined, 'Kategori Saldo Awal belum tersedia');
+      throw new AppError('notFound');
     for (const draft of drafts) {
       const wallet = await transaction.runAsync(
         'INSERT INTO wallets (name, initial_balance, is_savings, archived) VALUES (?, 0, 0, 0);',

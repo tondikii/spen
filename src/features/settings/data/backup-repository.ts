@@ -119,20 +119,15 @@ function isArrayOfRecords(value: unknown) {
 export function parseBackupPayload(value: string | unknown): BackupPayload {
   let parsed: unknown = value;
   if (typeof value === 'string') {
-    if (value.length > BACKUP_MAX_JSON_LENGTH)
-      throw new AppError('backupInvalid', undefined, 'File backup terlalu besar');
+    if (value.length > BACKUP_MAX_JSON_LENGTH) throw new AppError('backupInvalid');
     try {
       parsed = JSON.parse(value) as unknown;
     } catch {
-      throw new AppError('backupInvalid', undefined, 'File backup bukan JSON yang valid');
+      throw new AppError('backupInvalid');
     }
   }
   if (!isRecord(parsed) || parsed.version !== BACKUP_VERSION || !isRecord(parsed.data)) {
-    throw new AppError(
-      'backupInvalid',
-      { version: BACKUP_VERSION },
-      `Versi backup tidak didukung. Gunakan backup Spen versi ${BACKUP_VERSION}.`,
-    );
+    throw new AppError('backupInvalid', { version: BACKUP_VERSION });
   }
   const data = parsed.data;
   const keys = [
@@ -149,11 +144,10 @@ export function parseBackupPayload(value: string | unknown): BackupPayload {
     'settings',
   ];
   if (!keys.every((key) => isArrayOfRecords(data[key]))) {
-    throw new AppError('backupInvalid', undefined, 'Struktur file backup tidak lengkap atau rusak');
+    throw new AppError('backupInvalid');
   }
   const totalRecords = keys.reduce((total, key) => total + (data[key] as unknown[]).length, 0);
-  if (totalRecords > BACKUP_MAX_RECORDS)
-    throw new AppError('backupInvalid', undefined, 'File backup berisi terlalu banyak data');
+  if (totalRecords > BACKUP_MAX_RECORDS) throw new AppError('backupInvalid');
   return parsed as unknown as BackupPayload;
 }
 
@@ -227,7 +221,7 @@ export async function exportDatabase(database: SQLiteDatabase): Promise<BackupPa
       },
     };
   });
-  if (!payload) throw new AppError('storage', undefined, 'Ekspor backup gagal');
+  if (!payload) throw new AppError('storage');
   return payload;
 }
 
@@ -359,7 +353,7 @@ export async function createBackupFile(database: SQLiteDatabase): Promise<string
   // Ditulis ke cache (bukan documentDirectory) agar tidak menumpuk permanen;
   // pemanggil tetap menghapus setelah share sebagai best-effort.
   const directory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
-  if (!directory) throw new AppError('storage', undefined, 'Penyimpanan file tidak tersedia');
+  if (!directory) throw new AppError('storage');
   const payload = await exportDatabase(database);
   const fileUri = `${directory}spen-backup-${payload.exportedAt.replace(/[:.]/g, '-')}.json`;
   await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(payload, null, 2), {
@@ -369,8 +363,7 @@ export async function createBackupFile(database: SQLiteDatabase): Promise<string
 }
 
 export async function shareBackupFile(fileUri: string): Promise<void> {
-  if (!(await Sharing.isAvailableAsync()))
-    throw new AppError('storage', undefined, 'Share sheet tidak tersedia di perangkat ini');
+  if (!(await Sharing.isAvailableAsync())) throw new AppError('storage');
   await Sharing.shareAsync(fileUri, {
     mimeType: 'application/json',
     dialogTitle: 'Bagikan backup Spen',

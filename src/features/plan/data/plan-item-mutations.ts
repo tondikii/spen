@@ -18,30 +18,22 @@ export async function updateDatabasePlanItem(
   draft: PlanItemDraft,
 ): Promise<void> {
   validatePlanItem(draft);
-  if (draft.date && !isValidTransactionDate(draft.date))
-    throw new AppError('validation', undefined, 'Tanggal transaksi tidak valid atau belum terjadi');
-  if (item.type !== draft.type)
-    throw new AppError('validation', undefined, 'Tipe item plan tidak dapat diubah');
+  if (draft.date && !isValidTransactionDate(draft.date)) throw new AppError('validation');
+  if (item.type !== draft.type) throw new AppError('validation');
   await database.withExclusiveTransactionAsync(async (transaction) => {
     const category = await transaction.getFirstAsync<{ id: number }>(
       'SELECT id FROM categories WHERE id = ? AND type = ? AND archived = 0 LIMIT 1;',
       databaseId(draft.categoryId),
       categoryTypeFor(draft.type),
     );
-    if (!category)
-      throw new AppError(
-        'notFound',
-        undefined,
-        'Kategori item plan tidak sesuai atau sudah diarsipkan',
-      );
+    if (!category) throw new AppError('notFound', { categoryId: draft.categoryId });
     const duplicate = await transaction.getFirstAsync<{ id: number }>(
       `SELECT id FROM ${tableFor(item.type)} WHERE budget_plan_id = (SELECT budget_plan_id FROM ${tableFor(item.type)} WHERE id = ? LIMIT 1) AND category_id = ? AND id <> ? LIMIT 1;`,
       databaseId(item.id),
       category.id,
       databaseId(item.id),
     );
-    if (duplicate)
-      throw new AppError('validation', undefined, 'Kategori itu sudah ada di Rencana Anggaran');
+    if (duplicate) throw new AppError('validation');
     const categoryName = await transaction.getFirstAsync<{ name: string }>(
       'SELECT name FROM categories WHERE id = ? LIMIT 1;',
       category.id,
@@ -53,8 +45,7 @@ export async function updateDatabasePlanItem(
       draft.targetAmount,
       databaseId(item.id),
     );
-    if (result.changes === 0)
-      throw new AppError('notFound', undefined, 'Item plan tidak ditemukan');
+    if (result.changes === 0) throw new AppError('notFound');
     if (item.type === 'income') {
       const walletId = databaseId(draft.walletId ?? item.walletId ?? '');
       const wallet = await transaction.getFirstAsync<{ id: number }>(
@@ -62,11 +53,7 @@ export async function updateDatabasePlanItem(
         walletId,
       );
       if (!wallet)
-        throw new AppError(
-          'notFound',
-          undefined,
-          'Dompet Pendapatan tidak ditemukan atau sudah diarsipkan',
-        );
+        throw new AppError('notFound', { walletId: draft.walletId ?? item.walletId ?? '' });
       await transaction.runAsync(
         `UPDATE transactions
          SET wallet_id = ?, category_id = ?, amount = ?, note = ?
@@ -97,23 +84,17 @@ export async function setDatabasePlanItemPaid(
   walletId: string,
   today = todayISO(),
 ): Promise<void> {
-  if (item.type !== 'expense' || item.isAutomatic)
-    throw new AppError(
-      'validation',
-      undefined,
-      'Pengeluaran otomatis belum memiliki target pembayaran manual',
-    );
+  if (item.type !== 'expense' || item.isAutomatic) throw new AppError('validation');
   const numericWalletId = Number(walletId.replace(/^wallet-/, ''));
   if (!Number.isInteger(numericWalletId) || numericWalletId < 1)
-    throw new AppError('validation', undefined, 'Dompet pembayaran tidak valid');
+    throw new AppError('validation', { walletId });
   const numericItemId = databaseId(item.id);
   await database.withExclusiveTransactionAsync(async (transaction) => {
     const wallet = await transaction.getFirstAsync<{ id: number }>(
       'SELECT id FROM wallets WHERE id = ? AND archived = 0 LIMIT 1;',
       numericWalletId,
     );
-    if (!wallet)
-      throw new AppError('notFound', undefined, 'Belum ada Dompet aktif untuk pembayaran');
+    if (!wallet) throw new AppError('notFound');
     const current = await transaction.getFirstAsync<{
       category_id: number;
       target_amount: number;
@@ -122,7 +103,7 @@ export async function setDatabasePlanItemPaid(
       'SELECT category_id, target_amount, is_paid FROM expense_items WHERE id = ? LIMIT 1;',
       numericItemId,
     );
-    if (!current) throw new AppError('notFound', undefined, 'Item Pengeluaran tidak ditemukan');
+    if (!current) throw new AppError('notFound');
     const note = i18n.t('common.planPaymentNote', { name: item.name });
     if (paid && !current.is_paid) {
       const now = new Date();

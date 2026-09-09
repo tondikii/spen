@@ -33,6 +33,6 @@ export function databaseId(value: string | number) {
       'fixed-expense-item-',
       'allocation-item-',
     ],
-    `ID plan tidak valid: ${value}`,
+    value,
   );
 }

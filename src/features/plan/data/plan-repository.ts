@@ -32,26 +32,20 @@ export async function createDatabasePlanItem(
     transactionDate < active.period.start_date ||
     transactionDate > todayISO()
   )
-    throw new AppError('validation', undefined, 'Tanggal transaksi harus berada di Periode aktif');
+    throw new AppError('validation');
   await database.withExclusiveTransactionAsync(async (transaction) => {
     const category = await transaction.getFirstAsync<{ id: number }>(
       'SELECT id FROM categories WHERE id = ? AND type = ? AND archived = 0 LIMIT 1;',
       databaseId(draft.categoryId),
       categoryTypeFor(draft.type),
     );
-    if (!category)
-      throw new AppError(
-        'notFound',
-        undefined,
-        'Kategori item plan tidak sesuai atau sudah diarsipkan',
-      );
+    if (!category) throw new AppError('notFound', { categoryId: draft.categoryId });
     const duplicate = await transaction.getFirstAsync<{ id: number }>(
       `SELECT id FROM ${tableFor(draft.type)} WHERE budget_plan_id = ? AND category_id = ? LIMIT 1;`,
       active.planId,
       category.id,
     );
-    if (duplicate)
-      throw new AppError('validation', undefined, 'Kategori itu sudah ada di Rencana Anggaran');
+    if (duplicate) throw new AppError('validation');
     const categoryName = await transaction.getFirstAsync<{ name: string }>(
       'SELECT name FROM categories WHERE id = ? LIMIT 1;',
       category.id,
@@ -68,12 +62,7 @@ export async function createDatabasePlanItem(
         'SELECT id FROM wallets WHERE id = ? AND archived = 0 LIMIT 1;',
         databaseId(draft.walletId!),
       );
-      if (!wallet)
-        throw new AppError(
-          'notFound',
-          undefined,
-          'Dompet Pendapatan tidak ditemukan atau sudah diarsipkan',
-        );
+      if (!wallet) throw new AppError('notFound', { walletId: draft.walletId ?? '' });
       await transaction.runAsync(
         `INSERT INTO transactions (type, wallet_id, to_wallet_id, category_id, amount, date, time, note, admin_fee, source_income_item_id)
          VALUES ('income', ?, NULL, ?, ?, ?, '', ?, 0, ?);`,
@@ -106,8 +95,7 @@ export async function deleteDatabasePlanItem(
         active.period.start_date,
         active.period.end_date,
       );
-      if (result.changes === 0)
-        throw new AppError('notFound', undefined, 'Transaksi item plan tidak ditemukan');
+      if (result.changes === 0) throw new AppError('notFound');
     });
     return;
   }
@@ -124,8 +112,7 @@ export async function deleteDatabasePlanItem(
       `DELETE FROM ${tableFor(item.type)} WHERE id = ?;`,
       itemId,
     );
-    if (result.changes === 0)
-      throw new AppError('notFound', undefined, 'Item plan tidak ditemukan');
+    if (result.changes === 0) throw new AppError('notFound');
   });
 }
 
@@ -149,11 +136,7 @@ export async function applyDatabaseBudgetSuggestion(
       !Number.isSafeInteger(targetAmount) ||
       targetAmount <= 0
     )
-      throw new AppError(
-        'validation',
-        undefined,
-        'Saran Goal belum memiliki target nominal yang valid.',
-      );
+      throw new AppError('validation');
     const existingGoalWalletIds = new Set(context.goals.map((goal) => goal.walletId));
     const requestedWalletName = suggestion.walletName?.trim().toLowerCase();
     let wallet = context.wallets.find(
@@ -175,11 +158,7 @@ export async function applyDatabaseBudgetSuggestion(
       );
     const monthlyContribution = suggestion.monthlyContribution ?? 0;
     if (!Number.isSafeInteger(monthlyContribution) || monthlyContribution < 0)
-      throw new AppError(
-        'validation',
-        undefined,
-        'Saran Goal memiliki kontribusi bulanan yang tidak valid.',
-      );
+      throw new AppError('validation', { monthlyContribution });
     await createGoal(database, {
       name: suggestion.title.trim(),
       targetAmount,
@@ -208,11 +187,7 @@ export async function applyDatabaseBudgetSuggestion(
     !Number.isSafeInteger(suggestion.amount) ||
     suggestion.amount <= 0
   )
-    throw new AppError(
-      'validation',
-      undefined,
-      'Saran belum memiliki kategori atau nominal yang bisa diterapkan.',
-    );
+    throw new AppError('validation');
   if (suggestion.action === 'increase_allocation') {
     const existing = context.plan.expenseItems.find(
       (item: BudgetPlanItem) => item.categoryId === category.id,
@@ -298,7 +273,7 @@ export async function ensureActiveBudgetPlan(database: SQLiteDatabase, today = t
     'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE id = ?;',
     periodId,
   );
-  if (!period) throw new AppError('storage', undefined, 'Budget period gagal dibuat');
+  if (!period) throw new AppError('storage');
   return { period, planId, startDay };
 }
 
