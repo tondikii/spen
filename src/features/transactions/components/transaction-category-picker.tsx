@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { CATEGORY_ICON_CHOICES, CategoryIcon } from '@/components/ui/category-icon';
-import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { MotionPressable as Pressable } from '@/components/ui/motion';
 import { ThemedInput } from '@/components/ui/themed-input';
 import { ThemedText } from '@/components/ui/themed-text';
@@ -15,20 +14,18 @@ import { getCategoryLabel } from '@/i18n/categories';
 import { chunk } from '@/utils/array';
 import type { Category, TransactionType } from '@/types/domain';
 
-const CATEGORY_COLUMNS = 4;
-
-type Confirmation = {
-  title: string;
-  message: string;
-  confirmLabel: string;
-  destructive?: boolean;
-  onConfirm: () => void | Promise<void>;
-};
+import { TransactionCategoryActionsSheet } from './transaction-category-actions-sheet';
+import { TransactionCategoryGrid } from './transaction-category-grid';
+import {
+  TransactionConfirmationDialog,
+  type Confirmation,
+} from './transaction-confirmation-dialog';
 
 /**
- * Kategori picker form transaksi: pencarian, grid kategori, editor
- * kategori inline (nama + ikon) dan sheet aksi (edit/arsip). State
- * editor dimiliki di sini; daftar kategori dimiliki form induk.
+ * Kategori picker form transaksi: label aksi, editor kategori inline
+ * (nama + ikon) dan sheet aksi (edit/arsip). State editor dimiliki di
+ * sini; grid pencarian di-handle `TransactionCategoryGrid` dan daftar
+ * kategori dimiliki form induk.
  */
 export function TransactionCategoryPicker({
   type,
@@ -51,7 +48,6 @@ export function TransactionCategoryPicker({
 }) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const [categoryQuery, setCategoryQuery] = useState('');
   const [categoryEditorOpen, setCategoryEditorOpen] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState('');
@@ -59,17 +55,6 @@ export function TransactionCategoryPicker({
   const [categorySaving, setCategorySaving] = useState(false);
   const [categoryActions, setCategoryActions] = useState<Category | null>(null);
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
-  const transactionCategories = useMemo(
-    () => filterTransactionCategories(categories, type),
-    [categories, type],
-  );
-  const visibleCategories = useMemo(() => {
-    const normalizedQuery = categoryQuery.trim().toLocaleLowerCase('id-ID');
-    if (!normalizedQuery) return transactionCategories;
-    return transactionCategories.filter((category) =>
-      getCategoryLabel(category).toLocaleLowerCase('id-ID').includes(normalizedQuery),
-    );
-  }, [categoryQuery, transactionCategories]);
   const iconRows = useMemo(() => chunk(CATEGORY_ICON_CHOICES, 5), []);
 
   const beginAdd = () => {
@@ -115,6 +100,19 @@ export function TransactionCategoryPicker({
       setCategorySaving(false);
     }
   };
+  const requestArchive = (category: Category) => {
+    setConfirmation({
+      title: t('common.archiveCategoryQuestion'),
+      message: t('common.archiveCategoryCopy', { name: category.name }),
+      confirmLabel: t('common.archive'),
+      destructive: true,
+      onConfirm: async () => {
+        await onArchiveCategory(category);
+        onCategoriesChange((current) => current.filter((item) => item.id !== category.id));
+        if (selectedId === category.id) onSelect(null);
+      },
+    });
+  };
 
   return (
     <>
@@ -152,73 +150,13 @@ export function TransactionCategoryPicker({
           </View>
         </View>
       ) : (
-        <>
-          <ThemedInput
-            accessibilityLabel={t('common.searchCategory')}
-            autoCapitalize="none"
-            autoCorrect={false}
-            placeholder={t('common.searchCategory')}
-            returnKeyType="search"
-            value={categoryQuery}
-            onChangeText={setCategoryQuery}
-            style={styles.categorySearch}
-          />
-          <ScrollView
-            style={styles.categoryScroll}
-            contentContainerStyle={styles.categoryGrid}
-            nestedScrollEnabled
-            showsVerticalScrollIndicator={false}
-          >
-            {categoryRows(visibleCategories).map((row, rowIndex) => (
-              <View
-                key={`category-row-${rowIndex}`}
-                testID={`category-row-${rowIndex}`}
-                style={styles.categoryRow}
-              >
-                {row.map((category, columnIndex) =>
-                  category ? (
-                    <Pressable
-                      key={category.id}
-                      wrapperStyle={styles.categoryCell}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('common.selectCategory', {
-                        name: getCategoryLabel(category),
-                      })}
-                      onPress={() => onSelect(category.id)}
-                      onLongPress={() => setCategoryActions(category)}
-                      delayLongPress={350}
-                      style={[
-                        styles.category,
-                        {
-                          borderColor: category.id === selectedId ? theme.pine : theme.line,
-                          backgroundColor: category.id === selectedId ? theme.mint : theme.card,
-                        },
-                      ]}
-                    >
-                      <CategoryIcon
-                        name={category.icon}
-                        color={type === 'income' ? theme.income : theme.expense}
-                      />
-                      <ThemedText type="small" style={styles.categoryName}>
-                        {getCategoryLabel(category)}
-                      </ThemedText>
-                    </Pressable>
-                  ) : (
-                    <View
-                      key={`category-spacer-${rowIndex}-${columnIndex}`}
-                      style={styles.categorySpacer}
-                    />
-                  ),
-                )}
-              </View>
-            ))}
-          </ScrollView>
-          {visibleCategories.length === 0 && (
-            <ThemedText type="small" themeColor="muted" style={styles.categorySearchEmpty}>
-              {t('common.categoryNotFound')}
-            </ThemedText>
-          )}
-        </>
+        <TransactionCategoryGrid
+          type={type}
+          categories={categories}
+          selectedId={selectedId}
+          onSelect={onSelect}
+          onLongPressCategory={setCategoryActions}
+        />
       )}
       {categoryEditorOpen && (
         <View
@@ -311,105 +249,18 @@ export function TransactionCategoryPicker({
           </Pressable>
         </View>
       )}
-      <Modal
-        transparent
-        animationType="slide"
-        visible={Boolean(categoryActions)}
-        onRequestClose={() => setCategoryActions(null)}
-      >
-        <Pressable
-          wrapperStyle={{ flex: 1 }}
-          style={[styles.overlay, { backgroundColor: theme.overlay }]}
-          onPress={() => setCategoryActions(null)}
-        >
-          <View style={[styles.categorySheet, { backgroundColor: theme.card }]}>
-            <ThemedText type="sectionHeading">{categoryActions?.name}</ThemedText>
-            <ThemedText type="small" themeColor="muted">
-              {t('common.categoryActions')}
-            </ThemedText>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('common.editCategoryNamed', {
-                name: categoryActions?.name ?? '',
-              })}
-              onPress={() => categoryActions && editCategory(categoryActions)}
-              style={[styles.sheetAction, { borderTopColor: theme.line }]}
-            >
-              <ThemedText type="smallBold" themeColor="pine">
-                {t('common.editCategory')}
-              </ThemedText>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('common.archiveCategory', {
-                name: categoryActions?.name ?? '',
-              })}
-              onPress={async () => {
-                if (!categoryActions) return;
-                const category = categoryActions;
-                setCategoryActions(null);
-                setConfirmation({
-                  title: t('common.archiveCategoryQuestion'),
-                  message: t('common.archiveCategoryCopy', { name: category.name }),
-                  confirmLabel: t('common.archive'),
-                  destructive: true,
-                  onConfirm: async () => {
-                    await onArchiveCategory(category);
-                    onCategoriesChange((current) =>
-                      current.filter((item) => item.id !== category.id),
-                    );
-                    if (selectedId === category.id) onSelect(null);
-                  },
-                });
-              }}
-              style={[styles.sheetAction, { borderTopColor: theme.line }]}
-            >
-              <ThemedText type="smallBold" style={{ color: theme.expense }}>
-                {t('common.archiveCategoryAction')}
-              </ThemedText>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
-      <ConfirmationModal
-        visible={confirmation !== null}
-        title={confirmation?.title ?? ''}
-        message={confirmation?.message ?? ''}
-        confirmLabel={confirmation?.confirmLabel ?? t('common.understand')}
-        destructive={confirmation?.destructive}
-        cancelLabel={
-          confirmation?.confirmLabel === t('common.understand') ? undefined : t('common.cancel')
-        }
-        onCancel={() => setConfirmation(null)}
-        onConfirm={async () => {
-          const action = confirmation?.onConfirm;
-          setConfirmation(null);
-          await action?.();
-        }}
+      <TransactionCategoryActionsSheet
+        category={categoryActions}
+        onDismiss={() => setCategoryActions(null)}
+        onEdit={(category) => editCategory(category)}
+        onArchive={(category) => requestArchive(category)}
+      />
+      <TransactionConfirmationDialog
+        confirmation={confirmation}
+        onDismiss={() => setConfirmation(null)}
       />
     </>
   );
-}
-
-function filterTransactionCategories(categories: Category[], type: TransactionType) {
-  if (type === 'adjustment') return [];
-  const categoryType = type === 'income' ? 'income' : 'expense';
-  return categories.filter(
-    (category) =>
-      category.type === categoryType &&
-      !category.archived &&
-      category.systemKey !== 'openingBalance',
-  );
-}
-
-function categoryRows(categories: Category[]) {
-  const rows: (Category | null)[][] = [];
-  for (let index = 0; index < categories.length; index += CATEGORY_COLUMNS) {
-    const row = categories.slice(index, index + CATEGORY_COLUMNS) as (Category | null)[];
-    while (row.length < CATEGORY_COLUMNS) row.push(null);
-    rows.push(row);
-  }
-  return rows;
 }
 
 const styles = StyleSheet.create({
@@ -429,24 +280,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
   },
   internalCategoryCopy: { flex: 1, gap: 2 },
-  categorySearch: { marginTop: Spacing.one },
-  categoryScroll: { maxHeight: 236, width: '100%' },
-  categoryGrid: { gap: Spacing.two, width: '100%' },
-  categoryRow: { flexDirection: 'row', gap: Spacing.two, width: '100%' },
-  category: {
-    alignItems: 'center',
-    borderRadius: 13,
-    borderWidth: 1,
-    gap: 3,
-    height: 78,
-    justifyContent: 'center',
-    padding: 9,
-    width: '100%',
-  },
-  categoryCell: { flex: 1, minWidth: 0 },
-  categorySpacer: { flex: 1, minWidth: 0 },
-  categoryName: { fontSize: 10, lineHeight: 13, textAlign: 'center', width: '100%' },
-  categorySearchEmpty: { paddingVertical: Spacing.three, textAlign: 'center' },
   categoryEditor: {
     alignSelf: 'stretch',
     borderRadius: 13,
@@ -487,17 +320,5 @@ const styles = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: 16,
     width: '100%',
-  },
-  overlay: { flex: 1, justifyContent: 'flex-end' },
-  categorySheet: {
-    borderTopLeftRadius: Radius.sheet,
-    borderTopRightRadius: Radius.sheet,
-    gap: Spacing.two,
-    padding: 21,
-  },
-  sheetAction: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'transparent',
-    paddingVertical: 15,
   },
 });
