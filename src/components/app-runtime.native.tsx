@@ -31,9 +31,7 @@ import {
   consumeLastNotificationResponseData,
 } from '@/services/notification-service';
 import {
-  reconcileBudgetPeriodReminders,
-  reconcileGoalReminders,
-  reconcileTransactionReminders,
+  reconcileAllReminders,
 } from '@/services/reminder-reconciler';
 import { getReminderRoute } from '@/services/reminder-navigation';
 
@@ -106,9 +104,7 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
         setSelectedLocale(settings.locale as 'id' | 'en');
         await changeLocale(settings.locale);
         setThemeMode(settings.themeMode as 'system' | 'light' | 'dark');
-        void reconcileTransactionReminders(sqlite).catch(() => undefined);
-        void reconcileBudgetPeriodReminders(sqlite).catch(() => undefined);
-        void reconcileGoalReminders(sqlite).catch(() => undefined);
+        void reconcileAllReminders(sqlite).catch(() => undefined);
         if (!cancelled) {
           setSetupComplete(setup.hasWallet);
           setSeeded(true);

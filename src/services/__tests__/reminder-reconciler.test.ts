@@ -80,6 +80,19 @@ describe('ReminderReconciler', () => {
     expect(scheduleReminderNotification).not.toHaveBeenCalled();
   });
 
+  it('hanya membatalkan jadwal saat master toggle mati', async () => {
+    jest.mocked(getDatabaseSettings).mockResolvedValue({
+      ...settings,
+      remindersEnabled: false,
+    });
+
+    await expect(
+      reconcileTransactionReminders(database, new Date(2026, 8, 9, 19, 30)),
+    ).resolves.toEqual([]);
+    expect(cancelReminderNotification).toHaveBeenCalledTimes(1);
+    expect(scheduleReminderNotification).not.toHaveBeenCalled();
+  });
+
   it('tidak menjadwalkan saat izin native tidak tersedia', async () => {
     jest.mocked(getNotificationPermissionStatus).mockResolvedValue('denied');
 

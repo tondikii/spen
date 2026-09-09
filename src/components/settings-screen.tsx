@@ -44,11 +44,7 @@ import {
   requestNotificationPermission,
   type NotificationPermissionStatus,
 } from '@/services/notification-service';
-import {
-  reconcileBudgetPeriodReminders,
-  reconcileGoalReminders,
-  reconcileTransactionReminders,
-} from '@/services/reminder-reconciler';
+import { reconcileAllReminders } from '@/services/reminder-reconciler';
 import { ThemedInput } from '@/components/themed-input';
 import { changeLocale } from '@/i18n';
 import { getPublicDocumentUrl } from '@/lib/public-documents';
@@ -117,10 +113,8 @@ export default function SettingsScreen({
       let permission = permissionStatus;
       let settings = next;
       const wantsPermission =
-        next.remindersEnabled ||
-        next.transactionReminderEnabled ||
-        next.periodReminderEnabled ||
-        next.goalReminderEnabled;
+        next.remindersEnabled &&
+        (next.transactionReminderEnabled || next.periodReminderEnabled || next.goalReminderEnabled);
       if (wantsPermission && !next.notificationPermissionRequested) {
         permission = await getNotificationPermissionStatus();
         if (permission !== 'granted') {
@@ -137,11 +131,7 @@ export default function SettingsScreen({
       setReminders(saved);
       setReminderTimeDraft(saved.transactionReminderTime);
       setPermissionStatus(permission);
-      if (database) {
-        void reconcileTransactionReminders(database).catch(() => undefined);
-        void reconcileBudgetPeriodReminders(database).catch(() => undefined);
-        void reconcileGoalReminders(database).catch(() => undefined);
-      }
+      if (database) void reconcileAllReminders(database).catch(() => undefined);
     } catch {
       showToast(t('errors.storage'));
     }
@@ -176,11 +166,7 @@ export default function SettingsScreen({
       const next = database ? await setDatabaseLocale(database, option) : setSelectedLocale(option);
       setLocale(next);
       await changeLocale(next);
-      if (database) {
-        void reconcileTransactionReminders(database).catch(() => undefined);
-        void reconcileBudgetPeriodReminders(database).catch(() => undefined);
-        void reconcileGoalReminders(database).catch(() => undefined);
-      }
+      if (database) void reconcileAllReminders(database).catch(() => undefined);
       setLanguageOpen(false);
     } catch {
       showToast(t('errors.storage'));
@@ -491,9 +477,15 @@ export default function SettingsScreen({
                 setBusy(true);
                 try {
                   const restoredLocale = await restoreDatabase(database, file.content);
+                  const restoredSettings = await getDatabaseSettings(database);
                   setLocale(restoredLocale);
+                  setCurrency(restoredSettings.currency);
+                  setReminders(restoredSettings);
+                  setReminderTimeDraft(restoredSettings.transactionReminderTime);
                   setSelectedLocale(restoredLocale);
+                  setSelectedCurrency(restoredSettings.currency);
                   await changeLocale(restoredLocale);
+                  await reconcileAllReminders(database).catch(() => undefined);
                   showToast(t('common.restored'));
                 } catch (cause) {
                   showToast(t(getErrorTranslationKey(cause)));

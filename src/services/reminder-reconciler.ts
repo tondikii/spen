@@ -102,3 +102,12 @@ export async function reconcileGoalReminders(database: SQLiteDatabase, now = new
   await Promise.all(plan.map((reminder) => scheduleReminderNotification(reminder)));
   return plan;
 }
+
+export async function reconcileAllReminders(database: SQLiteDatabase, now = new Date()) {
+  const [transactions, periods, goals] = await Promise.all([
+    reconcileTransactionReminders(database, now),
+    reconcileBudgetPeriodReminders(database, now),
+    reconcileGoalReminders(database, now),
+  ]);
+  return { transactions, periods, goals };
+}
