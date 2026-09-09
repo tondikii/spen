@@ -20,7 +20,7 @@ Cara pakai: kerjakan tiket open yang paling depan (blockers-first). Tiap tiket: 
 
 ## Tiket
 
-Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · T07=#90 · T08=#87 · T09=#85 · T10=#89 · T11=#88. (Isu #73 = spec ADR-0009 yang sudah ada sebelumnya, terkait.)
+Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · T07=#90 · T08=#87 · T09=#85 · T10=#89 · T11=#88 · T22=#92. (Isu #73 = spec ADR-0009 yang sudah ada sebelumnya, terkait.)
 
 ### Status malam 8 Sep (snapshot historis — status terkini di "Lanjutan otomatis 9 Sep")
 ✅ **Selesai & isu ditutup**: T02 (#91), T03 (#84), T07 (#90), T09 (#85), T10 (#89), T11 (#88), T08 (#87). Tanpa isu: T12 (+not-found), T16 (CONTRIBUTING + release checklist), T17 (ADR typed routes), T21 (skeleton + provider, amandemen ADR-0009). D1 & D7 dikerjakan langsung (ADR-0010 + web locale).
@@ -35,6 +35,7 @@ Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · 
 ✅ **T15 selesai** — error domain terlokalisasi: seluruh throw `AppError` di service/data layer memakai kode + params (tanpa pesan hardcoded); pesan generik per locale lewat `errors.*` di boundary UI (commit `cd6d74e`). Penyerta: perbaikan setup jest untuk reanimated 4.5.1 + worklets 0.10.1 (mock holder API + `mock.js` reanimated, commit `5a31139`); suite penuh hijau 34/34.
 ✅ **T21 selesai** — `screen-skeleton.tsx` tanpa konsumen dihapus (commit `d7c5e78`); status provider = lapisan aplikasi dikunci di amandemen ADR-0009 + dikecualikan di eslint. `structure-recommendation.md` dipertahankan sebagai sumber ADR-0009.
 ✅ **Spec #73 ditutup** — seluruh tracer bullet (#74–#80) + T21 + audit struktur ADR-0009 tuntas; repo hijau.
+✅ **T22 (#92) selesai** — ekstraksi batch 2 (file >400 baris efektif → ambang panduan §7): `report-screen.tsx` 421→252 (sub-UI header → `components/report-header.tsx`, styles → `report-screen.styles.ts`); `plan-repository.test.ts` 545 → 4 file ber-tema (period 52, snapshot 157, items 188, transactions 170) + helper `plan-repository-test-db.ts`; `plan-screen.test.tsx` 442 → fixtures `plan-screen-test-utils.tsx` + 3 file (summary 58, items 123, goals 28). Tanpa perubahan perilaku; suite hijau 164/164, `npm run verify` hijau. Isu ditutup. Catatan: 10 file produksi tersisa di zona 301–400 (evaluasi panduan, bukan pelanggaran review); ambang eslint diselaraskan ke 300 warn setelah zona itu tuntas (D5).
 
 ### Wave 0 — Baseline harian
 | ID | Tiket | Blocker | Status |
@@ -82,7 +83,8 @@ Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · 
 ## Lanjutan otomatis
 Job cron satu-kali (durable) dijadwalkan untuk melanjutkan tiket open berikutnya saat sesi berikutnya terbuka. Bila job tak jalan (app tertutup), mulai sesi berikutnya dengan membaca dokumen ini lalu `gh issue list` untuk frontier.
 
-### Keadaan frontier (9 Sep, setelah T15 + #73)
-- Semua isu GitHub CLOSED (termasuk spec #73). Sisa open hanya di dokumen ini (Wave 2): **T18** (a11y — butuh uji perangkat TalkBack/VoiceOver untuk verifikasi penuh), **T19** (backend Groq — butuh keputusan produk/hosting), **T20** (enkripsi at-rest — butuh keputusan produk).
+### Keadaan frontier (9 Sep, setelah T22 + #92)
+- Semua isu GitHub CLOSED. Sisa open hanya di dokumen ini (Wave 2): **T18** (a11y — butuh uji perangkat TalkBack/VoiceOver untuk verifikasi penuh), **T19** (backend Groq — butuh keputusan produk/hosting), **T20** (enkripsi at-rest — butuh keputusan produk).
 - T18 punya bagian kode yang bisa dikerjakan tanpa device (`accessibilityHint` pada kontrol ikon + dokumen uji perangkat di acceptance checklist). Bila sesi berikutnya tanpa device: kerjakan bagian kode T18, tandai verifikasi perangkat sebagai langkah manusia, lalu commit.
+- Kandidat gelombang berikutnya (D5, bukan pelanggaran keras): 10 file produksi di zona 301–400 baris efektif, terbesar `settings/data/backup-repository.ts` 364, `setup/screens/setup-wizard.tsx` 360, `i18n/translations/common-*.ts` 352, `transactions/components/transaction-form-content.tsx` 351, `plan/screens/plan-screen.tsx` 346. Setelah zona ini tuntas, selaraskan eslint `max-lines` ke 300 warn (panduan §7).
 - `npm run verify` lokal = jalur keputusan: format:check + lint + typecheck + `npm test` (NODE_ENV=test via cross-env).

@@ -1,0 +1,70 @@
+import { StyleSheet } from 'react-native';
+
+import { BottomTabInset, Fonts } from '@/theme';
+
+export const styles = StyleSheet.create({
+  page: { flex: 1 },
+  safeArea: { flex: 1 },
+  content: {
+    alignSelf: 'center',
+    maxWidth: 430,
+    paddingBottom: BottomTabInset + 24,
+    paddingHorizontal: 21,
+    paddingTop: 24,
+    width: '100%',
+  },
+  summary: { marginBottom: 24 },
+  empty: { alignItems: 'center', gap: 7, paddingVertical: 38 },
+  pieArea: { alignItems: 'center', height: 183, justifyContent: 'center', marginTop: 8 },
+  chartReveal: { overflow: 'hidden' },
+  pieLabel: { alignItems: 'center', position: 'absolute' },
+  pieAmount: {
+    fontFamily: Fonts.mono,
+    fontSize: 13,
+    letterSpacing: -1,
+    textAlign: 'center',
+    width: 90,
+  },
+  legend: { flex: 1 },
+  legendRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    borderTopColor: 'transparent',
+    borderTopWidth: 1,
+    gap: 7,
+    paddingVertical: 10,
+  },
+  dot: { borderRadius: 4, height: 8, width: 8 },
+  legendName: { flex: 1, fontSize: 11 },
+  chart: {
+    alignItems: 'flex-end',
+    borderBottomWidth: 1,
+    height: 130,
+    justifyContent: 'flex-end',
+    marginTop: 8,
+  },
+  months: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingTop: 7,
+  },
+  rangePopover: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    elevation: 100,
+    padding: 4,
+    position: 'absolute',
+    right: 0,
+    top: 28,
+    width: 148,
+    zIndex: 100,
+  },
+  rangeOption: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'center',
+    minHeight: 38,
+    paddingHorizontal: 11,
+  },
+  insightText: { fontSize: 13, lineHeight: 21, marginTop: 17 },
+  insightError: { gap: 12 },
+});
