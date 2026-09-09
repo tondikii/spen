@@ -1,7 +1,6 @@
 export type TransactionType = 'income' | 'expense' | 'transfer' | 'adjustment';
 export type CategoryType = 'income' | 'expense' | 'transfer';
 export type WalletTint = 'pine' | 'coral' | 'gold' | 'goal';
-export type PlanItemType = 'income' | 'expense' | 'fixedExpense' | 'allocation';
 export type ThemeMode = 'system' | 'light' | 'dark';
 export type Locale = 'id' | 'en';
 export type SystemCategoryKey =
@@ -47,10 +46,6 @@ export type SystemCategoryKey =
   | 'balanceAdjustment';
 export type CurrencyCode =
   'IDR' | 'USD' | 'SGD' | 'MYR' | 'EUR' | 'GBP' | 'JPY' | 'AUD' | 'SAR' | 'AED';
-export type PaymentStatus =
-  | { kind: 'Lunas' }
-  | { kind: 'Sebagian dibayar'; paidAmount: number; targetAmount: number }
-  | { kind: 'Belum dibayar' };
 
 export type Wallet = {
   id: string;
@@ -100,33 +95,6 @@ export type BudgetPeriod = {
   durationMonths: 1;
 };
 
-export type IncomeItem = {
-  id: string;
-  type: 'income';
-  name: string;
-  categoryId: string;
-  targetAmount: number;
-  walletId?: string;
-  isAutomatic?: boolean;
-};
-
-export type ExpenseItem = {
-  id: string;
-  type: 'expense';
-  name: string;
-  categoryId: string;
-  targetAmount: number;
-  isAutomatic?: boolean;
-  isPaid?: boolean;
-};
-
-/** @deprecated Legacy names kept only so old backup/test callers can migrate. */
-export type FixedExpenseItem = Omit<ExpenseItem, 'type'> & { type: 'fixedExpense' };
-/** @deprecated Legacy names kept only so old backup/test callers can migrate. */
-export type AllocationItem = Omit<ExpenseItem, 'type'> & { type: 'allocation' };
-
-export type BudgetPlanItem = IncomeItem | ExpenseItem | FixedExpenseItem | AllocationItem;
-
 export type Goal = {
   id: string;
   name: string;
@@ -142,38 +110,6 @@ export type GoalProgress = {
   savedAmount: number;
   progressPercent: number;
   achieved: boolean;
-};
-
-export type BudgetPlan = {
-  id: string;
-  budgetPeriodId: string;
-  incomeItems: IncomeItem[];
-  expenseItems: ExpenseItem[];
-  /** @deprecated Read-only compatibility aliases; new UI never renders these sections. */
-  fixedExpenseItems: FixedExpenseItem[];
-  allocationItems: AllocationItem[];
-  goalIds: string[];
-};
-
-export type PlanItemState = {
-  itemId: string;
-  realizedAmount: number;
-  progressPercent: number;
-  paymentStatus?: PaymentStatus;
-  overBudget: boolean;
-};
-
-export type BudgetSnapshot = {
-  totalIncome: number;
-  totalExpense: number;
-  totalTransferIn: number;
-  totalTransferOut: number;
-  netSaving: number;
-  spareBudget: number;
-  availableBalance: number;
-  freeBalance: number;
-  goalBalance: number;
-  planItems: PlanItemState[];
 };
 
 export type AppSettings = {

@@ -9,14 +9,8 @@ import { createWallet } from '@/features/wallet';
 import { createGoal } from '@/features/goal';
 import { SYSTEM_CATEGORY_NAMES } from '@/utils/domain/constants';
 import type { BudgetSuggestion } from '@/lib/ai-service';
-import type {
-  BudgetPlan,
-  BudgetPlanItem,
-  Category,
-  Goal,
-  PlanItemType,
-  Wallet,
-} from '@/types/domain';
+import type { BudgetPlan, BudgetPlanItem, PlanItemType } from '../model';
+import type { Category, Goal, Wallet } from '@/types/domain';
 import type { PeriodRow } from '@/types/db-rows';
 
 export type PlanItemDraft = {

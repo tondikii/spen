@@ -20,17 +20,14 @@ import type {
   AllocationItem,
   BudgetPlan,
   BudgetPlanItem,
-  BudgetPeriod,
   BudgetSnapshot,
-  Category,
   ExpenseItem,
   FixedExpenseItem,
-  Goal,
   IncomeItem,
   PlanItemState,
   PlanItemType,
-  Wallet,
-} from '@/types/domain';
+} from './model';
+import type { BudgetPeriod, Category, Goal, Wallet } from '@/types/domain';
 import type { GoalRow, ItemRow } from '@/types/db-rows';
 
 export type PlanView = {

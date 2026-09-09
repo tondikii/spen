@@ -11,7 +11,8 @@ import { ThemedView } from '@/components/ui/themed-view';
 import { Fonts, Radius } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { todayISO } from '@/utils/date';
-import type { BudgetPlanItem, Category, Goal, PlanItemType } from '@/types/domain';
+import type { Category, Goal } from '@/types/domain';
+import type { BudgetPlanItem, PlanItemType } from '../model';
 import type { PlanItemDraft } from '../data/plan-repository';
 import type { BudgetAIInput, BudgetSuggestion } from '@/lib/ai-service';
 

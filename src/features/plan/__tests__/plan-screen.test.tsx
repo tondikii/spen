@@ -2,10 +2,10 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { ComponentProps } from 'react';
 import { StyleSheet } from 'react-native';
 
-import PlanScreen from '@/features/plan';
+import PlanScreen, { type BudgetPlan } from '@/features/plan';
 import { AppThemeProvider } from '@/providers/theme-provider';
 import { todayISO } from '@/utils/date';
-import type { BudgetPeriod, BudgetPlan, Category, Goal, Wallet } from '@/types/domain';
+import type { BudgetPeriod, Category, Goal, Wallet } from '@/types/domain';
 
 const period: BudgetPeriod = {
   id: 'period-1',

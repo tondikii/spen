@@ -6,7 +6,7 @@ import { Fonts, Layout, Radius, Typography } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatMoney } from '@/utils/money';
 import { useTranslation } from 'react-i18next';
-import type { BudgetSnapshot } from '@/types/domain';
+import type { BudgetSnapshot } from '../model';
 
 export function PlanSummaryCard({ snapshot }: { snapshot: BudgetSnapshot }) {
   const theme = useTheme();
