@@ -632,6 +632,44 @@ Khusus data keuangan:
 - Uji pembesaran font, keyboard, safe area, dan layar kecil.
 - Pusatkan perbedaan platform pada adapter seperti `AppIcon`.
 
+### Penempatan stylesheet
+
+Simpan `StyleSheet.create` di file component secara default. Style adalah bagian dari implementasi view: ketika component diubah, style terkait biasanya berubah pada waktu yang sama. Colocation membuat file lebih mudah ditemukan dan mengurangi file kecil yang hanya menjadi pasangan satu component.
+
+Pisahkan ke `<nama-component>.styles.ts` bila salah satu kondisi berikut terpenuhi:
+
+- Style cukup panjang sehingga JSX dan logic sulit dipindai, umumnya sekitar lebih dari 100–150 baris style atau file component mulai melewati batas review.
+- Satu component memiliki beberapa subview besar yang masing-masing membutuhkan kelompok style jelas.
+- Beberapa component memakai primitive style yang sama dan primitive tersebut benar-benar menjadi bagian dari design system.
+
+Contoh:
+
+```text
+features/transactions/components/
+  transaction-form.tsx
+  transaction-form.types.ts       # Hanya jika type dipakai lintas file
+  transaction-form.styles.ts      # Hanya jika style sudah cukup besar
+```
+
+File `.styles.ts` hanya berisi style statis, constants style lokal, dan—bila perlu—factory style murni. Jangan memindahkan seluruh logic tampilan ke file ini. Nilai yang bergantung pada props, ukuran layar, accessibility font scale, atau theme aktif tetap dihitung di component atau melalui hook tema.
+
+```tsx
+// transaction-form.styles.ts
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  container: { gap: 16 },
+  amountInput: { minHeight: 52 },
+});
+```
+
+```tsx
+// transaction-form.tsx
+<View style={[styles.container, { paddingBottom: bottomInset }]} />
+```
+
+Jangan membuat satu file `styles.ts` global untuk semua screen. Untuk token yang reusable, gunakan `theme/`; untuk primitive UI reusable, pemiliknya adalah component bersama. Hindari memakai index/barrel export khusus styles bila tidak memberi API yang jelas.
+
 Untuk performa:
 
 - Gunakan `FlatList` atau `SectionList` untuk daftar panjang.
@@ -950,16 +988,3 @@ Tetapkan baseline sederhana: cold start, waktu membuka daftar/laporan, durasi qu
 | Berdasarkan pengukuran | Memoization, query index tambahan, list tuning, pemisahan module lebih lanjut |
 
 Tinjau kembali panduan saat upgrade Expo SDK atau perubahan arsitektur. Catat alasan penyimpangan pada keputusan teknis yang relevan. Tidak ada dokumen yang mencakup semua kasus React Native; panduan ini menetapkan baseline luas dan cara memilih praktik sesuai risiko produk.
-
-## 24. Amandemen khusus Spen (8 September 2026)
-
-Bagian panduan ini dirancang sebagai konsultasi umum dan ditulis sebelum adopsi bertahap di repo. Beberapa pasal tidak berlaku persis karena keputusan repo (ADR) menang; berikut pemetaan resminya:
-
-- **Layar & route (§2/§6/§17)**: Spen memakai *pure screen* + route adapter (ADR-0008): layar menerima view-model + callback, tidak memegang data-hook sendiri; route yang memuat loading/adapter boleh melebihi 100 baris, diekstrak bertahap.
-- **File tipe (§2/§4)**: tidak ada konvensi `*.types.ts` per fitur; tipe view-model/input dekat pemiliknya (`data/`, `read.ts`), tipe lintas fitur di `src/types/`.
-- **Output migrasi (§2/§9)**: berada di `drizzle/` (bukan `db/migrations`) dan bersifat incremental (ADR-0010).
-- **Lokasi keputusan (§14)**: `docs/adr/`, bukan `docs/decisions/`.
-- **Ambang ukuran file (§7)**: target ekstraksi bertahap; eslint saat ini error di 600 baris efektif.
-- **Guard & error form**: submit dilindungi re-entry dan rejection diterjemahkan di batas UI (lihat tiket T02/T03).
-- Keputusan lain (typed routes off, provider sebagai lapisan aplikasi, fitur data-only) tercatat di ADR-0011, amandemen ADR-0009, dan `docs/agents/guide-adoption-backlog.md`.
-- Dokumen ini hidup di `docs/expo-react-native-development-guide.md` dan ditinjau ulang saat upgrade Expo SDK (lihat §23).

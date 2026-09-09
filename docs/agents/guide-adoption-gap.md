@@ -1,5 +1,7 @@
 # Audit Gap — Adopsi Panduan Development Expo React Native
 
+> **Pembaruan 9 Sep — audit ini adalah snapshot histori (8 Sep).** Seluruh konflik §1 dan delta wave sudah diputus/dieksekusi lewat tiket T01–T23 (`docs/agents/guide-adoption-backlog.md`); semua isu GitHub CLOSED. Status final: `npm run verify` hijau (39 suite / 164 test), lint 0 error (15 warning dikenal, mayoritas `require()` di test DB yang disengaja). Dokumen yang hidup untuk progres adalah backlog; audit di bawah dipertahankan sebagai jejak analisis.
+
 Tanggal: 8 September 2026 · Branch: `development-refactor` (4f6acc0)
 Metode: 4 agent audit paralel — struktur kode, penulisan TSX/React, data/UI, tooling/workflow — membandingkan tiga sisi: **panduan** (`docs/expo-react-native-development-guide.md`; kini diamandemen §24) vs **niat terdokumentasi** (CONTEXT.md, `docs/adr/0001–0009`, `docs/design/DESIGN.md`, skill di `.agents/skills/`) vs **realita kode**.
 Status `npm run verify` (8 Sep): awalnya **GAGAL** pada `migration-compat.test.ts` (konflik #2); malam harinya dihijaukan via ADR-0010 + rewrite test (model incremental). Sisa lint: 15 warning, 0 error (mayoritas `require()` di test DB yang disengaja).
@@ -19,6 +21,21 @@ Legenda: **KONFLIK** = antar-dokumen/praktik berselisih, butuh putusan manusia. 
 | 7 | Lokasi keputusan | Panduan §14 (`docs/decisions/`) vs standar repo (`docs/adr/`) | Penamaan beda, isi sudah 9 ADR di `docs/adr/` | `AGENTS.md:26`; `docs/agents/domain.md:20-24` |
 | 8 | Multi-currency | Panduan §9 (minor units eksplisit bila multi-currency) vs kontrak produk (currency = tampilan global tanpa konversi) | Settings menawarkan 10 kode mata uang tapi nilai disimpan integer "rupiah tanpa desimal" & diformat `maximumFractionDigits:0` → mata uang non-IDR kehilangan minor units; implikasi tak terdokumentasi | `src/db/schema/settings.ts:8-13`; `src/utils/money.ts:8-23`; `CONTEXT.md:84-86` |
 | 9 | Default bahasa web | CONTEXT/ADR-0006 (English default web) vs kode | `resolveWebLocale` fallback `'id'` untuk URL/navigator tak dikenal, dan test mengunci `id`. Kode menyimpang dari niat terdokumentasi | `src/i18n/web.ts:11,15`; `src/i18n/__tests__/web.test.ts:11-12` |
+
+### Peta resolusi (9 Sep)
+
+| # | Status | Resolusi |
+|---|---|---|
+| 1 | 🎫 T19 (open) | ADR-0002 dipertahankan (MVP panggil langsung dari client); backend tipis pra-rilis butuh keputusan produk/hosting. Key tetap gitignored |
+| 2 | ✅ DONE | ADR-0010 (migrasi incremental) + `migration-compat.test.ts` di-rewrite ke invariant model incremental (T10/ADR; D1) |
+| 3 | ✅ DONE | ADR-0008 (pure screen + route adapter) & ADR-0009 diamandemen; T06 (SettingsScreen) & T08 selesai |
+| 4 | ✅ DONE | T04: `src/types/domain.ts` dipecah, legacy dihapus; tanpa `.types.ts` per fitur dikunci di amandemen ADR-0009 (D3) |
+| 5 | ✅ DONE | D4 dikunci di amandemen ADR-0009: fitur data-only (`wallet`, `goal`) sah, UI boleh di fitur konsumen |
+| 6 | ✅ DONE | T05/T22/T23: semua file produksi ≤300 baris efektif (data deklaratif `i18n/**` & `db/seed.ts` di-override); eslint `max-lines` = **300 warn** (D5) |
+| 7 | ✅ DONE | T08: `docs/adr/` ditetapkan sebagai lokasi keputusan (D6) |
+| 8 | ✅ DONE | D8: display-only tanpa konversi dipertahankan, risiko format non-IDR dicatat |
+| 9 | ✅ DONE | D7: default web English (`web.ts` + test) |
+
 
 ## 2. Delta per wave prioritas (tabel prioritas panduan §23)
 
@@ -114,7 +131,7 @@ Struktur top-level `src/` sesuai pohon panduan; subfolder fitur dibuat hanya bil
 
 ## 5. Langkah lanjutan yang disarankan
 
-1. **Putuskan konflik §1 satu per satu** (sesi keputusan → ADR baru atau amandemen panduan). Urutan yang saling menggantung: #2 migrasi (blokir Wave 1) → #3+#4 layering/tipe (blokir banyak delta Wave 0) → #6 ambang file → sisanya.
-2. **Amandemen panduan** untuk penyimpangan yang diputuskan (mis. route-adapter ADR-0008, struktur tanpa `.types.ts`, `docs/adr/`) — supaya panduan tidak menyesatkan sesi berikutnya; catat alasan di ADR terkait (panduan §23).
-3. **Eksekusi per wave** setelah peta keputusan jelas: delta jadi tiket berurutan (blockers-first), dikerjakan dengan test, ditutup code-review per PR.
-4. Tinjau ulang panduan saat upgrade Expo SDK / perubahan arsitektur.
+1. ~~Putuskan konflik §1 satu per satu~~ — **selesai**: D1–D9 diputus dan dieksekusi (9 Sep), ADR/amandemen dicatat; sisa hanya T19 (produk/hosting) yang memang butuh putusan manusia.
+2. ~~Amandemen panduan~~ — **selesai**: T08 + amandemen final 9 Sep (subsection "Penempatan stylesheet" di §10; lampiran transisi §24 dihapus karena isinya sudah menjadi ADR/kebijakan).
+3. ~~Eksekusi per wave~~ — **selesai**: T01–T23 hijau; `npm run verify` 39 suite / 164 test, lint 0 error.
+4. Tetap berlaku: tinjau ulang panduan saat upgrade Expo SDK / perubahan arsitektur.
