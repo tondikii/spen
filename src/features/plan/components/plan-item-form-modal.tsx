@@ -31,7 +31,7 @@ export function PlanItemFormModal({
   onClose,
   onSave,
 }: {
-  item?: BudgetPlanItem;
+  item?: BudgetPlanItem | undefined;
   type: PlanItemType;
   categories: Category[];
   wallets: Wallet[];

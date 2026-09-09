@@ -25,7 +25,7 @@ export function PlanActionMenu({
 }: {
   label: string;
   actions: PlanAction[];
-  onOpenChange?: (open: boolean) => void;
+  onOpenChange?: ((open: boolean) => void) | undefined;
   dismissSignal?: number;
 }) {
   const theme = useTheme();

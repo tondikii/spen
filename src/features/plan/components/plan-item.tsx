@@ -21,8 +21,8 @@ export type PlanItemState = {
 
 export function PlanItem(props: {
   item: BudgetPlanItem;
-  category?: Category;
-  state?: PlanItemState;
+  category?: Category | undefined;
+  state?: PlanItemState | undefined;
   action: string;
   color: string;
   onAction: (item: BudgetPlanItem) => void;
@@ -67,8 +67,8 @@ function PlanItemContent({
   dismissSignal = 0,
 }: {
   item: BudgetPlanItem;
-  category?: Category;
-  state?: PlanItemState;
+  category?: Category | undefined;
+  state?: PlanItemState | undefined;
   action: string;
   color: string;
   onAction: (item: BudgetPlanItem) => void;

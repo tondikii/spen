@@ -18,7 +18,7 @@ export function useReportInsight({
   reportView,
 }: {
   open: boolean;
-  aiInput?: BudgetAIInput;
+  aiInput?: BudgetAIInput | undefined;
   reportView: ReportView;
 }) {
   const { t } = useTranslation();

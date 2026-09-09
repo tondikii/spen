@@ -112,7 +112,7 @@ export function CategoryIcon({
   color = '#235B50',
   style,
 }: {
-  name?: string;
+  name?: string | undefined;
   size?: number;
   color?: string;
   style?: TextStyle;

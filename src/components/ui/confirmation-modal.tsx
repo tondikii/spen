@@ -11,8 +11,8 @@ type ConfirmationModalProps = {
   message: string;
   confirmLabel: string;
   /** Label aksi kedua; ditambahkan hanya bila diisi (contoh: `t('common.cancel')`). */
-  cancelLabel?: string;
-  destructive?: boolean;
+  cancelLabel?: string | undefined;
+  destructive?: boolean | undefined;
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
 };

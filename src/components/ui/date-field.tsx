@@ -26,8 +26,8 @@ export function DateField({
 }: {
   date: string;
   onSelect: (candidate: string) => void;
-  minDate?: string;
-  maxDate?: string;
+  minDate?: string | undefined;
+  maxDate?: string | undefined;
   style?: StyleProp<ViewStyle>;
 }) {
   const theme = useTheme();

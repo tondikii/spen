@@ -21,7 +21,7 @@ export function usePlanAi({
   snapshot,
   onSuggestionApply,
 }: {
-  aiInput?: BudgetAIInput;
+  aiInput?: BudgetAIInput | undefined;
   snapshot: PlanAiSnapshot;
   onSuggestionApply: (suggestion: BudgetSuggestion) => void | Promise<void>;
 }) {

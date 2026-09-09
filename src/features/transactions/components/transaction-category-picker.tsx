@@ -45,7 +45,7 @@ export function TransactionCategoryPicker({
   onCategoriesChange: (update: (current: Category[]) => Category[]) => void;
   selectedId: string | null;
   onSelect: (categoryId: string | null) => void;
-  internalCategory?: Category;
+  internalCategory?: Category | undefined;
   onSaveCategory: (category: Category) => Category | Promise<Category>;
   onArchiveCategory: (category: Category) => void | Promise<void>;
 }) {

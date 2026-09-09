@@ -17,9 +17,9 @@ type FinanceHeroCardProps = {
   label: string;
   amount: number;
   marker?: string;
-  amountColor?: string;
+  amountColor?: string | undefined;
   note?: ReactNode;
-  noteColor?: string;
+  noteColor?: string | undefined;
   labelStyle?: StyleProp<TextStyle>;
   footer?: FinanceHeroFooterItem[];
   /** Extra content rendered between the note and the footer (e.g. a progress block). */

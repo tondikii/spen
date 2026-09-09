@@ -43,7 +43,7 @@ export function MonthCalendar({
   /** Called with the shifted `YYYY-MM` when a header arrow is pressed. */
   onMonthChange: (month: string) => void;
   /** Upper bound (`YYYY-MM`) for the "next month" arrow; omitted = unbounded. */
-  maxMonth?: string;
+  maxMonth?: string | undefined;
   /** Extra predicate; a date is disabled when it returns true. */
   isDisabled?: (date: string) => boolean;
   /** Also disable dates outside the visible month. */
