@@ -68,6 +68,16 @@ describe('backup service', () => {
     expect(payload.version).toBe(1);
     expect(payload.data.wallets).toHaveLength(1);
     expect(payload.data.categories.length).toBeGreaterThan(0);
+    expect(payload.data.settings[0]).toEqual(
+      expect.objectContaining({
+        reminders_enabled: 0,
+        transaction_reminder_enabled: 0,
+        period_reminder_enabled: 0,
+        goal_reminder_enabled: 0,
+        transaction_reminder_time: '20:00',
+        notification_permission_requested: 0,
+      }),
+    );
     expect(parseBackupPayload(JSON.stringify(payload))).toEqual(payload);
   });
 
@@ -128,5 +138,53 @@ describe('backup service', () => {
     payload.data.settings[0]!.locale = 'en';
 
     await expect(restoreDatabase(database, payload)).resolves.toBe('en');
+  });
+
+  it('memulihkan preferensi Pengingat tanpa meminta izin sistem', async () => {
+    await database.runAsync(
+      `UPDATE settings SET reminders_enabled = 1, transaction_reminder_enabled = 1,
+       period_reminder_enabled = 1, goal_reminder_enabled = 1,
+       transaction_reminder_time = '07:30', notification_permission_requested = 1 WHERE id = 1;`,
+    );
+    const payload = await exportDatabase(database);
+    await database.runAsync(
+      `UPDATE settings SET reminders_enabled = 0, transaction_reminder_enabled = 0,
+       period_reminder_enabled = 0, goal_reminder_enabled = 0,
+       transaction_reminder_time = '20:00', notification_permission_requested = 0 WHERE id = 1;`,
+    );
+
+    await restoreDatabase(database, payload);
+
+    await expect(
+      database.getFirstAsync<Record<string, number | string>>(
+        'SELECT reminders_enabled, transaction_reminder_enabled, period_reminder_enabled, goal_reminder_enabled, transaction_reminder_time, notification_permission_requested FROM settings WHERE id = 1;',
+      ),
+    ).resolves.toEqual({
+      reminders_enabled: 1,
+      transaction_reminder_enabled: 1,
+      period_reminder_enabled: 1,
+      goal_reminder_enabled: 1,
+      transaction_reminder_time: '07:30',
+      notification_permission_requested: 1,
+    });
+  });
+
+  it('tetap menerima backup lama tanpa field Pengingat', async () => {
+    const payload = await exportDatabase(database);
+    const legacySettings = payload.data.settings[0]!;
+    delete legacySettings.reminders_enabled;
+    delete legacySettings.transaction_reminder_enabled;
+    delete legacySettings.period_reminder_enabled;
+    delete legacySettings.goal_reminder_enabled;
+    delete legacySettings.transaction_reminder_time;
+    delete legacySettings.notification_permission_requested;
+
+    await restoreDatabase(database, payload);
+
+    await expect(
+      database.getFirstAsync<{ reminders_enabled: number; transaction_reminder_time: string }>(
+        'SELECT reminders_enabled, transaction_reminder_time FROM settings WHERE id = 1;',
+      ),
+    ).resolves.toEqual({ reminders_enabled: 0, transaction_reminder_time: '20:00' });
   });
 });

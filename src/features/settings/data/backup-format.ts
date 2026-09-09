@@ -63,6 +63,12 @@ export type SettingsRow = {
   theme_mode: string;
   locale: string;
   budget_start_day: number;
+  reminders_enabled?: number;
+  transaction_reminder_enabled?: number;
+  period_reminder_enabled?: number;
+  goal_reminder_enabled?: number;
+  transaction_reminder_time?: string;
+  notification_permission_requested?: number;
 };
 
 export type BackupPayload = {

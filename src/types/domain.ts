@@ -117,3 +117,12 @@ export type AppSettings = {
   themeMode: ThemeMode;
   locale: Locale;
 };
+
+export type ReminderSettings = {
+  remindersEnabled: boolean;
+  transactionReminderEnabled: boolean;
+  periodReminderEnabled: boolean;
+  goalReminderEnabled: boolean;
+  transactionReminderTime: string;
+  notificationPermissionRequested: boolean;
+};

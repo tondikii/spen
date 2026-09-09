@@ -1,0 +1,11 @@
+# Pengingat terjadwal bersifat opt-in dan tidak transaksional
+
+Pengingat Spen dipilih dan diaktifkan pengguna untuk membantu pencatatan Transaksi, peninjauan Periode Anggaran, dan pemantauan target Tabungan. Peringatan yang muncul karena interaksi pengguna tetap berada di dalam aplikasi, dan tidak ada Pengingat yang membuat, mengubah, atau membayar Transaksi secara otomatis; keputusan ini menjaga kontrol pengguna pada data lokal dan karakter Spen yang tenang.
+
+Untuk versi pertama, katalog Pengingat terdiri dari: pengingat catat Transaksi maksimal sekali sehari pada jam pilihan pengguna (default 20.00) dan dilewati jika hari itu sudah memiliki Transaksi; Pengingat pada awal Periode Anggaran pukul 09.00; Pengingat review tiga hari sebelum akhir Periode Anggaran pukul 19.00; serta Pengingat Goal tujuh hari sebelum `targetDate` jika Goal masih aktif dan belum Tercapai. Semua jenis memiliki toggle sendiri di Settings, berada di bawah master toggle, dan nonaktif secara default.
+
+Saat diketuk, Pengingat catat Transaksi membuka form tambah Transaksi; Pengingat Periode Anggaran membuka Rencana; dan Pengingat Goal membuka Rencana dengan Goal terkait. Jadwal direkonsiliasi ulang saat aplikasi dibuka dan setelah perubahan yang memengaruhi relevansinya, termasuk perubahan batas Periode Anggaran, perubahan atau pengarsipan Goal, dan Goal yang menjadi Tercapai. Pengingat yang tidak relevan dibatalkan.
+
+Izin sistem tidak diminta saat onboarding, melainkan ketika pengguna pertama kali mengaktifkan Pengingat. Preferensi Pengingat ikut dalam backup dan dipakai untuk membangun ulang jadwal setelah restore. Isi Pengingat mengikuti locale aktif dan jadwal menggunakan waktu lokal perangkat; perubahan locale menjadwalkan ulang isi Pengingat.
+
+Jika Goal dibuat kurang dari tujuh hari sebelum `targetDate`, satu Pengingat dijadwalkan pada waktu lokal berikutnya yang relevan selama target masih di masa depan; Goal yang jatuh tempo hari ini atau sudah lewat tidak memicu Pengingat susulan. Mematikan master toggle membatalkan jadwal tetapi mempertahankan pilihan per jenis. Penolakan izin sistem mempertahankan preferensi, menampilkan status di Settings, dan tidak memicu Pengingat susulan ketika aplikasi dibuka setelah jadwal terlewat.

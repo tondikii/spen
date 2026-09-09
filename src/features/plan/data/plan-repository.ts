@@ -17,7 +17,11 @@ import { ensureActiveBudgetPlan } from './plan-period';
 // Definisi yang dipindah ke sibling data, tetap diekspor dari sini agar API
 // publik file ini (via src/features/plan/index.ts) tidak berubah.
 export { setDatabasePlanItemPaid, updateDatabasePlanItem } from './plan-item-mutations';
-export { ensureActiveBudgetPlan, setBudgetPeriodStartDay } from './plan-period';
+export {
+  ensureActiveBudgetPlan,
+  getDatabaseActiveBudgetPeriod,
+  setBudgetPeriodStartDay,
+} from './plan-period';
 export type { PlanItemDraft } from './plan-item-draft';
 
 export async function createDatabasePlanItem(

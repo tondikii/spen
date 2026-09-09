@@ -22,6 +22,7 @@ import {
   setSelectedLocale,
 } from '@/utils/selection';
 import type { CurrencyCode, Locale } from '@/types/domain';
+import { reconcileAllReminders } from '@/features/reminders';
 
 export default function SettingsRoute() {
   const router = useRouter();
@@ -55,6 +56,7 @@ export default function SettingsRoute() {
   const applyLocale = async (option: Locale) => {
     await setDatabaseLocale(database, option);
     await changeLocale(option);
+    await reconcileAllReminders(database).catch(() => undefined);
     setSettings((current) => ({ ...current, locale: option }));
   };
   const runBackup = async () => {
@@ -68,9 +70,12 @@ export default function SettingsRoute() {
   };
   const runRestore = async (content: string) => {
     const restoredLocale = await restoreDatabase(database, content);
+    const restoredSettings = await getDatabaseSettings(database);
     setSelectedLocale(restoredLocale);
+    setSelectedCurrency(restoredSettings.currency);
     await changeLocale(restoredLocale);
-    setSettings((current) => ({ ...current, locale: restoredLocale }));
+    await reconcileAllReminders(database).catch(() => undefined);
+    setSettings({ currency: restoredSettings.currency, locale: restoredLocale });
   };
   const openLink = async (url: string) => {
     await Linking.openURL(url);

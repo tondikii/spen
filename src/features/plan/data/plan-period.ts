@@ -65,6 +65,18 @@ export async function ensureActiveBudgetPlan(database: SQLiteDatabase, today = t
   return { period, planId, startDay };
 }
 
+export async function getDatabaseActiveBudgetPeriod(database: SQLiteDatabase, today = todayISO()) {
+  const setting = await database.getFirstAsync<{ budget_start_day: number }>(
+    'SELECT budget_start_day FROM settings WHERE id = 1 LIMIT 1;',
+  );
+  const bounds = periodBounds(setting?.budget_start_day ?? 1, today);
+  return database.getFirstAsync<PeriodRow>(
+    'SELECT id, start_date, end_date, duration_months FROM budget_periods WHERE start_date = ? AND end_date = ? LIMIT 1;',
+    bounds.startDate,
+    bounds.endDate,
+  );
+}
+
 /**
  * Mengganti `settings.budget_start_day` lalu menyiapkan periode dan plan untuk
  * rentang baru yang dihasilkan start-day tersebut.

@@ -60,7 +60,7 @@ Gaya visual komponen (kartu, progress bar, chart, sheet, modal, tab bar, ikon) a
 - **Multi-periode** — satu plan per periode. Periode aktif = periode berjalan (dari tanggal mulai). Saat periode berganti, plan baru kosong dibuat otomatis; plan lama tersimpan untuk report historis. Tanggal mulai bisa diubah kapan saja.
 - **Backup/restore** — JSON berisi semua data + field `version`; restore = timpa semua (bukan merge), dengan konfirmasi.
 - **Detail wallet sheet** — "Masuk/Keluar bulan ini" memakai Budget period aktif (konsisten report).
-- **Notifikasi/reminder** — di luar MVP.
+- **Pengingat** — opt-in dari Settings: catat Transaksi harian, awal dan review Periode Anggaran, serta Goal yang mendekati `targetDate`; Pengingat tidak membuat Transaksi otomatis.
 - **Currency** — curated list umum (IDR, USD, SGD, MYR, EUR, GBP, JPY, AUD, SAR, AED); format angka id-ID + simbol currency.
 - **View transaksi harian** (dari Beranda, bagian "Transaksi") — **daily + stepper**, layar/panel yang menampilkan transaksi **satu hari**. Struktur:
   - **Stepper tanggal** di header: `‹` `›` geser hari demi hari; label relatif ("Hari Ini", "Kemarin") kalau dekat, format "Sen, 1 Sep" kalau jauh; tombol "Hari Ini" muncul saat tidak di hari ini.

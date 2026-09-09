@@ -14,4 +14,20 @@ export const settings = sqliteTable('settings', {
     .notNull()
     .default('en'),
   budgetStartDay: integer('budget_start_day').notNull().default(1),
+  remindersEnabled: integer('reminders_enabled', { mode: 'boolean' }).notNull().default(false),
+  transactionReminderEnabled: integer('transaction_reminder_enabled', { mode: 'boolean' })
+    .notNull()
+    .default(false),
+  periodReminderEnabled: integer('period_reminder_enabled', { mode: 'boolean' })
+    .notNull()
+    .default(false),
+  goalReminderEnabled: integer('goal_reminder_enabled', { mode: 'boolean' })
+    .notNull()
+    .default(false),
+  transactionReminderTime: text('transaction_reminder_time').notNull().default('20:00'),
+  notificationPermissionRequested: integer('notification_permission_requested', {
+    mode: 'boolean',
+  })
+    .notNull()
+    .default(false),
 });

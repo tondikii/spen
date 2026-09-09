@@ -360,4 +360,13 @@ export const commonEn: typeof commonId = {
   confirmPayment: 'Save transaction',
   goalWithdrawalNote: 'Emergency withdrawal from {{name}}',
   uncategorized: 'Uncategorized',
+  transactionReminderTitle: 'Add a transaction',
+  transactionReminderBody: 'There is no record today. Add a transaction now.',
+  budgetPeriodReminderTitle: 'Budget period starts',
+  budgetPeriodReminderBody: 'A new period starts today. Take a look at your Budget plan.',
+  budgetPeriodReviewReminderTitle: 'Review Budget plan',
+  budgetPeriodReviewReminderBody:
+    'This period ends in three days. Take another look at your Budget plan.',
+  goalDeadlineReminderTitle: 'Goal deadline',
+  goalDeadlineReminderBody: 'Check {{name}} progress before its target date.',
 };

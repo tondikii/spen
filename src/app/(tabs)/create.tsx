@@ -14,6 +14,7 @@ import {
 import type { TransactionType } from '@/types/domain';
 import useAppDatabase from '@/providers/database-provider';
 import { useFocusedRead } from '@/hooks/use-focused-read';
+import { reconcileAllReminders } from '@/features/reminders';
 
 export default function CreateTransactionScreen() {
   const { t } = useTranslation();
@@ -105,12 +106,14 @@ export default function CreateTransactionScreen() {
       onClose={() => router.back()}
       onSave={async (draft) => {
         await saveTransactionEntry(database, draft, transaction?.id, goalId);
+        await reconcileAllReminders(database).catch(() => undefined);
         router.back();
       }}
       onDelete={
         transaction
           ? async () => {
               await deleteTransactionEntry(database, transaction.id);
+              await reconcileAllReminders(database).catch(() => undefined);
               router.back();
             }
           : undefined

@@ -5,6 +5,7 @@ import { setBudgetPeriodStartDay } from '@/features/plan';
 import { DataState } from '@/components/feedback/data-state';
 import useAppDatabase from '@/providers/database-provider';
 import { useFocusedRead } from '@/hooks/use-focused-read';
+import { reconcileBudgetPeriodReminders } from '@/features/reminders';
 
 export default function ReportRoute() {
   const { t } = useTranslation();
@@ -44,6 +45,7 @@ export default function ReportRoute() {
       reportView={reportView}
       onPeriodStartDayChange={async (day) => {
         await setBudgetPeriodStartDay(database, day);
+        await reconcileBudgetPeriodReminders(database).catch(() => undefined);
         await retry();
       }}
       onRangeChange={() => undefined}

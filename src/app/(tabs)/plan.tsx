@@ -20,11 +20,21 @@ import {
 import { DataState } from '@/components/feedback/data-state';
 import useAppDatabase from '@/providers/database-provider';
 import { useFocusedRead } from '@/hooks/use-focused-read';
+import {
+  reconcileAllReminders,
+  reconcileBudgetPeriodReminders,
+  reconcileGoalReminders,
+} from '@/features/reminders';
 
 export default function PlanRoute() {
   const { t } = useTranslation();
   const database = useAppDatabase();
-  const read = useCallback(() => readPlanView(database), [database]);
+  const read = useCallback(() => {
+    const result = readPlanView(database);
+    void reconcileBudgetPeriodReminders(database).catch(() => undefined);
+    void reconcileGoalReminders(database).catch(() => undefined);
+    return result;
+  }, [database]);
   const { data, error, retry } = useFocusedRead(read, t('common.planLoadError'));
   const load = async () => retry();
 
@@ -56,6 +66,7 @@ export default function PlanRoute() {
       onCategorySave={(category) => saveDatabaseCategory(database, category)}
       onPeriodStartDayChange={async (day) => {
         await setBudgetPeriodStartDay(database, day);
+        await reconcileBudgetPeriodReminders(database).catch(() => undefined);
         await load();
       }}
       onPlanItemSave={async (item, draft) => {
@@ -81,6 +92,7 @@ export default function PlanRoute() {
           note: t('common.planPaymentNote', { name: item.name }),
           sourceExpenseItemId: item.id,
         });
+        await reconcileAllReminders(database).catch(() => undefined);
         await load();
       }}
       onSuggestionApply={async (suggestion: BudgetSuggestion) => {
@@ -110,10 +122,12 @@ export default function PlanRoute() {
       onGoalSave={async (goal, draft: GoalDraft) => {
         if (goal) await updateGoal(database, goal.id, draft);
         else await createGoal(database, draft);
+        await reconcileGoalReminders(database).catch(() => undefined);
         await load();
       }}
       onGoalArchive={async (goal) => {
         await archiveGoal(database, goal.id);
+        await reconcileGoalReminders(database).catch(() => undefined);
         await load();
       }}
       onGoalAllocate={async (goal, amount) => {
@@ -124,10 +138,12 @@ export default function PlanRoute() {
           walletId: goal.walletId,
           monthlyContribution: amount,
         });
+        await reconcileGoalReminders(database).catch(() => undefined);
         await load();
       }}
       onGoalWithdraw={async (goal, amount) => {
         if (amount > 0) await withdrawFromGoal(database, goal.id, amount);
+        await reconcileGoalReminders(database).catch(() => undefined);
         await load();
       }}
     />

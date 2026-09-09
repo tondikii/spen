@@ -54,6 +54,7 @@ module.exports = {
       icon: './assets/spen/logo.png',
     },
     plugins: [
+      'expo-notifications',
       [
         'expo-splash-screen',
         {

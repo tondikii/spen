@@ -359,4 +359,13 @@ export const commonId = {
   confirmPayment: 'Simpan transaksi',
   goalWithdrawalNote: 'Penarikan darurat dari {{name}}',
   uncategorized: 'Tanpa kategori',
+  transactionReminderTitle: 'Catat transaksi',
+  transactionReminderBody: 'Belum ada catatan hari ini. Tambahkan transaksi sekarang.',
+  budgetPeriodReminderTitle: 'Awal Periode Anggaran',
+  budgetPeriodReminderBody: 'Periode baru dimulai. Saatnya cek Rencana Anggaran-mu.',
+  budgetPeriodReviewReminderTitle: 'Review Rencana Anggaran',
+  budgetPeriodReviewReminderBody:
+    'Tiga hari lagi periode ini berakhir. Cek kembali Rencana Anggaran-mu.',
+  goalDeadlineReminderTitle: 'Deadline Goal',
+  goalDeadlineReminderBody: 'Cek lagi progres {{name}} sebelum tanggal target.',
 };
