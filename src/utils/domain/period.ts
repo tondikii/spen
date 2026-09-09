@@ -6,7 +6,7 @@ function daysInMonth(year: number, month: number): number {
 }
 
 function addMonths(date: string, months: number, anchorDay?: number): string {
-  const [year, month, day] = date.split('-').map(Number);
+  const [year = NaN, month = NaN, day = NaN] = date.split('-').map(Number);
   const value = new Date(Date.UTC(year, month - 1 + months, 1, 12));
   const effectiveDay = Math.min(
     anchorDay ?? day,
@@ -22,11 +22,11 @@ function addMonths(date: string, months: number, anchorDay?: number): string {
  */
 export function periodBounds(startDay: number, today = todayISO()) {
   const safeDay = Math.min(Math.max(Math.trunc(startDay), 1), 31);
-  const [currentYear, currentMonth] = today.slice(0, 7).split('-').map(Number);
+  const [currentYear = NaN, currentMonth = NaN] = today.slice(0, 7).split('-').map(Number);
   let start = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(Math.min(safeDay, daysInMonth(currentYear, currentMonth))).padStart(2, '0')}`;
   if (today < start) start = addMonths(start, -1, safeDay);
   const nextStart = addMonths(start, 1, safeDay);
-  const [year, month, day] = nextStart.split('-').map(Number);
+  const [year = NaN, month = NaN, day = NaN] = nextStart.split('-').map(Number);
   const end = new Date(Date.UTC(year, month - 1, day - 1, 12));
   return {
     startDate: start,

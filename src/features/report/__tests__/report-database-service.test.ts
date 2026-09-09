@@ -138,10 +138,10 @@ describe('database report service', () => {
       spareBudget: 600,
     });
     expect(view.expenses.map((expense) => expense.name)).toEqual(['Makan', 'Transport']);
-    expect(view.netSavingByPeriod[0].period.startDate).toBe('2026-09-01');
-    expect(view.netSavingByPeriod[0].netSaving).toBe(0);
-    expect(view.netSavingByPeriod[1].period.startDate).toBe('2026-10-01');
-    expect(view.netSavingByPeriod[1].netSaving).toBe(600);
+    expect(view.netSavingByPeriod[0]!.period.startDate).toBe('2026-09-01');
+    expect(view.netSavingByPeriod[0]!.netSaving).toBe(0);
+    expect(view.netSavingByPeriod[1]!.period.startDate).toBe('2026-10-01');
+    expect(view.netSavingByPeriod[1]!.netSaving).toBe(600);
   });
 
   it('includes opening balance and balance corrections in the matching report totals', async () => {

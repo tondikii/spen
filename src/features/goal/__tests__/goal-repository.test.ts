@@ -74,7 +74,7 @@ describe('goal service', () => {
     });
 
     expect(goal.archived).toBe(false);
-    expect((await getWallets(database))[0].isSavings).toBe(true);
+    expect((await getWallets(database))[0]!.isSavings).toBe(true);
     expect(await getGoalProgress(database, goal)).toEqual({
       goalId: goal.id,
       savedAmount: 1000,

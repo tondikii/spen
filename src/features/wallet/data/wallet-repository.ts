@@ -25,7 +25,7 @@ function toWallet(row: WalletRow): Wallet {
     balance: row.balance,
     isSavings: Boolean(row.is_savings),
     archived: Boolean(row.archived),
-    tint: TINTS[(row.id - 1) % TINTS.length],
+    tint: TINTS[(row.id - 1) % TINTS.length]!,
   };
 }
 

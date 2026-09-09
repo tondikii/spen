@@ -155,8 +155,9 @@ describe('guard agregat uang', () => {
       note: '',
     };
     expect(() => summarizeLedger([big, big])).toThrow();
+    const firstWallet = wallets[0]!;
     expect(() =>
-      walletTotal([{ ...wallets[0], balance: Number.MAX_SAFE_INTEGER }, wallets[0]]),
+      walletTotal([{ ...firstWallet, balance: Number.MAX_SAFE_INTEGER }, firstWallet]),
     ).toThrow();
   });
 });

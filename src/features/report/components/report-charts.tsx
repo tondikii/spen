@@ -53,7 +53,7 @@ function getLinePath(points: ReportView['netSavingByPeriod']): LinePath {
     .join(' ');
   const length = coordinates.reduce((total, point, index) => {
     if (index === 0) return total;
-    const previous = coordinates[index - 1];
+    const previous = coordinates[index - 1]!;
     return total + Math.hypot(point.x - previous.x, point.y - previous.y);
   }, 0);
   return { d, length: Math.max(length, 1) };
@@ -136,7 +136,7 @@ export function Donut({ expenses, total }: { expenses: ReportExpense[]; total: n
         const segment = (
           <DonutSegment
             key={item.categoryId}
-            color={colors[index % colors.length]}
+            color={colors[index % colors.length]!}
             circumference={circumference}
             length={length}
             offset={offset}

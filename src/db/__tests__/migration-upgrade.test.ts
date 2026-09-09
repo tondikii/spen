@@ -35,6 +35,7 @@ function tableNames(sqlite: Sqlite): string[] {
 }
 
 const allMigrations = Object.values(migrations.migrations);
+const latestMigration = allMigrations[allMigrations.length - 1]!;
 
 describe('upgrade dari instalasi lama (migrasi incremental)', () => {
   it('menjalankan migrasi tersisa di atas DB lama tanpa kehilangan data', () => {
@@ -51,7 +52,7 @@ describe('upgrade dari instalasi lama (migrasi incremental)', () => {
     const oldTables = tableNames(older);
 
     // Upgrade: jalankan migrasi terakhir.
-    applyStatements(older, allMigrations[allMigrations.length - 1]);
+    applyStatements(older, latestMigration);
 
     expect(tableNames(older)).toEqual(oldTables);
 
@@ -74,7 +75,7 @@ describe('upgrade dari instalasi lama (migrasi incremental)', () => {
   it('schema setelah upgrade identik dengan instalasi fresh', () => {
     const upgraded = openDatabase();
     for (const migration of allMigrations.slice(0, -1)) applyStatements(upgraded, migration);
-    applyStatements(upgraded, allMigrations[allMigrations.length - 1]);
+    applyStatements(upgraded, latestMigration);
 
     const fresh = openDatabase();
     for (const migration of allMigrations) applyStatements(fresh, migration);

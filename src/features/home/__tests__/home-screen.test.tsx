@@ -143,7 +143,7 @@ describe('HomeScreen', () => {
     const onWalletSave = jest.fn();
     const { getAllByLabelText, getByLabelText } = await renderScreen({ onWalletSave });
 
-    await fireEvent.press(getAllByLabelText('Tambah Dompet')[0]);
+    await fireEvent.press(getAllByLabelText('Tambah Dompet')[0]!);
     await waitFor(() => expect(getByLabelText('Nama Dompet')).toBeTruthy());
     await fireEvent.changeText(getByLabelText('Nama Dompet'), 'Jago');
     await fireEvent.changeText(getByLabelText('Saldo awal'), '500000');

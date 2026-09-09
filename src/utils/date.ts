@@ -10,7 +10,7 @@ export function todayISO(date = new Date()): string {
 
 export function isValidTransactionDate(value: string, today = todayISO()): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [year, month, day] = value.split('-').map(Number);
+  const [year = NaN, month = NaN, day = NaN] = value.split('-').map(Number);
   const parsed = new Date(Date.UTC(year, month - 1, day, 12));
   const normalized = `${parsed.getUTCFullYear()}-${String(parsed.getUTCMonth() + 1).padStart(2, '0')}-${String(parsed.getUTCDate()).padStart(2, '0')}`;
   return normalized === value && value <= today;
@@ -18,14 +18,14 @@ export function isValidTransactionDate(value: string, today = todayISO()): boole
 
 /** Returns `value` shifted by `delta` days as a `YYYY-MM-DD` string. */
 export function shiftDate(value: string, delta: number) {
-  const [year, month, day] = value.split('-').map(Number);
+  const [year = NaN, month = NaN, day = NaN] = value.split('-').map(Number);
   const shifted = new Date(Date.UTC(year, month - 1, day + delta, 12));
   return `${shifted.getUTCFullYear()}-${String(shifted.getUTCMonth() + 1).padStart(2, '0')}-${String(shifted.getUTCDate()).padStart(2, '0')}`;
 }
 
 /** Returns the `YYYY-MM` string shifted by `delta` months, rolling across years. */
 export function shiftMonth(value: string, delta: number) {
-  const [year, month] = value.split('-').map(Number);
+  const [year = NaN, month = NaN] = value.split('-').map(Number);
   const shifted = month - 1 + delta;
   return `${year + Math.floor(shifted / 12)}-${String((shifted % 12) + 1).padStart(2, '0')}`;
 }

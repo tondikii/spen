@@ -185,7 +185,7 @@ describe('database plan service', () => {
     expect(view.snapshot.availableBalance).toBe(2450);
     expect(view.snapshot.goalBalance).toBe(800);
     expect(view.snapshot.freeBalance).toBe(1650);
-    expect(view.goals[0].walletId).toBe(goalWallet.id);
+    expect(view.goals[0]!.walletId).toBe(goalWallet.id);
   });
 
   it('shows initial-balance income transactions in Pendapatan automatically', async () => {
@@ -535,7 +535,7 @@ describe('database plan service', () => {
       targetAmount: 300,
     });
     let view = await getDatabasePlanView(database, '2026-09-10');
-    const item = view.plan.allocationItems[0];
+    const item = view.plan.allocationItems[0]!;
     expect(item).toMatchObject({ name: 'Makan', targetAmount: 300, categoryId: expense.id });
 
     await updateDatabasePlanItem(database, item, {
@@ -560,7 +560,7 @@ describe('database plan service', () => {
       categoryId: expense.id,
       targetAmount: 300,
     });
-    const item = (await getDatabasePlanView(database, '2026-09-10')).plan.allocationItems[0];
+    const item = (await getDatabasePlanView(database, '2026-09-10')).plan.allocationItems[0]!;
 
     await deleteDatabasePlanItem(database, item);
 

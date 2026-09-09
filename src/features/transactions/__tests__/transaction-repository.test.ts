@@ -166,7 +166,7 @@ describe('database transaction service', () => {
     );
 
     expect(edited.id).not.toBe(transaction.id);
-    expect((await getWallets(database))[0].balance).toBe(700);
+    expect((await getWallets(database))[0]!.balance).toBe(700);
     expect((await getDatabaseTransactions(database)).map((item) => item.note)).toEqual([
       'Saldo awal Dompet',
       'Makan siang',
@@ -196,7 +196,7 @@ describe('database transaction service', () => {
     expect(edited.isInitial).toBe(true);
     expect(edited.categoryId).toBe(initial.categoryId);
     expect(await getDatabaseTransactions(database)).toHaveLength(1);
-    expect((await getWallets(database))[0].balance).toBe(2000);
+    expect((await getWallets(database))[0]!.balance).toBe(2000);
   });
 
   it('preserves Plan source relations when editing a generated transaction', async () => {

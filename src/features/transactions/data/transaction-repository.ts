@@ -19,7 +19,7 @@ export function getLocalDateInput(date = new Date()) {
 
 export function isValidTransactionDate(value: string, today = getLocalDateInput()) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [year, month, day] = value.split('-').map(Number);
+  const [year = NaN, month = NaN, day = NaN] = value.split('-').map(Number);
   const parsed = new Date(Date.UTC(year, month - 1, day, 12));
   const normalized = `${parsed.getUTCFullYear()}-${String(parsed.getUTCMonth() + 1).padStart(2, '0')}-${String(parsed.getUTCDate()).padStart(2, '0')}`;
   return normalized === value && value <= today;

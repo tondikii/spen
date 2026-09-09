@@ -108,7 +108,7 @@ function ReportScreenContent({
                 accessibilityState={{ disabled: !hasPreviousPeriod }}
                 disabled={!hasPreviousPeriod}
                 onPress={() => {
-                  if (hasPreviousPeriod) void onPeriodChange(periods[periodIndex - 1].id);
+                  if (hasPreviousPeriod) void onPeriodChange(periods[periodIndex - 1]!.id);
                 }}
                 style={[
                   styles.stepperButton,
@@ -127,7 +127,7 @@ function ReportScreenContent({
                 accessibilityState={{ disabled: !hasNextPeriod }}
                 disabled={!hasNextPeriod}
                 onPress={() => {
-                  if (hasNextPeriod) void onPeriodChange(periods[periodIndex + 1].id);
+                  if (hasNextPeriod) void onPeriodChange(periods[periodIndex + 1]!.id);
                 }}
                 style={[
                   styles.stepperButton,
