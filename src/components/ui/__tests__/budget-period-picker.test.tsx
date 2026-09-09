@@ -1,4 +1,5 @@
 import { fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 
 import { BudgetPeriodPicker } from '@/components/ui/budget-period-picker';
 
@@ -38,18 +39,14 @@ describe('BudgetPeriodPicker', () => {
 
     await fireEvent.press(getByLabelText('Pilih rentang Laporan'));
 
-    expect(getByLabelText('Tanggal 31').parent?.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ width: '13%' }),
-        expect.objectContaining({ marginRight: '1.5%' }),
-      ]),
-    );
+    // Style grid diukur pada wrapper (Animated.View) yang membungkus tiap opsi;
+    // StyleSheet.flatten membuat asersi kebal terhadap style animasi dari mock.
+    const option31 = StyleSheet.flatten(getByLabelText('Tanggal 31').parent?.props.style);
+    expect(option31.width).toBe('13%');
+    expect(option31.marginRight).toBe('1.5%');
 
-    expect(getByLabelText('Tanggal 28').parent?.props.style).toEqual(
-      expect.arrayContaining([expect.objectContaining({ width: '13%' })]),
-    );
-    expect(getByLabelText('Tanggal 28').parent?.props.style).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ marginRight: '1.5%' })]),
-    );
+    const option28 = StyleSheet.flatten(getByLabelText('Tanggal 28').parent?.props.style);
+    expect(option28.width).toBe('13%');
+    expect(option28.marginRight).toBeUndefined();
   });
 });
