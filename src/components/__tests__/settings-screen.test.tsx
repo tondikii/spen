@@ -4,12 +4,31 @@ import * as Linking from 'expo-linking';
 import SettingsScreen from '@/components/settings-screen';
 import { AppThemeProvider } from '@/components/theme-provider';
 import { changeLocale } from '@/i18n';
-import { setSelectedLocale } from '@/services/settings-service';
+import {
+  DEFAULT_REMINDER_SETTINGS,
+  setReminderSettings,
+  setSelectedLocale,
+} from '@/services/settings-service';
+import {
+  cancelAllReminderNotifications,
+  getNotificationPermissionStatus,
+  openNotificationSettings,
+  requestNotificationPermission,
+} from '@/services/notification-service';
+
+jest.mock('@/services/notification-service', () => ({
+  cancelAllReminderNotifications: jest.fn(),
+  getNotificationPermissionStatus: jest.fn().mockResolvedValue('granted'),
+  openNotificationSettings: jest.fn(),
+  requestNotificationPermission: jest.fn().mockResolvedValue('granted'),
+}));
 
 describe('SettingsScreen', () => {
   afterEach(async () => {
     cleanup();
+    jest.clearAllMocks();
     jest.restoreAllMocks();
+    setReminderSettings(DEFAULT_REMINDER_SETTINGS);
     setSelectedLocale('id');
     await changeLocale('id');
   });
@@ -26,6 +45,68 @@ describe('SettingsScreen', () => {
     expect(getByText('$')).toBeTruthy();
     expect(getByText('Backup data')).toBeTruthy();
     expect(getByText('Spen')).toBeTruthy();
+  });
+
+  it('menampilkan dan menyimpan pengaturan Pengingat', async () => {
+    const { getByDisplayValue, getByLabelText, getByText } = await render(
+      <AppThemeProvider>
+        <SettingsScreen />
+      </AppThemeProvider>,
+    );
+
+    await waitFor(() => expect(getByText('Pengingat')).toBeTruthy());
+    expect(getByDisplayValue('20:00')).toBeTruthy();
+
+    await fireEvent.press(getByLabelText('Catat transaksi harian'));
+
+    expect(getByLabelText('Catat transaksi harian').props.accessibilityState).toEqual(
+      expect.objectContaining({ checked: true }),
+    );
+    expect(getByLabelText('Pengingat aktif').props.accessibilityState).toEqual(
+      expect.objectContaining({ checked: true }),
+    );
+  });
+
+  it('mematikan master membatalkan jadwal tanpa menghapus pilihan jenis Pengingat', async () => {
+    setReminderSettings({
+      ...DEFAULT_REMINDER_SETTINGS,
+      remindersEnabled: true,
+      transactionReminderEnabled: true,
+    });
+    const { getByLabelText } = await render(
+      <AppThemeProvider>
+        <SettingsScreen />
+      </AppThemeProvider>,
+    );
+
+    await waitFor(() =>
+      expect(getByLabelText('Pengingat aktif').props.accessibilityState).toEqual(
+        expect.objectContaining({ checked: true }),
+      ),
+    );
+    await fireEvent.press(getByLabelText('Pengingat aktif'));
+
+    expect(cancelAllReminderNotifications).toHaveBeenCalledTimes(1);
+    expect(getByLabelText('Pengingat aktif').props.accessibilityState).toEqual(
+      expect.objectContaining({ checked: false }),
+    );
+    expect(getByLabelText('Catat transaksi harian').props.accessibilityState).toEqual(
+      expect.objectContaining({ checked: true }),
+    );
+  });
+
+  it('menampilkan aksi Settings perangkat saat izin notifikasi ditolak', async () => {
+    jest.mocked(getNotificationPermissionStatus).mockResolvedValue('denied');
+    const { getByLabelText, getByText } = await render(
+      <AppThemeProvider>
+        <SettingsScreen />
+      </AppThemeProvider>,
+    );
+
+    await waitFor(() => expect(getByText('Izin notifikasi belum aktif')).toBeTruthy());
+    expect(requestNotificationPermission).not.toHaveBeenCalled();
+    await fireEvent.press(getByLabelText('Izin notifikasi belum aktif'));
+    expect(openNotificationSettings).toHaveBeenCalledTimes(1);
   });
 
   it('mengubah theme dan currency dari mock state', async () => {

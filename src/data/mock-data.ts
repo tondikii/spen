@@ -594,6 +594,12 @@ export const mockData = {
     currency: 'IDR',
     themeMode: 'light',
     locale: 'en',
+    remindersEnabled: false,
+    transactionReminderEnabled: false,
+    periodReminderEnabled: false,
+    goalReminderEnabled: false,
+    transactionReminderTime: '20:00',
+    notificationPermissionRequested: false,
   },
   budgetSnapshot: {
     totalIncome: 6500000,

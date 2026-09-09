@@ -8,6 +8,7 @@ import {
   getSelectedCurrency,
   getSelectedLocale,
   setDatabaseCurrency,
+  setDatabaseReminderSettings,
 } from '@/services/settings-service';
 import { getSetupState, completeSetup } from '@/services/setup-service';
 import { getWallets } from '@/services/wallet-service';
@@ -104,6 +105,35 @@ describe('setup service', () => {
         'SELECT type, amount, is_initial FROM transactions WHERE wallet_id = 1;',
       ),
     ).toEqual({ type: 'income', amount: 500, is_initial: 1 });
+  });
+
+  it('defaults Pengingat to off and persists its Settings', async () => {
+    await expect(getDatabaseSettings(database)).resolves.toMatchObject({
+      remindersEnabled: false,
+      transactionReminderEnabled: false,
+      periodReminderEnabled: false,
+      goalReminderEnabled: false,
+      transactionReminderTime: '20:00',
+      notificationPermissionRequested: false,
+    });
+
+    await setDatabaseReminderSettings(database, {
+      remindersEnabled: true,
+      transactionReminderEnabled: true,
+      periodReminderEnabled: false,
+      goalReminderEnabled: true,
+      transactionReminderTime: '21:30',
+      notificationPermissionRequested: true,
+    });
+
+    await expect(getDatabaseSettings(database)).resolves.toMatchObject({
+      remindersEnabled: true,
+      transactionReminderEnabled: true,
+      periodReminderEnabled: false,
+      goalReminderEnabled: true,
+      transactionReminderTime: '21:30',
+      notificationPermissionRequested: true,
+    });
   });
 
   it('menyimpan semua Wallet onboarding beserta saldo awalnya secara atomik', async () => {

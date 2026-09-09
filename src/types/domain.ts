@@ -144,6 +144,15 @@ export type GoalProgress = {
   achieved: boolean;
 };
 
+export type ReminderSettings = {
+  remindersEnabled: boolean;
+  transactionReminderEnabled: boolean;
+  periodReminderEnabled: boolean;
+  goalReminderEnabled: boolean;
+  transactionReminderTime: string;
+  notificationPermissionRequested: boolean;
+};
+
 export type BudgetPlan = {
   id: string;
   budgetPeriodId: string;
@@ -180,6 +189,12 @@ export type AppSettings = {
   currency: CurrencyCode;
   themeMode: ThemeMode;
   locale: Locale;
+  remindersEnabled: boolean;
+  transactionReminderEnabled: boolean;
+  periodReminderEnabled: boolean;
+  goalReminderEnabled: boolean;
+  transactionReminderTime: string;
+  notificationPermissionRequested: boolean;
 };
 
 export type SpenMockData = {

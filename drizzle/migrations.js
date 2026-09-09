@@ -14,6 +14,7 @@ import m0010 from './20260905053420_first_frog_thor/migration.sql';
 import m0011 from './20260905053813_category_system_key/migration.sql';
 import m0012 from './20260905055747_clammy_adam_destine/migration.sql';
 import m0013 from './20260906131132_hesitant_professor_monster/migration.sql';
+import m0014 from './20260909082517_absurd_preak/migration.sql';
 
 export default {
   journal: {
@@ -32,6 +33,7 @@ export default {
       { idx: 11, version: '7', when: 20260905053813, tag: 'category_system_key', breakpoints: true },
       { idx: 12, version: '7', when: 20260905055747, tag: 'clammy_adam_destine', breakpoints: true },
       { idx: 13, version: '7', when: 20260906131132, tag: 'hesitant_professor_monster', breakpoints: true },
+      { idx: 14, version: '7', when: 20260909082517, tag: 'absurd_preak', breakpoints: true },
     ],
   },
   migrations: {
@@ -49,5 +51,6 @@ export default {
     '20260905053813_category_system_key': m0011,
     '20260905055747_clammy_adam_destine': m0012,
     '20260906131132_hesitant_professor_monster': m0013,
+    '20260909082517_absurd_preak': m0014,
   },
 };

@@ -119,3 +119,11 @@ _Avoid_: kategori per transfer, kategori bebas
 **Koreksi saldo**:
 Aksi pengguna di detail dompet untuk menyamakan saldo catatan dengan saldo riil; selalu menghasilkan transaksi penyesuaian (kategori "Penyesuaian Saldo"). Lihat **Transaksi penyesuaian**.
 _Avoid_: edit saldo, set saldo manual
+
+**Pengingat**:
+Pesan terjadwal yang dipilih pengguna untuk membantu mencatat Transaksi, meninjau Periode Anggaran, atau memantau tanggal target Tabungan; Pengingat tidak menjalankan aksi keuangan.
+_Avoid_: notifikasi otomatis, auto-payment
+
+**Peringatan**:
+Feedback langsung di dalam aplikasi tentang kondisi Transaksi atau Rencana Anggaran, seperti transaksi yang membuat Pengeluaran melebihi anggaran; Peringatan tidak menghalangi pencatatan.
+_Avoid_: alert agresif, blokir transaksi

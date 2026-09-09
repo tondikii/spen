@@ -2,7 +2,7 @@ import * as Application from 'expo-application';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import type { SQLiteDatabase } from 'expo-sqlite';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View, type TextStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -26,12 +26,25 @@ import {
 import {
   getSelectedCurrency,
   getSelectedLocale,
+  getDatabaseSettings,
+  getReminderSettings,
+  isValidReminderTime,
+  setDatabaseReminderSettings,
+  setReminderSettings,
   setDatabaseLocale,
   setSelectedLocale,
   setDatabaseCurrency,
   setSelectedCurrency,
 } from '@/services/settings-service';
-import type { CurrencyCode, Locale } from '@/types/domain';
+import type { CurrencyCode, Locale, ReminderSettings } from '@/types/domain';
+import {
+  cancelAllReminderNotifications,
+  getNotificationPermissionStatus,
+  openNotificationSettings,
+  requestNotificationPermission,
+  type NotificationPermissionStatus,
+} from '@/services/notification-service';
+import { ThemedInput } from '@/components/themed-input';
 import { changeLocale } from '@/i18n';
 import { getPublicDocumentUrl } from '@/lib/public-documents';
 import { getErrorTranslationKey } from '@/lib/app-error';
@@ -57,10 +70,85 @@ export default function SettingsScreen({
   const [toast, setToast] = useState('');
   const [busy, setBusy] = useState(false);
   const [restoreFile, setRestoreFile] = useState<{ content: string; name: string } | null>(null);
+  const [reminders, setReminders] = useState<ReminderSettings>(getReminderSettings());
+  const [permissionStatus, setPermissionStatus] =
+    useState<NotificationPermissionStatus>('undetermined');
+  const [reminderTimeDraft, setReminderTimeDraft] = useState(reminders.transactionReminderTime);
   const dark = mode === 'dark';
   const showToast = (message: string) => {
     setToast(message);
     setTimeout(() => setToast(''), 2600);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const settings = database ? await getDatabaseSettings(database) : getReminderSettings();
+        const permission = await getNotificationPermissionStatus();
+        if (cancelled) return;
+        const next: ReminderSettings = {
+          remindersEnabled: settings.remindersEnabled,
+          transactionReminderEnabled: settings.transactionReminderEnabled,
+          periodReminderEnabled: settings.periodReminderEnabled,
+          goalReminderEnabled: settings.goalReminderEnabled,
+          transactionReminderTime: settings.transactionReminderTime,
+          notificationPermissionRequested: settings.notificationPermissionRequested,
+        };
+        setReminders(next);
+        setReminderTimeDraft(next.transactionReminderTime);
+        setPermissionStatus(permission);
+      } catch {
+        if (!cancelled) showToast(t('errors.storage'));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [database, t]);
+
+  const persistReminders = async (next: ReminderSettings) => {
+    try {
+      let permission = permissionStatus;
+      let settings = next;
+      const wantsPermission =
+        next.remindersEnabled ||
+        next.transactionReminderEnabled ||
+        next.periodReminderEnabled ||
+        next.goalReminderEnabled;
+      if (wantsPermission && !next.notificationPermissionRequested) {
+        permission = await getNotificationPermissionStatus();
+        if (permission !== 'granted') {
+          permission = await requestNotificationPermission();
+        }
+        settings = { ...settings, notificationPermissionRequested: true };
+      } else if (wantsPermission && permission === 'granted') {
+        settings = { ...settings, notificationPermissionRequested: true };
+      }
+      if (!settings.remindersEnabled) await cancelAllReminderNotifications();
+      const saved = database
+        ? await setDatabaseReminderSettings(database, settings)
+        : setReminderSettings(settings);
+      setReminders(saved);
+      setReminderTimeDraft(saved.transactionReminderTime);
+      setPermissionStatus(permission);
+    } catch {
+      showToast(t('errors.storage'));
+    }
+  };
+
+  const toggleReminder = (key: keyof ReminderSettings, value: boolean) => {
+    const next = { ...reminders, [key]: value } as ReminderSettings;
+    if (key !== 'remindersEnabled' && value) next.remindersEnabled = true;
+    void persistReminders(next);
+  };
+
+  const saveReminderTime = () => {
+    if (!isValidReminderTime(reminderTimeDraft)) {
+      setReminderTimeDraft(reminders.transactionReminderTime);
+      return;
+    }
+    void persistReminders({ ...reminders, transactionReminderTime: reminderTimeDraft });
   };
 
   const chooseCurrency = async (option: CurrencyCode) => {
@@ -211,6 +299,93 @@ export default function SettingsScreen({
                     withTopBorder
                   />
                 </MotionCollapsible>
+              )}
+            </BoxedCard>
+            <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
+              {t('common.reminders')}
+            </ThemedText>
+            <BoxedCard style={styles.group}>
+              <SettingRow
+                icon="i"
+                title={t('common.remindersMaster')}
+                detail={t('common.remindersMasterDetail')}
+              >
+                <MotionSwitch
+                  accessibilityLabel={t('common.remindersMaster')}
+                  activeTrackColor={theme.pine}
+                  inactiveTrackColor={theme.line}
+                  value={reminders.remindersEnabled}
+                  onChange={(next) => toggleReminder('remindersEnabled', next)}
+                  disabled={busy}
+                />
+              </SettingRow>
+              <SettingRow
+                icon="+"
+                title={t('common.transactionReminder')}
+                detail={t('common.transactionReminderDetail')}
+              >
+                <MotionSwitch
+                  accessibilityLabel={t('common.transactionReminder')}
+                  activeTrackColor={theme.pine}
+                  inactiveTrackColor={theme.line}
+                  value={reminders.transactionReminderEnabled}
+                  onChange={(next) => toggleReminder('transactionReminderEnabled', next)}
+                  disabled={busy}
+                />
+              </SettingRow>
+              <SettingRow
+                icon="~"
+                title={t('common.periodReminder')}
+                detail={t('common.periodReminderDetail')}
+              >
+                <MotionSwitch
+                  accessibilityLabel={t('common.periodReminder')}
+                  activeTrackColor={theme.pine}
+                  inactiveTrackColor={theme.line}
+                  value={reminders.periodReminderEnabled}
+                  onChange={(next) => toggleReminder('periodReminderEnabled', next)}
+                  disabled={busy}
+                />
+              </SettingRow>
+              <SettingRow
+                icon="G"
+                title={t('common.goalReminder')}
+                detail={t('common.goalReminderDetail')}
+              >
+                <MotionSwitch
+                  accessibilityLabel={t('common.goalReminder')}
+                  activeTrackColor={theme.pine}
+                  inactiveTrackColor={theme.line}
+                  value={reminders.goalReminderEnabled}
+                  onChange={(next) => toggleReminder('goalReminderEnabled', next)}
+                  disabled={busy}
+                />
+              </SettingRow>
+              <SettingRow
+                icon="@"
+                title={t('common.reminderTime')}
+                detail={t('common.reminderTimeDetail')}
+              >
+                <ThemedInput
+                  accessibilityLabel={t('common.reminderTime')}
+                  keyboardType="numbers-and-punctuation"
+                  maxLength={5}
+                  onBlur={saveReminderTime}
+                  onChangeText={setReminderTimeDraft}
+                  style={styles.timeInput}
+                  textAlign="center"
+                  value={reminderTimeDraft}
+                />
+              </SettingRow>
+              {permissionStatus === 'denied' && (
+                <ActionRow
+                  icon="!"
+                  title={t('common.reminderPermissionDenied')}
+                  detail={t('common.reminderPermissionDeniedDetail')}
+                  onPress={() => {
+                    void openNotificationSettings();
+                  }}
+                />
               )}
             </BoxedCard>
             <ThemedText type="code" themeColor="muted" style={styles.groupLabel}>
@@ -448,6 +623,7 @@ const styles = StyleSheet.create({
   themeIcon: { transform: [{ translateY: -3 }] },
   currencyIcon: { fontSize: 15 },
   dataIcon: { transform: [{ translateY: -3 }] },
+  timeInput: { fontFamily: Fonts.mono, fontSize: 12, minHeight: 36, paddingHorizontal: 8, width: 70 },
   copy: { flex: 1 },
   rowTitle: { fontSize: 12, lineHeight: 16 },
   rowDetail: { fontSize: 10, lineHeight: 14 },
