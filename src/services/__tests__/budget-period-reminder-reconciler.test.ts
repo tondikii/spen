@@ -74,17 +74,16 @@ describe('Budget period reminder reconciler', () => {
     );
   });
 
-  it('tidak menyentuh periode atau menjadwalkan ketika toggle mati', async () => {
+  it('tetap menjadwalkan ketika flag periode legacy mati', async () => {
     jest.mocked(getDatabaseSettings).mockResolvedValue({
       ...settings,
       periodReminderEnabled: false,
     });
 
-    await expect(
-      reconcileBudgetPeriodReminders(database, new Date(2026, 8, 9, 12, 0)),
-    ).resolves.toEqual([]);
-    expect(getDatabaseActiveBudgetPeriod).not.toHaveBeenCalled();
-    expect(scheduleReminderNotification).not.toHaveBeenCalled();
+    await reconcileBudgetPeriodReminders(database, new Date(2026, 8, 9, 12, 0));
+
+    expect(getDatabaseActiveBudgetPeriod).toHaveBeenCalledTimes(1);
+    expect(scheduleReminderNotification).toHaveBeenCalledTimes(2);
   });
 
   it('aman dijalankan berulang untuk mengganti jadwal tanpa duplikat', async () => {

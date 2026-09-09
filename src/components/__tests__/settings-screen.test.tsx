@@ -10,7 +10,6 @@ import {
   setSelectedLocale,
 } from '@/services/settings-service';
 import {
-  cancelAllReminderNotifications,
   getNotificationPermissionStatus,
   openNotificationSettings,
   requestNotificationPermission,
@@ -47,8 +46,8 @@ describe('SettingsScreen', () => {
     expect(getByText('Spen')).toBeTruthy();
   });
 
-  it('menampilkan dan menyimpan pengaturan Pengingat', async () => {
-    const { getByDisplayValue, getByLabelText, getByText } = await render(
+  it('menampilkan semua jenis Pengingat tanpa toggle per jenis', async () => {
+    const { getByDisplayValue, getByText, queryByLabelText } = await render(
       <AppThemeProvider>
         <SettingsScreen />
       </AppThemeProvider>,
@@ -56,43 +55,24 @@ describe('SettingsScreen', () => {
 
     await waitFor(() => expect(getByText('Pengingat')).toBeTruthy());
     expect(getByDisplayValue('20:00')).toBeTruthy();
-
-    await fireEvent.press(getByLabelText('Catat transaksi harian'));
-
-    expect(getByLabelText('Catat transaksi harian').props.accessibilityState).toEqual(
-      expect.objectContaining({ checked: true }),
-    );
-    expect(getByLabelText('Pengingat aktif').props.accessibilityState).toEqual(
-      expect.objectContaining({ checked: true }),
-    );
+    expect(getByText('Catat transaksi harian')).toBeTruthy();
+    expect(getByText('Periode Anggaran')).toBeTruthy();
+    expect(getByText('Deadline Goal')).toBeTruthy();
+    expect(queryByLabelText('Pengingat aktif')).toBeNull();
   });
 
-  it('mematikan master membatalkan jadwal tanpa menghapus pilihan jenis Pengingat', async () => {
-    setReminderSettings({
-      ...DEFAULT_REMINDER_SETTINGS,
-      remindersEnabled: true,
-      transactionReminderEnabled: true,
-    });
+  it('meminta izin notifikasi dari aksi eksplisit', async () => {
+    jest.mocked(getNotificationPermissionStatus).mockResolvedValue('undetermined');
     const { getByLabelText } = await render(
       <AppThemeProvider>
         <SettingsScreen />
       </AppThemeProvider>,
     );
 
-    await waitFor(() =>
-      expect(getByLabelText('Pengingat aktif').props.accessibilityState).toEqual(
-        expect.objectContaining({ checked: true }),
-      ),
-    );
-    await fireEvent.press(getByLabelText('Pengingat aktif'));
+    await waitFor(() => expect(getByLabelText('Izinkan notifikasi')).toBeTruthy());
+    await fireEvent.press(getByLabelText('Izinkan notifikasi'));
 
-    expect(cancelAllReminderNotifications).toHaveBeenCalledTimes(1);
-    expect(getByLabelText('Pengingat aktif').props.accessibilityState).toEqual(
-      expect.objectContaining({ checked: false }),
-    );
-    expect(getByLabelText('Catat transaksi harian').props.accessibilityState).toEqual(
-      expect.objectContaining({ checked: true }),
-    );
+    expect(requestNotificationPermission).toHaveBeenCalledTimes(1);
   });
 
   it('menampilkan aksi Settings perangkat saat izin notifikasi ditolak', async () => {

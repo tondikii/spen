@@ -67,30 +67,28 @@ describe('ReminderReconciler', () => {
     );
   });
 
-  it('hanya membatalkan jadwal saat Pengingat transaksi tidak aktif', async () => {
+  it('tetap menjadwalkan saat flag transaksi legacy mati', async () => {
     jest.mocked(getDatabaseSettings).mockResolvedValue({
       ...settings,
       transactionReminderEnabled: false,
     });
 
-    await expect(
-      reconcileTransactionReminders(database, new Date(2026, 8, 9, 19, 30)),
-    ).resolves.toEqual([]);
+    await reconcileTransactionReminders(database, new Date(2026, 8, 9, 19, 30));
+
     expect(cancelReminderNotification).toHaveBeenCalledTimes(1);
-    expect(scheduleReminderNotification).not.toHaveBeenCalled();
+    expect(scheduleReminderNotification).toHaveBeenCalledTimes(7);
   });
 
-  it('hanya membatalkan jadwal saat master toggle mati', async () => {
+  it('tetap menjadwalkan saat flag master legacy mati', async () => {
     jest.mocked(getDatabaseSettings).mockResolvedValue({
       ...settings,
       remindersEnabled: false,
     });
 
-    await expect(
-      reconcileTransactionReminders(database, new Date(2026, 8, 9, 19, 30)),
-    ).resolves.toEqual([]);
+    await reconcileTransactionReminders(database, new Date(2026, 8, 9, 19, 30));
+
     expect(cancelReminderNotification).toHaveBeenCalledTimes(1);
-    expect(scheduleReminderNotification).not.toHaveBeenCalled();
+    expect(scheduleReminderNotification).toHaveBeenCalledTimes(7);
   });
 
   it('tidak menjadwalkan saat izin native tidak tersedia', async () => {

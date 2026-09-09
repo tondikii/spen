@@ -80,12 +80,22 @@ describe('Goal reminder reconciler', () => {
     expect(plan).toHaveLength(1);
   });
 
-  it.each([
-    ['toggle mati', { goalReminderEnabled: false }],
-    ['Goal tercapai', null],
-  ])('tidak menjadwalkan ketika %s', async (_label, override) => {
-    if (override) jest.mocked(getDatabaseSettings).mockResolvedValue({ ...settings, ...override });
-    else jest.mocked(getGoalProgress).mockResolvedValue({ ...await getGoalProgress(database, goal), achieved: true });
+  it('tetap menjadwalkan ketika flag Goal legacy mati', async () => {
+    jest.mocked(getDatabaseSettings).mockResolvedValue({
+      ...settings,
+      goalReminderEnabled: false,
+    });
+
+    await reconcileGoalReminders(database, new Date(2026, 8, 10, 8, 0));
+
+    expect(scheduleReminderNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('tidak menjadwalkan Goal yang sudah tercapai', async () => {
+    jest.mocked(getGoalProgress).mockResolvedValue({
+      ...(await getGoalProgress(database, goal)),
+      achieved: true,
+    });
 
     await expect(
       reconcileGoalReminders(database, new Date(2026, 8, 10, 8, 0)),

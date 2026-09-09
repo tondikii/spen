@@ -21,7 +21,7 @@ export type ReminderPlan = {
 
 type TransactionReminderSettings = Pick<
   ReminderSettings,
-  'remindersEnabled' | 'transactionReminderEnabled' | 'transactionReminderTime'
+  'transactionReminderTime'
 >;
 
 export type TransactionReminderPlannerInput = {
@@ -43,8 +43,6 @@ export function planTransactionReminders({
   now = new Date(),
   locale,
 }: TransactionReminderPlannerInput): ReminderPlan[] {
-  if (!settings.remindersEnabled || !settings.transactionReminderEnabled) return [];
-
   const today = todayISO(now);
   const copy = resources[locale].translation.common;
   const transactionDates = new Set(transactions.map((transaction) => transaction.date));

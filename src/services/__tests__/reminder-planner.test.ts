@@ -71,12 +71,14 @@ describe('ReminderPlanner', () => {
     });
   });
 
-  it('tidak merencanakan apa pun saat Pengingat dinonaktifkan', () => {
-    expect(
-      planTransactionReminders({
-        ...baseInput,
-        settings: { ...baseInput.settings, remindersEnabled: false },
-      }),
-    ).toEqual([]);
+  it('merencanakan Pengingat berdasarkan waktu transaksi', () => {
+    const plan = planTransactionReminders({
+      ...baseInput,
+      settings: {
+        transactionReminderTime: baseInput.settings.transactionReminderTime,
+      },
+    });
+
+    expect(plan).toHaveLength(7);
   });
 });

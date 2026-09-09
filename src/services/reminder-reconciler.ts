@@ -30,7 +30,6 @@ export async function reconcileTransactionReminders(database: SQLiteDatabase, no
       .map((notification) => cancelReminderNotification(notification.identifier)),
   );
 
-  if (!settings.remindersEnabled || !settings.transactionReminderEnabled) return [];
   if ((await getNotificationPermissionStatus()) !== 'granted') return [];
 
   const transactions = await getDatabaseTransactions(database);
@@ -56,7 +55,6 @@ export async function reconcileBudgetPeriodReminders(database: SQLiteDatabase, n
       .map((notification) => cancelReminderNotification(notification.identifier)),
   );
 
-  if (!settings.remindersEnabled || !settings.periodReminderEnabled) return [];
   if ((await getNotificationPermissionStatus()) !== 'granted') return [];
 
   const period = await getDatabaseActiveBudgetPeriod(database, todayISO(now));
@@ -87,7 +85,6 @@ export async function reconcileGoalReminders(database: SQLiteDatabase, now = new
       .map((notification) => cancelReminderNotification(notification.identifier)),
   );
 
-  if (!settings.remindersEnabled || !settings.goalReminderEnabled) return [];
   if ((await getNotificationPermissionStatus()) !== 'granted') return [];
 
   const goals = await getDatabaseGoals(database);
