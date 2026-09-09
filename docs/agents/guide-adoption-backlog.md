@@ -24,12 +24,15 @@ Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · 
 
 ### Status malam 8 Sep
 ✅ **Selesai & isu ditutup**: T02 (#91), T03 (#84), T07 (#90), T09 (#85), T10 (#89), T11 (#88), T08 (#87). Tanpa isu: T12 (+not-found), T16 (CONTRIBUTING + release checklist), T17 (ADR typed routes), T21 (skeleton + provider, amandemen ADR-0009). D1 & D7 dikerjakan langsung (ADR-0010 + web locale).
-⬜ **Terbuka**: T01 (#81 — noUncheckedIndexedAccess dicoba, ~50 error; catatan lengkap di isu), T04 (#82), T05 (#83), T06 (#86). Wave 2 backlog: T13, T15, T18, T19 (butuh produk/hosting), T20 (butuh produk).
+⬜ **Terbuka**: T04 (#82), T05 (#83), T06 (#86). Wave 2 backlog: T13, T15, T18, T19 (butuh produk/hosting), T20 (butuh produk).
+
+### Lanjutan otomatis 9 Sep
+✅ **T01 (#81) selesai** — `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` aktif; `npm run verify` hijau (commit `2406480`, `06912d5`). Isu ditutup.
 
 ### Wave 0 — Baseline harian
 | ID | Tiket | Blocker | Status |
 |---|---|---|---|
-| T01 | tsconfig: `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` (bertahap; audit `undefined` ke prop opsional) | — | open (GH) |
+| T01 | tsconfig: `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` (bertahap; audit `undefined` ke prop opsional) | — | ✅ selesai & isu ditutup (9 Sep) |
 | T02 | Guard submit ganda + tangani rejection simpan di batas UI (`transaction-form`, `wallet-form`; pakai `useErrorToast`) | — | open (GH) |
 | T03 | Validasi route params eksplisit `(tabs)/create.tsx` (`amount` NaN, `categoryId`/`transactionId`) | — | open (GH) |
 | T04 | Pecah `src/types/domain.ts`: hapus legacy `@deprecated`, pindahkan tipe milik fitur, sisakan yang lintas | — | open (GH) |
@@ -67,7 +70,7 @@ Nomor GitHub: T01=#81 · T02=#91 · T03=#84 · T04=#82 · T05=#83 · T06=#86 · 
 ## Tidak dikerjakan otomatis semalam (alasan)
 - Uji perangkat nyata (a11y, smoke native) — butuh device/build.
 - Keputusan produk: enkripsi at-rest (T20), backend Groq (T19), kelayakan FlatList (butuh dataset nyata).
-- Refactor ekstraksi besar (T05) & flip tsconfig ketat (T01) — butuh review bertahap agar tak meninggalkan state rusak; dijadwalkan lanjut otomatis.
+- Refactor ekstraksi besar (T05) — butuh review bertahap agar tak meninggalkan state rusak; dijadwalkan lanjut otomatis. (T01 tsconfig ketat selesai 9 Sep.)
 
 ## Lanjutan otomatis
 Job cron satu-kali (durable) dijadwalkan untuk melanjutkan tiket open berikutnya saat sesi berikutnya terbuka. Bila job tak jalan (app tertutup), mulai sesi berikutnya dengan membaca dokumen ini lalu `gh issue list` untuk frontier.
