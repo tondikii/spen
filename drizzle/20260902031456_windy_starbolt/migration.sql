@@ -1,1 +1,0 @@
-ALTER TABLE `settings` ADD `budget_start_day` integer DEFAULT 1 NOT NULL;

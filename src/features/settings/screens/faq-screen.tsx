@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
-import { PageHeader } from '@/components/ui/ui-primitives';
+import { ScreenHeader } from '@/components/ui/screen-header';
 import { Fonts, Layout, Radius, Spacing, Typography } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getFaqEntries } from '../content/faq';
@@ -55,7 +55,7 @@ export default function FaqScreen({ onBack }: FaqScreenProps) {
             </Pressable>
 
             <View style={styles.header}>
-              <PageHeader eyebrow={t('common.faqEyebrow')} title={t('common.faq')} />
+              <ScreenHeader eyebrow={t('common.faqEyebrow')} title={t('common.faq')} />
               <ThemedText type="small" themeColor="muted" style={styles.subtitle}>
                 {t('common.faqSubtitle')}
               </ThemedText>

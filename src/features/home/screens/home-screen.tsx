@@ -7,10 +7,11 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { EmptyState } from '@/components/feedback/empty-state';
 import { FinanceHeroCard } from '@/components/ui/finance-hero-card';
 import { MotionPressable as Pressable, MotionScreen } from '@/components/ui/motion';
+import { ScreenHeader } from '@/components/ui/screen-header';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 import { TransactionRow } from '@/components/ui/transaction-row';
-import { BottomTabInset, Layout, MaxContentWidth, Spacing, Typography } from '@/theme';
+import { BottomTabInset, Layout, MaxContentWidth, Spacing } from '@/theme';
 import { useIntlLocale } from '@/hooks/use-locale';
 import { walletTotal } from '@/utils/domain/ledger';
 import type { Category, Transaction, Wallet } from '@/types/domain';
@@ -39,13 +40,7 @@ function HomeHeader({ today = new Date() }: { today?: Date }) {
   })
     .format(today)
     .toUpperCase();
-  return (
-    <View style={styles.header}>
-      <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-        {label}
-      </ThemedText>
-    </View>
-  );
+  return <ScreenHeader eyebrow={label} />;
 }
 
 function BalanceCard({
@@ -212,13 +207,6 @@ const styles = StyleSheet.create({
     paddingBottom: BottomTabInset + Spacing.four,
     gap: 0,
   },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  eyebrow: { ...Typography.eyebrow },
   balanceCard: { marginBottom: Layout.sectionGap },
   sectionTitle: {
     alignItems: 'center',

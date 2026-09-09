@@ -1,11 +1,19 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "d02bfb36-2096-454c-9d12-7f01b4fe1e88",
+  "id": "0da56c8a-187c-4dbb-8c3b-9021db291284",
   "prevIds": [
-    "0eb68400-fa89-46ac-9137-165a36c7e85e"
+    "00000000-0000-0000-0000-000000000000"
   ],
   "ddl": [
+    {
+      "name": "categories",
+      "entityType": "tables"
+    },
+    {
+      "name": "goals",
+      "entityType": "tables"
+    },
     {
       "name": "allocation_items",
       "entityType": "tables"
@@ -19,19 +27,11 @@
       "entityType": "tables"
     },
     {
-      "name": "categories",
-      "entityType": "tables"
-    },
-    {
       "name": "expense_items",
       "entityType": "tables"
     },
     {
       "name": "fixed_expense_items",
-      "entityType": "tables"
-    },
-    {
-      "name": "goals",
       "entityType": "tables"
     },
     {
@@ -49,6 +49,146 @@
     {
       "name": "wallets",
       "entityType": "tables"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "categories"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "categories"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "system_key",
+      "entityType": "columns",
+      "table": "categories"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "type",
+      "entityType": "columns",
+      "table": "categories"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "is_adjustment",
+      "entityType": "columns",
+      "table": "categories"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'◇'",
+      "generated": null,
+      "name": "icon",
+      "entityType": "columns",
+      "table": "categories"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "archived",
+      "entityType": "columns",
+      "table": "categories"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": true,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "target_amount",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "target_date",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "wallet_id",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "monthly_contribution",
+      "entityType": "columns",
+      "table": "goals"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "false",
+      "generated": null,
+      "name": "archived",
+      "entityType": "columns",
+      "table": "goals"
     },
     {
       "type": "integer",
@@ -168,66 +308,6 @@
       "generated": null,
       "name": "id",
       "entityType": "columns",
-      "table": "categories"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "name",
-      "entityType": "columns",
-      "table": "categories"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "type",
-      "entityType": "columns",
-      "table": "categories"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "false",
-      "generated": null,
-      "name": "is_adjustment",
-      "entityType": "columns",
-      "table": "categories"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "'◇'",
-      "generated": null,
-      "name": "icon",
-      "entityType": "columns",
-      "table": "categories"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "false",
-      "generated": null,
-      "name": "archived",
-      "entityType": "columns",
-      "table": "categories"
-    },
-    {
-      "type": "integer",
-      "notNull": false,
-      "autoincrement": true,
-      "default": null,
-      "generated": null,
-      "name": "id",
-      "entityType": "columns",
       "table": "expense_items"
     },
     {
@@ -338,76 +418,6 @@
       "generated": null,
       "name": "id",
       "entityType": "columns",
-      "table": "goals"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "name",
-      "entityType": "columns",
-      "table": "goals"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "target_amount",
-      "entityType": "columns",
-      "table": "goals"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "target_date",
-      "entityType": "columns",
-      "table": "goals"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "wallet_id",
-      "entityType": "columns",
-      "table": "goals"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "0",
-      "generated": null,
-      "name": "monthly_contribution",
-      "entityType": "columns",
-      "table": "goals"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "false",
-      "generated": null,
-      "name": "archived",
-      "entityType": "columns",
-      "table": "goals"
-    },
-    {
-      "type": "integer",
-      "notNull": false,
-      "autoincrement": true,
-      "default": null,
-      "generated": null,
-      "name": "id",
-      "entityType": "columns",
       "table": "income_items"
     },
     {
@@ -484,7 +494,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "'id'",
+      "default": "'en'",
       "generated": null,
       "name": "locale",
       "entityType": "columns",
@@ -613,6 +623,26 @@
     {
       "type": "integer",
       "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "source_income_item_id",
+      "entityType": "columns",
+      "table": "transactions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "source_expense_item_id",
+      "entityType": "columns",
+      "table": "transactions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
       "autoincrement": true,
       "default": null,
       "generated": null,
@@ -659,6 +689,21 @@
       "name": "archived",
       "entityType": "columns",
       "table": "wallets"
+    },
+    {
+      "columns": [
+        "wallet_id"
+      ],
+      "tableTo": "wallets",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "name": "fk_goals_wallet_id_wallets_id_fk",
+      "entityType": "fks",
+      "table": "goals"
     },
     {
       "columns": [
@@ -767,21 +812,6 @@
     },
     {
       "columns": [
-        "wallet_id"
-      ],
-      "tableTo": "wallets",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": false,
-      "name": "fk_goals_wallet_id_wallets_id_fk",
-      "entityType": "fks",
-      "table": "goals"
-    },
-    {
-      "columns": [
         "budget_plan_id"
       ],
       "tableTo": "budget_plans",
@@ -860,6 +890,24 @@
         "id"
       ],
       "nameExplicit": false,
+      "name": "categories_pk",
+      "table": "categories",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "goals_pk",
+      "table": "goals",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
       "name": "allocation_items_pk",
       "table": "allocation_items",
       "entityType": "pks"
@@ -887,15 +935,6 @@
         "id"
       ],
       "nameExplicit": false,
-      "name": "categories_pk",
-      "table": "categories",
-      "entityType": "pks"
-    },
-    {
-      "columns": [
-        "id"
-      ],
-      "nameExplicit": false,
       "name": "expense_items_pk",
       "table": "expense_items",
       "entityType": "pks"
@@ -907,15 +946,6 @@
       "nameExplicit": false,
       "name": "fixed_expense_items_pk",
       "table": "fixed_expense_items",
-      "entityType": "pks"
-    },
-    {
-      "columns": [
-        "id"
-      ],
-      "nameExplicit": false,
-      "name": "goals_pk",
-      "table": "goals",
       "entityType": "pks"
     },
     {
@@ -953,6 +983,20 @@
       "name": "wallets_pk",
       "table": "wallets",
       "entityType": "pks"
+    },
+    {
+      "columns": [
+        {
+          "value": "wallet_id",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "goals_wallet_idx",
+      "entityType": "indexes",
+      "table": "goals"
     },
     {
       "columns": [
@@ -1023,20 +1067,6 @@
       "name": "fixed_expense_items_plan_idx",
       "entityType": "indexes",
       "table": "fixed_expense_items"
-    },
-    {
-      "columns": [
-        {
-          "value": "wallet_id",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "goals_wallet_idx",
-      "entityType": "indexes",
-      "table": "goals"
     },
     {
       "columns": [

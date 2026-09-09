@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { Radius, Shadows, Spacing, Typography } from '@/theme';
+import { Radius, Shadows, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { ThemedText } from '@/components/ui/themed-text';
 import { MotionAnimatedView, MotionPressable, motionPresets } from '@/components/ui/motion';
+import { ScreenHeader } from '@/components/ui/screen-header';
 
+/** @deprecated Gunakan ScreenHeader langsung. Wrapper untuk kompatibilitas settings/faq. */
 export function PageHeader({
   eyebrow,
   title,
@@ -16,17 +18,11 @@ export function PageHeader({
   trailing?: ReactNode;
 }) {
   return (
-    <View style={styles.header}>
-      <View style={styles.headerCopy}>
-        {eyebrow && (
-          <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-            {eyebrow}
-          </ThemedText>
-        )}
-        <ThemedText type="title">{title}</ThemedText>
-      </View>
-      {trailing}
-    </View>
+    <ScreenHeader
+      title={title}
+      {...(eyebrow !== undefined ? { eyebrow } : {})}
+      {...(trailing !== undefined ? { trailing } : {})}
+    />
   );
 }
 
@@ -90,7 +86,6 @@ export function BoxedCard({
 const styles = StyleSheet.create({
   header: { alignItems: 'center', flexDirection: 'row', marginBottom: Spacing.four },
   headerCopy: { flex: 1, gap: Spacing.one },
-  eyebrow: Typography.eyebrow,
   primary: {
     alignItems: 'center',
     borderRadius: Radius.medium,

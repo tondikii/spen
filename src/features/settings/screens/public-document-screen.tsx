@@ -2,10 +2,11 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Head from 'expo-router/head';
 
+import { ScreenHeader } from '@/components/ui/screen-header';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 import { useTheme } from '@/hooks/use-theme';
-import { BottomTabInset, MaxContentWidth, Radius, Spacing, Typography } from '@/theme';
+import { BottomTabInset, MaxContentWidth, Radius, Spacing } from '@/theme';
 import type { PublicDocument } from '../content/public-documents';
 import { getLocalizedPublicDocument } from '../content/public-documents';
 import { MotionScreen } from '@/components/ui/motion';
@@ -31,12 +32,7 @@ export default function PublicDocumentScreen({ document }: { document: PublicDoc
         <SafeAreaView style={styles.safeArea}>
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.header}>
-              <ThemedText type="code" themeColor="muted" style={styles.eyebrow}>
-                {localizedDocument.eyebrow}
-              </ThemedText>
-              <ThemedText type="title" style={styles.title}>
-                {localizedDocument.title}
-              </ThemedText>
+              <ScreenHeader eyebrow={localizedDocument.eyebrow} title={localizedDocument.title} />
               <ThemedText type="default" themeColor="muted" style={styles.summary}>
                 {localizedDocument.summary}
               </ThemedText>
@@ -93,8 +89,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   header: { gap: Spacing.two, paddingBottom: Spacing.four, paddingTop: Spacing.three },
-  eyebrow: Typography.eyebrow,
-  title: { marginTop: Spacing.one },
   summary: { lineHeight: 23 },
   draftNotice: {
     borderRadius: Radius.medium,

@@ -4,11 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { MotionScreen } from '@/components/ui/motion';
+import { ScreenHeader } from '@/components/ui/screen-header';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
-import { PageHeader } from '@/components/ui/ui-primitives';
 import { useTheme } from '@/hooks/use-theme';
-import { BottomTabInset, Typography } from '@/theme';
+import { BottomTabInset } from '@/theme';
 import type { CurrencyCode, Locale } from '@/types/domain';
 
 import {
@@ -74,7 +74,7 @@ export default function SettingsScreen({
       <MotionScreen>
         <SafeAreaView style={styles.safeArea}>
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-            <PageHeader eyebrow={t('common.settings').toUpperCase()} title={t('common.settings')} />
+            <ScreenHeader title={t('common.settings')} style={styles.settingsHeader} />
             <AppearanceSection busy={busy} />
             <PreferencesSection
               currency={currency}
@@ -142,8 +142,9 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     width: '100%',
   },
-  header: { marginBottom: 26, marginTop: 4 },
-  eyebrow: { marginBottom: 4, ...Typography.eyebrow },
+  settingsHeader: {
+    marginBottom: 4,
+  },
   toast: {
     alignSelf: 'center',
     borderRadius: 12,

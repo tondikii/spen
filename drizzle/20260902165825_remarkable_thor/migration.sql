@@ -1,1 +1,0 @@
-ALTER TABLE `transactions` ADD `admin_fee` integer DEFAULT 0 NOT NULL;
