@@ -21,11 +21,16 @@ import {
 import { DataState } from '@/components/screen-skeleton';
 import useAppDatabase from '@/hooks/use-app-database';
 import { useFocusedRead } from '@/hooks/use-focused-read';
+import { reconcileBudgetPeriodReminders } from '@/services/reminder-reconciler';
 
 export default function PlanRoute() {
   const { t } = useTranslation();
   const database = useAppDatabase();
-  const read = useCallback(() => getBudgetGoalOverview(database), [database]);
+  const read = useCallback(async () => {
+    const result = await getBudgetGoalOverview(database);
+    void reconcileBudgetPeriodReminders(database).catch(() => undefined);
+    return result;
+  }, [database]);
   const { data, error, retry } = useFocusedRead(read, t('common.planLoadError'));
   const load = async () => retry();
   const planView = data?.[0] ?? null;
@@ -58,6 +63,7 @@ export default function PlanRoute() {
       onCategorySave={(category) => saveDatabaseCategory(database, category)}
       onPeriodStartDayChange={async (day) => {
         await setBudgetPeriodStartDay(database, day);
+        await reconcileBudgetPeriodReminders(database).catch(() => undefined);
         await load();
       }}
       onPlanItemSave={async (item, draft) => {

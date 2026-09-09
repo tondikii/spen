@@ -30,7 +30,11 @@ import {
   addNotificationResponseListener,
   consumeLastNotificationResponseData,
 } from '@/services/notification-service';
-import { reconcileTransactionReminders } from '@/services/reminder-reconciler';
+import {
+  reconcileBudgetPeriodReminders,
+  reconcileTransactionReminders,
+} from '@/services/reminder-reconciler';
+import { getReminderRoute } from '@/services/reminder-navigation';
 
 function AppNavigation({ initialSetupComplete }: { initialSetupComplete: boolean }) {
   const { colorScheme } = useAppTheme();
@@ -65,11 +69,12 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
 
   useEffect(() => {
     const handleResponse = (data: Record<string, unknown>) => {
-      if (data.reminderKind !== 'transaction-daily' || data.route !== '/create') return;
+      const route = getReminderRoute(data);
+      if (!route) return;
       const reminderId = typeof data.reminderId === 'string' ? data.reminderId : null;
       if (reminderId && handledReminderRef.current === reminderId) return;
       handledReminderRef.current = reminderId;
-      router.push('/create' as never);
+      router.push(route as never);
     };
     const subscription = addNotificationResponseListener(handleResponse);
     void consumeLastNotificationResponseData()
@@ -94,6 +99,7 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
         await changeLocale(settings.locale);
         setThemeMode(settings.themeMode as 'system' | 'light' | 'dark');
         void reconcileTransactionReminders(sqlite).catch(() => undefined);
+        void reconcileBudgetPeriodReminders(sqlite).catch(() => undefined);
         if (!cancelled) {
           setSetupComplete(setup.hasWallet);
           setSeeded(true);
