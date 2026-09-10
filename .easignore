@@ -43,11 +43,6 @@ secrets/
 # typescript
 *.tsbuildinfo
 
-example
-
-# local ticket scratch
-.scratch/
-
 # generated native folders
 /ios
 /android
@@ -84,3 +79,13 @@ scripts/reset-project.js
 .eslint-out.txt
 .tsc-out.txt
 .tsc-done
+
+# Config tooling dev-only — tidak dipakai saat build cloud
+.env.example
+.prettierignore
+.prettierrc.json
+eslint.config.js
+jest.config.js
+jest.setup.js
+drizzle.config.ts
+skills-lock.json
