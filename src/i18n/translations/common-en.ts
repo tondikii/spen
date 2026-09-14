@@ -235,7 +235,6 @@ export const commonEn: typeof commonId = {
   nextReportHint: 'Shows the summary of the next period',
   applyPeriod: 'Apply',
   periodPreview: 'Period preview',
-  shortMonthNote: 'The date will use the last day in shorter months.',
   rebasePeriodTitle: 'Change Budget period?',
   rebasePeriodCopy:
     'The old period stays saved. A new empty Plan starts, and the transition may overlap briefly.',

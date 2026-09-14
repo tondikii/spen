@@ -1,5 +1,6 @@
 import { useContext, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaInsetsContext, SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
@@ -202,7 +203,7 @@ export function TransactionForm({
             onPress={onClose}
             style={styles.headerButton}
           >
-            <ThemedText style={styles.close}>×</ThemedText>
+            <Ionicons name="close" size={24} color={theme.ink} />
           </Pressable>
           <ThemedText type="sectionHeading">
             {mode === 'edit' ? t('common.edit') : t('common.addTransaction')}
@@ -213,12 +214,17 @@ export function TransactionForm({
               mode === 'edit' ? t('common.saveChanges') : t('common.saveTransaction')
             }
             accessibilityState={{ busy: saving, disabled: saving }}
+            disabled={saving}
             onPress={submit}
-            style={styles.headerButton}
+            style={[styles.headerButton, styles.saveButton, { borderColor: theme.line }]}
           >
-            <ThemedText type="smallBold" themeColor="pine">
-              {t('common.save')}
-            </ThemedText>
+            {saving ? (
+              <ActivityIndicator size="small" color={theme.pine} />
+            ) : (
+              <ThemedText type="smallBold" themeColor="pine">
+                {t('common.save')}
+              </ThemedText>
+            )}
           </Pressable>
         </View>
         <TransactionFormContent
@@ -268,11 +274,11 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   header: {
     alignItems: 'center',
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     height: 65,
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   headerButton: {
     alignItems: 'center',
@@ -280,5 +286,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minWidth: 64,
   },
-  close: { fontSize: 28, lineHeight: 32 },
+  saveButton: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 15, paddingHorizontal: 12 },
 });

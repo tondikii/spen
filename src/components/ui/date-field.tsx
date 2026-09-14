@@ -22,12 +22,14 @@ export function DateField({
   onSelect,
   minDate,
   maxDate,
+  variant = 'card',
   style,
 }: {
   date: string;
   onSelect: (candidate: string) => void;
   minDate?: string | undefined;
   maxDate?: string | undefined;
+  variant?: 'card' | 'underline' | undefined;
   style?: StyleProp<ViewStyle>;
 }) {
   const theme = useTheme();
@@ -45,7 +47,14 @@ export function DateField({
           if (!calendarOpen) setCalendarMonth(date.slice(0, 7));
           setCalendarOpen((open) => !open);
         }}
-        style={[styles.dateButton, { borderColor: theme.line, backgroundColor: theme.card }, style]}
+        style={[
+          styles.dateButton,
+          variant === 'card'
+            ? { borderColor: theme.line, backgroundColor: theme.card }
+            : { borderBottomColor: theme.line },
+          variant === 'underline' && styles.underline,
+          style,
+        ]}
       >
         <CategoryIcon name="calendar-month-outline" color={theme.pine} size={19} />
         <ThemedText type="smallBold" style={styles.dateButtonText}>
@@ -85,4 +94,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   dateButtonText: { flex: 1 },
+  underline: {
+    borderBottomWidth: 1,
+    borderRadius: 0,
+    borderWidth: 0,
+    paddingHorizontal: 0,
+  },
 });

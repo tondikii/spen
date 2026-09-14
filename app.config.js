@@ -1,7 +1,7 @@
 // Konfigurasi dinamis: application ID/bundle identifier berbeda per profile
-// EAS (tiket T13) supaya build development/preview/production bisa dipasang
-// berdampingan. Nilai lokal (tanpa EAS_BUILD_PROFILE) memakai variant
-// production — identik dengan app.json sebelumnya.
+// EAS agar build development/preview/production bisa dipasang berdampingan.
+// APP_VARIANT diatur eksplisit oleh masing-masing profile EAS. Nilai lokal
+// memakai production agar identik dengan rilis Play Store.
 const VARIANTS = {
   development: {
     name: 'Spen Dev',
@@ -20,7 +20,7 @@ const VARIANTS = {
   },
 };
 
-const variant = VARIANTS[process.env.EAS_BUILD_PROFILE] ?? VARIANTS.production;
+const variant = VARIANTS[process.env.APP_VARIANT] ?? VARIANTS.production;
 
 module.exports = {
   expo: {
@@ -61,10 +61,6 @@ module.exports = {
           image: './assets/spen/splash-icon.png',
           imageWidth: 200,
           backgroundColor: '#F6F5F0',
-          dark: {
-            image: './assets/spen/splash-icon.png',
-            backgroundColor: '#12231F',
-          },
         },
       ],
     ],

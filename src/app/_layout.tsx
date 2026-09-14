@@ -1,5 +1,6 @@
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { DMMono_400Regular, DMMono_500Medium } from '@expo-google-fonts/dm-mono';
 import {
   Fraunces_500Medium,
@@ -12,16 +13,15 @@ import {
   NunitoSans_600SemiBold,
   NunitoSans_700Bold,
 } from '@expo-google-fonts/nunito-sans';
-import { StyleSheet, View } from 'react-native';
 
 import AppRuntime from '@/providers/app-runtime';
-import { SpenSplash } from '@/components/ui/brand-assets';
 
 // Keep the native splash visible until fonts and the selected runtime are ready.
 void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
+    ...Ionicons.font,
     DMMono_400Regular,
     DMMono_500Medium,
     Fraunces_500Medium,
@@ -33,15 +33,9 @@ export default function RootLayout() {
     NunitoSans_700Bold,
   });
 
-  if (!fontsLoaded && !fontError)
-    return (
-      <View style={styles.splash}>
-        <SpenSplash />
-      </View>
-    );
+  // The native splash remains above this empty root until AppRuntime has its
+  // first real screen ready. Rendering another JS splash here causes a visible
+  // duplicate splash during cold starts.
+  if (!fontsLoaded && !fontError) return null;
   return <AppRuntime />;
 }
-
-const styles = StyleSheet.create({
-  splash: { backgroundColor: '#F6F5F0', flex: 1 },
-});

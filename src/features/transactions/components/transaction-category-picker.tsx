@@ -162,6 +162,7 @@ export function TransactionCategoryPicker({
       {categoryEditorOpen && (
         <TransactionCategoryEditor
           editing={editingCategoryId !== null}
+          type={type}
           name={categoryName}
           icon={categoryIcon}
           saving={categorySaving}

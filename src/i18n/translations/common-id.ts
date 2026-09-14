@@ -234,7 +234,6 @@ export const commonId = {
   nextReportHint: 'Menampilkan ringkasan periode berikutnya',
   applyPeriod: 'Terapkan',
   periodPreview: 'Preview periode',
-  shortMonthNote: 'Tanggal akan menyesuaikan hari terakhir bulan pendek.',
   rebasePeriodTitle: 'Ubah Periode Anggaran?',
   rebasePeriodCopy:
     'Periode lama tetap tersimpan. Rencana baru dimulai kosong dan rentangnya bisa bertumpang tindih saat transisi.',

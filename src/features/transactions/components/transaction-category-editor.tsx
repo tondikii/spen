@@ -9,9 +9,14 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { Fonts, Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { chunk } from '@/utils/array';
+import type { TransactionType } from '@/types/domain';
+
+const ICON_COLUMNS = 6;
+const ICON_CELL_WIDTH = 39;
 
 type TransactionCategoryEditorProps = {
   editing: boolean;
+  type: TransactionType;
   name: string;
   icon: string;
   saving: boolean;
@@ -28,6 +33,7 @@ type TransactionCategoryEditorProps = {
  */
 export function TransactionCategoryEditor({
   editing,
+  type,
   name,
   icon,
   saving,
@@ -38,7 +44,7 @@ export function TransactionCategoryEditor({
 }: TransactionCategoryEditorProps) {
   const theme = useTheme();
   const { t } = useTranslation();
-  const iconRows = useMemo(() => chunk(CATEGORY_ICON_CHOICES, 5), []);
+  const iconRows = useMemo(() => chunk(CATEGORY_ICON_CHOICES, ICON_COLUMNS), []);
 
   return (
     <View style={[styles.categoryEditor, { borderColor: theme.line, backgroundColor: theme.card }]}>
@@ -89,7 +95,11 @@ export function TransactionCategoryEditor({
                   },
                 ]}
               >
-                <CategoryIcon name={choice} color={theme.pine} size={21} />
+                <CategoryIcon
+                  name={choice}
+                  color={type === 'income' ? theme.income : theme.expense}
+                  size={21}
+                />
               </Pressable>
             ))}
           </View>
@@ -158,7 +168,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
   },
-  iconCell: { flex: 1, minWidth: 0 },
+  iconCell: { width: ICON_CELL_WIDTH },
   saveCategoryButton: {
     alignItems: 'center',
     borderRadius: Radius.medium,

@@ -8,7 +8,6 @@ import { drizzle } from 'drizzle-orm/expo-sqlite';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 
 import { AppThemeProvider, useAppTheme } from '@/providers/theme-provider';
-import { SpenSplash } from '@/components/ui/brand-assets';
 import { getSetupState } from '@/features/setup';
 import { getDatabaseSettings, setDatabaseThemeMode } from '@/features/settings';
 import { setSelectedCurrency, setSelectedLocale } from '@/utils/selection';
@@ -44,7 +43,6 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
   const { success, error } = useMigrations(database, migrations);
   const [seeded, setSeeded] = useState(false);
   const [themeMode, setThemeMode] = useState<'system' | 'light' | 'dark'>('light');
-  const [startupSplash, setStartupSplash] = useState(true);
   const handledReminderRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -105,18 +103,11 @@ function DatabaseGate({ onFatalError }: { onFatalError: () => void }) {
     }
     if (!success || !seeded) return;
     void SplashScreen.hideAsync();
-    const timer = setTimeout(() => setStartupSplash(false), 900);
-    return () => {
-      clearTimeout(timer);
-    };
   }, [error, onFatalError, seeded, success]);
 
-  if (!success || !seeded || startupSplash)
-    return (
-      <View style={styles.splash}>
-        <SpenSplash />
-      </View>
-    );
+  // Keep the native splash above the app until the database and locale are
+  // ready. This avoids a second, JS-rendered splash or an intermediate screen.
+  if (!success || !seeded) return null;
   return (
     <AppThemeProvider
       initialMode={themeMode}
@@ -176,7 +167,6 @@ export default function AppRuntime() {
 }
 
 const styles = StyleSheet.create({
-  splash: { backgroundColor: '#F6F5F0', flex: 1 },
   error: {
     alignItems: 'center',
     backgroundColor: '#F6F5F0',

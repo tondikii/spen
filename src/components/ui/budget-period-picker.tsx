@@ -2,18 +2,18 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, StyleSheet, View } from 'react-native';
 
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import {
   MotionAnimatedView,
   MotionChevron,
   MotionPressable,
   motionPresets,
 } from '@/components/ui/motion';
-import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { ThemedText } from '@/components/ui/themed-text';
-import { Radius, Spacing } from '@/theme';
 import { useTheme } from '@/hooks/use-theme';
 import i18n from '@/i18n';
 import { getIntlLocale } from '@/i18n/format';
+import { Radius, Spacing } from '@/theme';
 import { todayISO } from '@/utils/date';
 import { periodBounds } from '@/utils/domain/period';
 
@@ -76,9 +76,6 @@ export function BudgetPeriodPicker({
             <ThemedText type="sectionHeading">{t('common.periodPreview')}</ThemedText>
             <ThemedText type="small" themeColor="muted">
               {formatBudgetPeriodLabel(previewPeriod(pendingDay), pendingDay)}
-            </ThemedText>
-            <ThemedText type="small" themeColor="muted">
-              {t('common.shortMonthNote')}
             </ThemedText>
             <View style={styles.grid}>
               {startDayOptions.map((day) => (

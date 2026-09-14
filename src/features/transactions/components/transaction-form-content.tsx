@@ -97,7 +97,6 @@ export function TransactionFormContent({
         contentContainerStyle={[styles.content, { paddingBottom: 40 + bottomInset }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
-        automaticallyAdjustKeyboardInsets
       >
         {saveError && (
           <View
@@ -110,51 +109,53 @@ export function TransactionFormContent({
           </View>
         )}
         <TransactionTypeTabs effectiveType={effectiveType} onChangeType={onChangeType} />
-        {type === 'transfer' ? (
-          <TransactionTransferFields
-            wallets={wallets}
-            walletId={walletId}
-            onWalletChange={onWalletChange}
-            toWalletId={toWalletId}
-            onToWalletChange={onToWalletChange}
-            lockedToWalletId={lockedToWalletId}
-            adminFee={adminFee}
-            onAdminFeeChange={onAdminFeeChange}
-          />
-        ) : (
-          <>
-            <FieldLabel>{t('common.wallet')}</FieldLabel>
-            <WalletPicker wallets={wallets} selected={walletId} onSelect={onWalletChange} />
-            <TransactionCategoryPicker
-              type={type}
-              categories={categories}
-              onCategoriesChange={onCategoriesChange}
-              selectedId={categoryId}
-              onSelect={onCategorySelect}
-              internalCategory={internalCategory}
-              onSaveCategory={onSaveCategory}
-              onArchiveCategory={onArchiveCategory}
+        <View style={[styles.amountSection, { borderBottomColor: theme.line }]}>
+          <FieldLabel>
+            {type === 'transfer' ? t('common.transferAmount') : t('common.nominal')}
+          </FieldLabel>
+          <View style={styles.moneyInputRow}>
+            <CurrencyMark />
+            <ThemedInput
+              accessibilityLabel={t('common.transactionAmount')}
+              keyboardType="numeric"
+              placeholder="0"
+              placeholderTextColor={theme.muted}
+              value={amount}
+              onChangeText={(value) => onAmountChange(formatMoneyInput(value))}
+              style={[styles.amountInput, styles.moneyInput, { color: theme.ink }]}
             />
-          </>
-        )}
-        <FieldLabel>
-          {type === 'transfer' ? t('common.transferAmount') : t('common.nominal')}
-        </FieldLabel>
-        <View style={styles.moneyInputRow}>
-          <CurrencyMark />
-          <ThemedInput
-            accessibilityLabel={t('common.transactionAmount')}
-            keyboardType="numeric"
-            placeholder="0"
-            placeholderTextColor={theme.muted}
-            value={amount}
-            onChangeText={(value) => onAmountChange(formatMoneyInput(value))}
-            style={[
-              styles.amountInput,
-              styles.moneyInput,
-              { borderBottomColor: theme.line, color: theme.ink },
-            ]}
-          />
+          </View>
+        </View>
+        <View style={styles.selectionSection}>
+          {type === 'transfer' ? (
+            <TransactionTransferFields
+              wallets={wallets}
+              walletId={walletId}
+              onWalletChange={onWalletChange}
+              toWalletId={toWalletId}
+              onToWalletChange={onToWalletChange}
+              lockedToWalletId={lockedToWalletId}
+              adminFee={adminFee}
+              onAdminFeeChange={onAdminFeeChange}
+            />
+          ) : (
+            <>
+              <View style={styles.fieldGroup}>
+                <FieldLabel>{t('common.wallet')}</FieldLabel>
+                <WalletPicker wallets={wallets} selected={walletId} onSelect={onWalletChange} />
+              </View>
+              <TransactionCategoryPicker
+                type={type}
+                categories={categories}
+                onCategoriesChange={onCategoriesChange}
+                selectedId={categoryId}
+                onSelect={onCategorySelect}
+                internalCategory={internalCategory}
+                onSaveCategory={onSaveCategory}
+                onArchiveCategory={onArchiveCategory}
+              />
+            </>
+          )}
         </View>
         {overBudget && (
           <View
@@ -176,22 +177,28 @@ export function TransactionFormContent({
             </ThemedText>
           </View>
         )}
-        <FieldLabel>{t('common.transactionDate')}</FieldLabel>
-        <DateField date={date} onSelect={onDateChange} maxDate={today} />
-        <FieldLabel>
-          {t('common.notes')}{' '}
-          <ThemedText type="small" themeColor="muted">
-            ({t('common.optional')})
-          </ThemedText>
-        </FieldLabel>
-        <ThemedInput
-          accessibilityLabel={t('common.transactionNote')}
-          placeholder={t('common.transactionNotePlaceholder')}
-          placeholderTextColor={theme.muted}
-          value={note}
-          onChangeText={onNoteChange}
-          style={[styles.input, { borderBottomColor: theme.line, color: theme.ink }]}
-        />
+        <View style={styles.detailSection}>
+          <View style={styles.fieldGroup}>
+            <FieldLabel>{t('common.transactionDate')}</FieldLabel>
+            <DateField date={date} onSelect={onDateChange} maxDate={today} variant="underline" />
+          </View>
+          <View style={styles.fieldGroup}>
+            <FieldLabel>
+              {t('common.notes')}{' '}
+              <ThemedText type="small" themeColor="muted">
+                ({t('common.optional')})
+              </ThemedText>
+            </FieldLabel>
+            <ThemedInput
+              accessibilityLabel={t('common.transactionNote')}
+              placeholder={t('common.transactionNotePlaceholder')}
+              placeholderTextColor={theme.muted}
+              value={note}
+              onChangeText={onNoteChange}
+              style={[styles.input, { borderBottomColor: theme.line, color: theme.ink }]}
+            />
+          </View>
+        </View>
         {mode === 'edit' && (
           <Pressable
             accessibilityRole="button"
@@ -212,19 +219,28 @@ export function TransactionFormContent({
 const styles = StyleSheet.create({
   body: { flex: 1 },
   content: {
-    gap: Spacing.two,
+    gap: Spacing.four,
     paddingHorizontal: 21,
     paddingTop: 24,
     paddingBottom: 40,
   },
   amountInput: {
-    borderBottomWidth: 1,
+    borderBottomWidth: 0,
     fontFamily: Fonts.serif,
-    fontSize: 29,
-    lineHeight: 34,
-    minHeight: 57,
+    fontSize: 36,
+    lineHeight: 44,
+    minHeight: 64,
     paddingHorizontal: 0,
   },
+  amountSection: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingBottom: Spacing.four,
+    marginBottom: 0,
+    gap: Spacing.two,
+  },
+  detailSection: { gap: Spacing.four },
+  fieldGroup: { gap: Spacing.two },
+  selectionSection: { gap: Spacing.two },
   warning: { borderRadius: 12, padding: 10 },
   input: {
     borderBottomWidth: 1,
