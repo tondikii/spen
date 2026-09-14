@@ -3,8 +3,10 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import i18n from '@/i18n';
 import { AppError } from '@/utils/app-error';
 import { todayISO, isValidTransactionDate } from '@/utils/date';
-import { createWallet } from '@/features/wallet';
-import { createGoal } from '@/features/goal';
+// eslint-disable-next-line no-restricted-imports -- break require cycle plan -> wallet barrel
+import { createWallet } from '@/features/wallet/data/wallet-repository';
+// eslint-disable-next-line no-restricted-imports -- break require cycle plan -> goal barrel
+import { createGoal } from '@/features/goal/data/goal-repository';
 import { SYSTEM_CATEGORY_NAMES } from '@/utils/domain/constants';
 import type { BudgetSuggestion } from '@/lib/ai-service';
 import type { BudgetPlan, BudgetPlanItem } from '../model';

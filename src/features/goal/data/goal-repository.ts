@@ -5,8 +5,10 @@ import { AppError } from '@/utils/app-error';
 import { todayISO } from '@/utils/date';
 import { parseRequiredPrefixedId, withExclusiveWrite } from '@/lib/db-helpers';
 import { SYSTEM_CATEGORY_NAMES } from '@/utils/domain/constants';
-import { getDatabaseTransaction } from '@/features/transactions';
-import { getWallet, getWallets } from '@/features/wallet';
+// eslint-disable-next-line no-restricted-imports -- break require cycle goal -> transactions -> goal
+import { getDatabaseTransaction } from '@/features/transactions/data/transaction-repository';
+// eslint-disable-next-line no-restricted-imports -- break require cycle via wallet barrel
+import { getWallet, getWallets } from '@/features/wallet/data/wallet-repository';
 import type { Goal, GoalProgress, Transaction, Wallet } from '@/types/domain';
 import type { GoalRow } from '@/types/db-rows';
 

@@ -120,6 +120,8 @@ function AppTabs() {
       {/* Nested screens: not items in the persistent tab bar. */}
       <Tabs.Screen name="home/daily" options={{ href: null }} />
       <Tabs.Screen name="settings/faq" options={{ href: null }} />
+      <Tabs.Screen name="settings/terms" options={{ href: null }} />
+      <Tabs.Screen name="settings/privacy" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -18,7 +18,7 @@ import { useAppTheme } from '@/providers/theme-provider';
 import { useTheme } from '@/hooks/use-theme';
 import type { CurrencyCode, Locale } from '@/types/domain';
 
-import { getPublicDocumentUrl } from '../content/public-documents';
+import type { PublicDocumentPath } from '../content/public-documents';
 import { ActionRow, SettingRow } from './settings-rows';
 
 export function AppearanceSection({ busy }: { busy: boolean }) {
@@ -170,9 +170,11 @@ export function DataSection({
 export function HelpSection({
   onFaqPress,
   onOpenLink,
+  onOpenDocument,
 }: {
   onFaqPress: () => void;
   onOpenLink: (url: string) => void;
+  onOpenDocument: (path: PublicDocumentPath) => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -202,7 +204,7 @@ export function HelpSection({
           title={t('common.terms')}
           detail={t('common.readTerms')}
           onPress={() => {
-            onOpenLink(getPublicDocumentUrl('/terms'));
+            onOpenDocument('/terms');
           }}
         />
         <ActionRow
@@ -210,7 +212,7 @@ export function HelpSection({
           title={t('common.privacy')}
           detail={t('common.readPrivacy')}
           onPress={() => {
-            onOpenLink(getPublicDocumentUrl('/privacy'));
+            onOpenDocument('/privacy');
           }}
         />
       </BoxedCard>

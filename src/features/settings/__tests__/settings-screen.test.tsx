@@ -1,5 +1,4 @@
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
-import * as Linking from 'expo-linking';
 import { useState } from 'react';
 
 import { SettingsScreen } from '@/features/settings';
@@ -12,11 +11,13 @@ import {
   setSelectedLocale,
 } from '@/utils/selection';
 import type { CurrencyCode, Locale } from '@/types/domain';
+import type { PublicDocumentPath } from '@/features/settings';
 
 type HarnessOverrides = {
   onCurrencyChange?: (option: CurrencyCode) => void | Promise<void>;
   onLocaleChange?: (option: Locale) => void | Promise<void>;
   onOpenLink?: (url: string) => void | Promise<void>;
+  onOpenDocument?: (path: PublicDocumentPath) => void;
   onFaqPress?: () => void;
 };
 
@@ -25,6 +26,7 @@ function SettingsScreenHarness({
   onCurrencyChange,
   onLocaleChange,
   onOpenLink,
+  onOpenDocument,
   onFaqPress,
 }: HarnessOverrides) {
   const [currency, setCurrency] = useState(getSelectedCurrency());
@@ -50,6 +52,7 @@ function SettingsScreenHarness({
       onOpenLink={async (url) => {
         await onOpenLink?.(url);
       }}
+      onOpenDocument={onOpenDocument ?? (() => undefined)}
       onFaqPress={onFaqPress ?? (() => undefined)}
     />
   );
@@ -109,39 +112,14 @@ describe('SettingsScreen', () => {
     expect(onFaqPress).toHaveBeenCalledTimes(1);
   });
 
-  it('membuka dokumen legal di origin web yang dikonfigurasi', async () => {
-    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
-    const { getByLabelText } = await renderScreen({
-      onOpenLink: async (url) => {
-        await Linking.openURL(url);
-      },
-    });
+  it('meneruskan aksi dokumen legal ke navigasi screen baru', async () => {
+    const onOpenDocument = jest.fn();
+    const { getByLabelText } = await renderScreen({ onOpenDocument });
 
     await fireEvent.press(getByLabelText('Syarat & Ketentuan'));
     await fireEvent.press(getByLabelText('Kebijakan Privasi'));
 
-    await waitFor(() => {
-      expect(openURL).toHaveBeenNthCalledWith(1, 'http://10.89.182.246:8081/terms');
-      expect(openURL).toHaveBeenNthCalledWith(2, 'http://10.89.182.246:8081/privacy');
-    });
-  });
-
-  it('membaca origin web dari environment variable', async () => {
-    const previousWebUrl = process.env.EXPO_PUBLIC_WEB_URL;
-    process.env.EXPO_PUBLIC_WEB_URL = 'https://spen.app/';
-    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
-
-    try {
-      const { getByLabelText } = await renderScreen({
-        onOpenLink: async (url) => {
-          await Linking.openURL(url);
-        },
-      });
-      await fireEvent.press(getByLabelText('Syarat & Ketentuan'));
-      await waitFor(() => expect(openURL).toHaveBeenCalledWith('https://spen.app/terms'));
-    } finally {
-      if (previousWebUrl === undefined) delete process.env.EXPO_PUBLIC_WEB_URL;
-      else process.env.EXPO_PUBLIC_WEB_URL = previousWebUrl;
-    }
+    expect(onOpenDocument).toHaveBeenNthCalledWith(1, '/terms');
+    expect(onOpenDocument).toHaveBeenNthCalledWith(2, '/privacy');
   });
 });

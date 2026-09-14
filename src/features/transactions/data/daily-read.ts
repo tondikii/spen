@@ -4,7 +4,8 @@ import {
   getDatabaseTransactionCategories,
   getDatabaseTransactionsInMonth,
 } from './transaction-repository';
-import { getWallets } from '@/features/wallet';
+// eslint-disable-next-line no-restricted-imports -- break require cycle via wallet barrel
+import { getWallets } from '@/features/wallet/data/wallet-repository';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
 export type DailyView = {

@@ -13,6 +13,7 @@ import {
   setDatabaseLocale,
   shareBackupFile,
 } from '@/features/settings';
+import type { PublicDocumentPath } from '@/features/settings';
 import { changeLocale } from '@/i18n';
 import useAppDatabase from '@/providers/database-provider';
 import {
@@ -80,6 +81,9 @@ export default function SettingsRoute() {
   const openLink = async (url: string) => {
     await Linking.openURL(url);
   };
+  const openDocument = (path: PublicDocumentPath) => {
+    router.push(path === '/terms' ? '/settings/terms' : '/settings/privacy');
+  };
 
   return (
     <SettingsScreen
@@ -91,6 +95,7 @@ export default function SettingsRoute() {
       onPickRestore={pickBackupContent}
       onConfirmRestore={runRestore}
       onOpenLink={openLink}
+      onOpenDocument={openDocument}
       onFaqPress={() => router.push('/settings/faq')}
     />
   );

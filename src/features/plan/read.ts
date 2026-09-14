@@ -11,11 +11,13 @@ import { periodFromRow } from '@/utils/domain/period';
 import { todayISO } from '@/utils/date';
 import i18n from '@/i18n';
 import { ensureActiveBudgetPlan } from './data/plan-repository';
+// eslint-disable-next-line no-restricted-imports -- break require cycle plan -> transactions barrel
 import {
   getDatabaseTransactionCategories,
   getDatabaseTransactionsBetween,
-} from '@/features/transactions';
-import { getWallets } from '@/features/wallet';
+} from '@/features/transactions/data/transaction-repository';
+// eslint-disable-next-line no-restricted-imports -- break require cycle via wallet barrel
+import { getWallets } from '@/features/wallet/data/wallet-repository';
 import type {
   AllocationItem,
   BudgetPlan,

@@ -1,13 +1,15 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { parsePrefixedId } from '@/lib/db-helpers';
-import { ensureActiveBudgetPlan } from '@/features/plan';
+// eslint-disable-next-line no-restricted-imports -- break require cycle transactions -> plan -> transactions
+import { ensureActiveBudgetPlan } from '@/features/plan/data/plan-period';
 import {
   getDatabaseIncomeTransactions,
   getDatabaseTransaction,
   getDatabaseTransactionCategories,
 } from './transaction-repository';
-import { getWallets } from '@/features/wallet';
+// eslint-disable-next-line no-restricted-imports -- break require cycle via wallet barrel
+import { getWallets } from '@/features/wallet/data/wallet-repository';
 import type { Category, Transaction, Wallet } from '@/types/domain';
 
 export type TransactionEntryView = {

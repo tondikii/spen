@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { saveToGoal } from '@/features/goal';
+// eslint-disable-next-line no-restricted-imports -- break require cycle transactions -> goal -> transactions
+import { saveToGoal } from '@/features/goal/data/goal-repository';
 import {
   archiveDatabaseCategory,
   deleteDatabaseTransaction,

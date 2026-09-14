@@ -1,4 +1,4 @@
-export const DEFAULT_WEB_URL = 'http://10.89.182.246:8081';
+export const DEFAULT_WEB_URL = 'https://spen-4jf.pages.dev';
 
 export type PublicDocumentPath = '/terms' | '/privacy';
 

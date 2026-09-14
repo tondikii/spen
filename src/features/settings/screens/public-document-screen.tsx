@@ -6,13 +6,19 @@ import { ScreenHeader } from '@/components/ui/screen-header';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 import { useTheme } from '@/hooks/use-theme';
-import { BottomTabInset, MaxContentWidth, Radius, Spacing } from '@/theme';
+import { BottomTabInset, Fonts, MaxContentWidth, Radius, Spacing } from '@/theme';
 import type { PublicDocument } from '../content/public-documents';
 import { getLocalizedPublicDocument } from '../content/public-documents';
-import { MotionScreen } from '@/components/ui/motion';
+import { MotionPressable as Pressable, MotionScreen } from '@/components/ui/motion';
 import { useTranslation } from 'react-i18next';
 
-export default function PublicDocumentScreen({ document }: { document: PublicDocument }) {
+export default function PublicDocumentScreen({
+  document,
+  onBack,
+}: {
+  document: PublicDocument;
+  onBack?: () => void;
+}) {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const localizedDocument = getLocalizedPublicDocument(
@@ -31,6 +37,22 @@ export default function PublicDocumentScreen({ document }: { document: PublicDoc
       <MotionScreen>
         <SafeAreaView style={styles.safeArea}>
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+            {onBack ? (
+              <Pressable
+                accessibilityLabel={t('common.back')}
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={onBack}
+                style={({ pressed }) => [styles.back, pressed && styles.pressed]}
+              >
+                <ThemedText style={styles.backIcon} themeColor="pine">
+                  ‹
+                </ThemedText>
+                <ThemedText type="smallBold" themeColor="pine">
+                  {t('common.back')}
+                </ThemedText>
+              </Pressable>
+            ) : null}
             <View style={styles.header}>
               <ScreenHeader eyebrow={localizedDocument.eyebrow} title={localizedDocument.title} />
               <ThemedText type="default" themeColor="muted" style={styles.summary}>
@@ -89,6 +111,15 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   header: { gap: Spacing.two, paddingBottom: Spacing.four, paddingTop: Spacing.three },
+  back: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    gap: Spacing.one,
+    minHeight: 32,
+  },
+  backIcon: { fontFamily: Fonts.sans, fontSize: 28, lineHeight: 28 },
+  pressed: { opacity: 0.7 },
   summary: { lineHeight: 23 },
   draftNotice: {
     borderRadius: Radius.medium,

@@ -9,6 +9,7 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 import { useTheme } from '@/hooks/use-theme';
 import { BottomTabInset } from '@/theme';
+import type { PublicDocumentPath } from '../content/public-documents';
 import type { CurrencyCode, Locale } from '@/types/domain';
 
 import {
@@ -29,6 +30,7 @@ export type SettingsScreenProps = {
   onPickRestore: () => Promise<RestorePick | null>;
   onConfirmRestore: (content: string) => void | Promise<void>;
   onOpenLink: (url: string) => void | Promise<void>;
+  onOpenDocument: (path: PublicDocumentPath) => void;
   onFaqPress: () => void;
 };
 
@@ -40,6 +42,7 @@ export default function SettingsScreen({
   onCurrencyChange,
   onFaqPress,
   onLocaleChange,
+  onOpenDocument,
   onOpenLink,
   onPickRestore,
 }: SettingsScreenProps) {
@@ -97,6 +100,7 @@ export default function SettingsScreen({
             />
             <HelpSection
               onFaqPress={onFaqPress}
+              onOpenDocument={onOpenDocument}
               onOpenLink={(url) => {
                 void openLink(url);
               }}
